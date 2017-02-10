@@ -200,7 +200,7 @@ EOF
 	test_cmp expect actual
 '
 
-test_expect_failure 'rev-parse --shared-index-path' '
+test_expect_success 'rev-parse --shared-index-path' '
 	rm -rf .git &&
 	test_create_repo . &&
 	git update-index --split-index &&
