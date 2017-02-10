@@ -2205,6 +2205,7 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 	read_from_stdin = 0;
 	for (left = i = 1; i < argc; i++) {
 		const char *arg = argv[i];
+		int handle_rev_arg_called = 0, args;
 		if (*arg == '-') {
 			int opts;
 
@@ -2234,11 +2235,18 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 			}
 			if (opts < 0)
 				exit(128);
-			continue;
+
+			args = handle_revision_arg(arg, revs, flags, revarg_opt);
+			handle_rev_arg_called = 1;
+			if (args)
+				continue;
+			else
+				--left;
 		}
 
 
-		if (handle_revision_arg(arg, revs, flags, revarg_opt)) {
+		if ((handle_rev_arg_called && args) ||
+				handle_revision_arg(arg, revs, flags, revarg_opt)) {
 			int j;
 			if (seen_dashdash || *arg == '^')
 				die("bad revision '%s'", arg);
