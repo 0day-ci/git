@@ -2203,6 +2203,8 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 	read_from_stdin = 0;
 	for (left = i = 1; i < argc; i++) {
 		const char *arg = argv[i];
+		int maybe_opt = 0;
+
 		if (*arg == '-') {
 			int opts;
 
@@ -2232,13 +2234,20 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 			}
 			if (opts < 0)
 				exit(128);
-			/* arg looks like an opt but something we do not recognise. */
-			argv[left++] = arg;
-			continue;
+			/*
+			 * arg looks like an opt but something we do not recognise.
+			 * It may be a rev that begins with a dash; fall through to
+			 * let handle_revision_arg() have a say in this.
+			 */
+			maybe_opt = 1;
 		}
 
 		if (!handle_revision_arg(arg, revs, flags, revarg_opt)) {
 			got_rev_arg = 1;
+		} else if (maybe_opt) {
+			/* it turns out that it is not a rev after all */
+			argv[left++] = arg;
+			continue;
 		} else {
 			int j;
 			if (seen_dashdash || *arg == '^')
