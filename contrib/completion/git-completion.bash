@@ -1059,7 +1059,10 @@ _git_bundle ()
 
 _git_checkout ()
 {
-	__git_has_doubledash && return
+	__git_has_doubledash && {
+		__git_complete_index_file "--modified"
+		return
+	}
 
 	case "$cur" in
 	--conflict=*)
