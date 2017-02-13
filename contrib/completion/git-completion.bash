@@ -535,9 +535,9 @@ __git_complete_remote_or_refspec ()
 {
 	local cur_="$cur" cmd="${words[1]}"
 	local i c=2 remote="" pfx="" lhs=1 no_complete_refspec=0
-	if [ "$cmd" = "remote" ]; then
-		((c++))
-	fi
+	case "$cmd" in
+	remote|subtree) ((c++)) ;;
+	esac
 	while [ $c -lt $cword ]; do
 		i="${words[c]}"
 		case "$i" in
@@ -586,7 +586,7 @@ __git_complete_remote_or_refspec ()
 			__gitcomp_nl "$(__git_refs)" "$pfx" "$cur_"
 		fi
 		;;
-	pull|remote)
+	pull|remote|subtree)
 		if [ $lhs = 1 ]; then
 			__gitcomp_nl "$(__git_refs "$remote")" "$pfx" "$cur_"
 		else
@@ -2567,6 +2567,33 @@ _git_submodule ()
 		esac
 		return
 	fi
+}
+
+_git_subtree ()
+{
+	local subcommands="add merge pull push split"
+	local subcommand="$(__git_find_on_cmdline "$subcommands")"
+	if [ -z "$subcommand" ]; then
+		__gitcomp "$subcommands"
+		return
+	fi
+	case "$subcommand,$cur" in
+	add,--*|merge,--*|pull,--*)
+		__gitcomp "--prefix= --squash --message="
+		;;
+	push,--*)
+		__gitcomp "--prefix="
+		;;
+	split,--*)
+		__gitcomp "
+			--annotate= --branch= --ignore-joins
+			--onto= --prefix= --rejoin
+			"
+		;;
+	add,*|push,*|pull,*)
+		__git_complete_remote_or_refspec
+		;;
+	esac
 }
 
 _git_svn ()
