@@ -175,7 +175,7 @@ static int remove_dirs(struct strbuf *path, const char *prefix, int force_flag,
 		res = dry_run ? 0 : rmdir(path->buf);
 		if (res) {
 			quote_path_relative(path->buf, prefix, &quoted);
-			warning(_(msg_warn_remove_failed), quoted.buf);
+			warning_errno(_(msg_warn_remove_failed), quoted.buf);
 			*dir_gone = 0;
 		}
 		return res;
@@ -209,7 +209,7 @@ static int remove_dirs(struct strbuf *path, const char *prefix, int force_flag,
 				string_list_append(&dels, quoted.buf);
 			} else {
 				quote_path_relative(path->buf, prefix, &quoted);
-				warning(_(msg_warn_remove_failed), quoted.buf);
+				warning_errno(_(msg_warn_remove_failed), quoted.buf);
 				*dir_gone = 0;
 				ret = 1;
 			}
@@ -231,7 +231,7 @@ static int remove_dirs(struct strbuf *path, const char *prefix, int force_flag,
 			*dir_gone = 1;
 		else {
 			quote_path_relative(path->buf, prefix, &quoted);
-			warning(_(msg_warn_remove_failed), quoted.buf);
+			warning_errno(_(msg_warn_remove_failed), quoted.buf);
 			*dir_gone = 0;
 			ret = 1;
 		}
@@ -982,7 +982,7 @@ int cmd_clean(int argc, const char **argv, const char *prefix)
 			res = dry_run ? 0 : unlink(abs_path.buf);
 			if (res) {
 				qname = quote_path_relative(item->string, NULL, &buf);
-				warning(_(msg_warn_remove_failed), qname);
+				warning_errno(_(msg_warn_remove_failed), qname);
 				errors++;
 			} else if (!quiet) {
 				qname = quote_path_relative(item->string, NULL, &buf);
