@@ -990,7 +990,10 @@ test_expect_success 'grep --no-index pattern -- path' '
 		export GIT_CEILING_DIRECTORIES &&
 		cd non/git &&
 		echo hello >hello &&
-		git grep --no-index o -- .
+		echo goodbye >goodbye &&
+		echo hello:hello >expect &&
+		git grep --no-index o -- hello >actual &&
+		test_cmp expect actual
 	)
 '
 
