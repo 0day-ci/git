@@ -1068,7 +1068,7 @@ _git_bundle ()
 
 _git_checkout ()
 {
-	__git_has_doubledash && return
+	local i c=2 ref="" seen_double_dash=""
 
 	case "$cur" in
 	--conflict=*)
@@ -1081,13 +1081,36 @@ _git_checkout ()
 			"
 		;;
 	*)
-		# check if --track, --no-track, or --no-guess was specified
-		# if so, disable DWIM mode
-		local flags="--track --no-track --no-guess" track=1
-		if [ -n "$(__git_find_on_cmdline "$flags")" ]; then
-			track=''
-		fi
-		__gitcomp_nl "$(__git_refs '' $track)"
+		while [ $c -lt $cword ]; do
+			i="${words[c]}"
+			case "$i" in
+			--) seen_double_dash=1 ;;
+			-*|?*:*) ;;
+			*) ref="$i"; break ;;
+			esac
+			((c++))
+		done
+
+		case "$ref,$seen_double_dash,$cur" in
+		,,*:*)
+		    __git_complete_revlist_file
+		    ;;
+		,,*)
+			# check for --track, --no-track, or --no-guess
+			# if so, disable DWIM mode
+			local flags="--track --no-track --no-guess" track=1
+			if [ -n "$(__git_find_on_cmdline "$flags")" ]; then
+				track=''
+			fi
+			__gitcomp_nl "$(__git_refs '' $track)"
+			;;
+		,1,*|@,*|HEAD,*)
+			__git_complete_index_file "--modified"
+			;;
+		*)
+			__git_complete_tree_file "$ref" "$cur"
+			;;
+		esac
 		;;
 	esac
 }
