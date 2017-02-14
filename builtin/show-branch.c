@@ -470,17 +470,14 @@ static void snarf_refs(int head, int remotes)
 	}
 }
 
-static int rev_is_head(char *head, char *name,
+static int rev_is_head(const char *head, const char *name,
 		       unsigned char *head_sha1, unsigned char *sha1)
 {
 	if (!head || (head_sha1 && sha1 && hashcmp(head_sha1, sha1)))
 		return 0;
-	if (starts_with(head, "refs/heads/"))
-		head += 11;
-	if (starts_with(name, "refs/heads/"))
-		name += 11;
-	else if (starts_with(name, "heads/"))
-		name += 6;
+	skip_prefix(head, "refs/heads/", &head);
+	if (!skip_prefix(name, "refs/heads/", &name))
+		skip_prefix(name, "heads/", &name);
 	return !strcmp(head, name);
 }
 
@@ -799,8 +796,9 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 				has_head++;
 		}
 		if (!has_head) {
-			int offset = starts_with(head, "refs/heads/") ? 11 : 0;
-			append_one_rev(head + offset);
+			const char *name = head;
+			skip_prefix(name, "refs/heads/", &name);
+			append_one_rev(name);
 		}
 	}
 
