@@ -620,7 +620,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 	int all_heads = 0, all_remotes = 0;
 	int all_mask, all_revs;
 	enum rev_sort_order sort_order = REV_SORT_IN_GRAPH_ORDER;
-	char head[128];
+	char *head_cpy;
 	const char *head_p;
 	int head_len;
 	struct object_id head_oid;
@@ -791,11 +791,11 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 				    head_oid.hash, NULL);
 	if (head_p) {
 		head_len = strlen(head_p);
-		memcpy(head, head_p, head_len + 1);
+		head_cpy = xstrdup(head_p);
 	}
 	else {
 		head_len = 0;
-		head[0] = 0;
+		head_cpy = xstrdup("");
 	}
 
 	if (with_current_branch && head_p) {
@@ -804,15 +804,15 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			/* We are only interested in adding the branch
 			 * HEAD points at.
 			 */
-			if (rev_is_head(head,
+			if (rev_is_head(head_cpy,
 					head_len,
 					ref_name[i],
 					head_oid.hash, NULL))
 				has_head++;
 		}
 		if (!has_head) {
-			int offset = starts_with(head, "refs/heads/") ? 11 : 0;
-			append_one_rev(head + offset);
+			int offset = starts_with(head_cpy, "refs/heads/") ? 11 : 0;
+			append_one_rev(head_cpy + offset);
 		}
 	}
 
@@ -865,7 +865,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 	if (1 < num_rev || extra < 0) {
 		for (i = 0; i < num_rev; i++) {
 			int j;
-			int is_head = rev_is_head(head,
+			int is_head = rev_is_head(head_cpy,
 						  head_len,
 						  ref_name[i],
 						  head_oid.hash,
