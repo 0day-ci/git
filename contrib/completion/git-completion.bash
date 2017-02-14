@@ -442,6 +442,46 @@ __git_compute_merge_strategies ()
 	__git_merge_strategies=$(__git_list_merge_strategies)
 }
 
+# __git_complete_tree_file requires 2 argument:
+# 1: the the tree-like to look at for completion
+# 2: the path component to complete
+__git_complete_tree_file ()
+{
+	local pfx ls ref="$1" cur_="$2"
+	case "$cur_" in
+	?*/*)
+		pfx="${cur_%/*}"
+		cur_="${cur_##*/}"
+		ls="$ref:$pfx"
+		pfx="$pfx/"
+		;;
+	*)
+		ls="$ref"
+		;;
+	esac
+
+	case "$COMP_WORDBREAKS" in
+	*:*) : great ;;
+	*)   pfx="$ref:$pfx" ;;
+	esac
+
+	__gitcomp_nl "$(git --git-dir="$(__gitdir)" ls-tree "$ls" 2>/dev/null \
+				| sed '/^100... blob /{
+						   s,^.*	,,
+						   s,$, ,
+					   }
+					   /^120000 blob /{
+						   s,^.*	,,
+						   s,$, ,
+					   }
+					   /^040000 tree /{
+						   s,^.*	,,
+						   s,$,/,
+					   }
+					   s/^.*	//')" \
+				"$pfx" "$cur_" ""
+}
+
 __git_complete_revlist_file ()
 {
 	local pfx ls ref cur_="$cur"
@@ -452,38 +492,7 @@ __git_complete_revlist_file ()
 	?*:*)
 		ref="${cur_%%:*}"
 		cur_="${cur_#*:}"
-		case "$cur_" in
-		?*/*)
-			pfx="${cur_%/*}"
-			cur_="${cur_##*/}"
-			ls="$ref:$pfx"
-			pfx="$pfx/"
-			;;
-		*)
-			ls="$ref"
-			;;
-		esac
-
-		case "$COMP_WORDBREAKS" in
-		*:*) : great ;;
-		*)   pfx="$ref:$pfx" ;;
-		esac
-
-		__gitcomp_nl "$(git --git-dir="$(__gitdir)" ls-tree "$ls" 2>/dev/null \
-				| sed '/^100... blob /{
-				           s,^.*	,,
-				           s,$, ,
-				       }
-				       /^120000 blob /{
-				           s,^.*	,,
-				           s,$, ,
-				       }
-				       /^040000 tree /{
-				           s,^.*	,,
-				           s,$,/,
-				       }
-				       s/^.*	//')" \
-			"$pfx" "$cur_" ""
+		__git_complete_tree_file "$ref" "$cur_"
 		;;
 	*...*)
 		pfx="${cur_%...*}..."
