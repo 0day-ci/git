@@ -201,6 +201,26 @@ void git_config_push_parameter(const char *text)
 	strbuf_release(&env);
 }
 
+/*
+ * downcase the <section> and <variable> in <section>.<variable> or
+ * <section>.<subsection>.<variable> and do so in place.  <subsection>
+ * is left intact.
+ */
+static void canonicalize_config_variable_name(char *varname)
+{
+	char *dot, *cp;
+
+	dot = strchr(varname, '.');
+	if (dot)
+		for (cp = varname; cp < dot; cp++)
+			*cp = tolower(*cp);
+	dot = strrchr(varname, '.');
+	if (dot)
+		for (cp = dot + 1; *cp; cp++)
+			*cp = tolower(*cp);
+}
+
+
 int git_config_parse_parameter(const char *text,
 			       config_fn_t fn, void *data)
 {
@@ -223,7 +243,7 @@ int git_config_parse_parameter(const char *text,
 		strbuf_list_free(pair);
 		return error("bogus config parameter: %s", text);
 	}
-	strbuf_tolower(pair[0]);
+	canonicalize_config_variable_name(pair[0]->buf);
 	if (fn(pair[0]->buf, value, data) < 0) {
 		strbuf_list_free(pair);
 		return -1;
