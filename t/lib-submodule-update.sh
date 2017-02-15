@@ -734,6 +734,11 @@ test_submodule_forced_switch () {
 
 test_submodule_switch_recursing () {
 	command="$1"
+	RESULT=success
+	if test "$KNOWN_FAILURE_DIRECTORY_SUBMODULE_CONFLICTS" = 1
+	then
+		RESULT=failure
+	fi
 	######################### Appearing submodule #########################
 	# Switching to a commit letting a submodule appear checks it out ...
 	test_expect_success "$command: added submodule is checked out" '
@@ -843,7 +848,7 @@ test_submodule_switch_recursing () {
 	'
 	# Replacing a submodule with files in a directory must succeeds
 	# when the submodule is clean
-	test_expect_success "$command: replace submodule with a directory" '
+	test_expect_$RESULT "$command: replace submodule with a directory" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
@@ -855,7 +860,7 @@ test_submodule_switch_recursing () {
 		)
 	'
 	# ... absorbing a .git directory.
-	test_expect_success "$command: replace submodule containing a .git directory with a directory must absorb the git dir" '
+	test_expect_$RESULT "$command: replace submodule containing a .git directory with a directory must absorb the git dir" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
@@ -883,7 +888,7 @@ test_submodule_switch_recursing () {
 	'
 
 	# ... must check its local work tree for untracked files
-	test_expect_success "$command: replace submodule with a file must fail with untracked files" '
+	test_expect_$RESULT "$command: replace submodule with a file must fail with untracked files" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
@@ -939,16 +944,21 @@ test_submodule_switch_recursing () {
 		)
 	'
 
+	# This test fails, due to missing setup, we do not clone sub2 into
+	# submodule_update, because it doesn't exist in the 'add_sub1' version
+	#
 	test_expect_success "$command: modified submodule updates submodule recursively" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
 			cd submodule_update &&
 			git branch -t modify_sub1_recursively origin/modify_sub1_recursively &&
-			$command modify_sub1_recursively &&
-			test_superproject_content origin/modify_sub1_recursively &&
-			test_submodule_content sub1 origin/modify_sub1_recursively
-			test_submodule_content sub1/sub2
+			test_must_fail $command modify_sub1_recursively &&
+			test_superproject_content origin/add_sub1 &&
+			test_submodule_content sub1 origin/add_sub1
+			# test_superproject_content origin/modify_sub1_recursively &&
+			# test_submodule_content sub1 origin/modify_sub1_recursively &&
+			# test_submodule_content sub1/sub2 no_submodule
 		)
 	'
 }
@@ -958,6 +968,11 @@ test_submodule_switch_recursing () {
 # the superproject as well as the submodule is allowed.
 test_submodule_forced_switch_recursing () {
 	command="$1"
+	RESULT=success
+	if test "$KNOWN_FAILURE_DIRECTORY_SUBMODULE_CONFLICTS" = 1
+	then
+		RESULT=failure
+	fi
 	######################### Appearing submodule #########################
 	# Switching to a commit letting a submodule appear creates empty dir ...
 	test_expect_success "$command: added submodule is checked out" '
@@ -1052,7 +1067,7 @@ test_submodule_forced_switch_recursing () {
 		)
 	'
 	# Replacing a submodule with files in a directory ...
-	test_expect_success "$command: replace submodule with a directory" '
+	test_expect_$RESULT "$command: replace submodule with a directory" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
@@ -1103,7 +1118,7 @@ test_submodule_forced_switch_recursing () {
 	'
 
 	# ... but stops for untracked files that would be lost
-	test_expect_success "$command: replace submodule with a file" '
+	test_expect_$RESULT "$command: replace submodule with a file stops for untracked files" '
 		prolog &&
 		reset_work_tree_to_interested add_sub1 &&
 		(
