@@ -1116,5 +1116,39 @@ test_expect_success 'submodule helper list is not confused by common prefixes' '
 	test_cmp expect actual
 '
 
+test_expect_success 'submodule config does not apply to upper case submodules' '
+	test_when_finished "rm -rf super lowersub clone-success clone-failure" &&
+	mkdir lowersub &&
+	(
+		cd lowersub &&
+		git init &&
+		>t &&
+		git add t &&
+		git commit -m "initial commit lowersub"
+	) &&
+	mkdir UPPERSUB &&
+	(
+		cd UPPERSUB &&
+		git init &&
+		>t &&
+		git add t &&
+		git commit -m "initial commit UPPERSUB"
+	) &&
+	mkdir super &&
+	(
+		cd super &&
+		git init &&
+		>t &&
+		git add t &&
+		git commit -m "initial commit super" &&
+		git submodule add ../lowersub &&
+		git submodule add ../UPPERSUB &&
+		git commit -m "add submodules"
+	) &&
+	git -c submodule.lowersub.update=none clone --recursive super clone-success 2>&1 |
+		grep "Skipping submodule" &&
+	git -c submodule.UPPERSUB.update=none clone --recursive super clone-failure 2>&1 |
+		grep "Skipping submodule"
+'
 
 test_done
