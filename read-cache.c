@@ -18,6 +18,7 @@
 #include "varint.h"
 #include "split-index.h"
 #include "utf8.h"
+#include "submodule.h"
 
 /* Mask for the name length in ce_flags in the on-disk index */
 
@@ -532,6 +533,8 @@ void remove_marked_cache_entries(struct index_state *istate)
 
 	for (i = j = 0; i < istate->cache_nr; i++) {
 		if (ce_array[i]->ce_flags & CE_REMOVE) {
+			if (is_interesting_submodule(ce_array[i]))
+				submodule_go_from_to(ce_array[i]->name, "HEAD", NULL, 0, 1);
 			remove_name_hash(istate, ce_array[i]);
 			save_or_free_index_entry(istate, ce_array[i]);
 		}
