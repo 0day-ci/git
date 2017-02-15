@@ -2735,6 +2735,8 @@ void connect_work_tree_and_git_dir(const char *work_tree_, const char *git_dir_)
 
 	/* Update gitfile */
 	strbuf_addf(&file_name, "%s/.git", work_tree);
+	if (safe_create_leading_directories_const(file_name.buf))
+		fprintf(stderr, "could not create directories for %s\n", file_name.buf);
 	write_file(file_name.buf, "gitdir: %s",
 		   relative_path(git_dir, work_tree, &rel_path));
 
