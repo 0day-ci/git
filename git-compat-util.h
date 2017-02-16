@@ -888,6 +888,9 @@ static inline size_t xsize_t(off_t len)
 	return (size_t)len;
 }
 
+__attribute__((format (printf, 1, 2)))
+extern char *git_psprintf(const char *fmt, ...);
+
 __attribute__((format (printf, 3, 4)))
 extern int xsnprintf(char *dst, size_t max, const char *fmt, ...);
 

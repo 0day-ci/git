@@ -635,6 +635,25 @@ char *xgetcwd(void)
 	return strbuf_detach(&sb, NULL);
 }
 
+char *git_psprintf(const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+	char *dst;
+
+	va_start(ap, fmt);
+	len = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	dst = xmallocz(len);
+
+	va_start(ap, fmt);
+	vsprintf(dst, fmt, ap);
+	va_end(ap);
+
+	return dst;
+}
+
 int xsnprintf(char *dst, size_t max, const char *fmt, ...)
 {
 	va_list ap;
