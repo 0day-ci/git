@@ -435,7 +435,7 @@ int cmd_update_ref(int argc, const char **argv, const char *prefix)
 		 */
 		return delete_ref(refname,
 				  (oldval && !is_null_sha1(oldsha1)) ? oldsha1 : NULL,
-				  flags, NULL);
+				  flags, msg);
 	else
 		return update_ref(msg, refname, sha1, oldval ? oldsha1 : NULL,
 				  flags | create_reflog_flag,

@@ -85,6 +85,15 @@ test_expect_success "delete $m (by HEAD)" '
 '
 rm -f .git/$m
 
+test_expect_success "deleting current branch adds message to HEAD's log" '
+	git update-ref $m $A &&
+	git symbolic-ref HEAD $m &&
+	git update-ref -mdelmsg -d $m &&
+	! test -f .git/$m &&
+	grep "delmsg$" .git/logs/HEAD >/dev/null
+'
+rm -f .git/$m
+
 test_expect_success 'update-ref does not create reflogs by default' '
 	test_when_finished "git update-ref -d $outside" &&
 	git update-ref $outside $A &&
