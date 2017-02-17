@@ -277,7 +277,7 @@ int reflog_exists(const char *refname);
  * be NULL_SHA1. flags is passed through to ref_transaction_delete().
  */
 int delete_ref(const char *refname, const unsigned char *old_sha1,
-	       unsigned int flags);
+	       unsigned int flags, const char *msg);
 
 /*
  * Delete the specified references. If there are any problems, emit
