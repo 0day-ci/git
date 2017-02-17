@@ -139,6 +139,10 @@ test_expect_success 'git branch -M baz bam should succeed when baz is checked ou
 	test $(git rev-parse --abbrev-ref HEAD) = bam
 '
 
+test_expect_success 'git branch -M baz bam should add entry to .git/logs/HEAD' '
+	grep "Deleted refs/heads/baz$" .git/logs/HEAD >/dev/null
+'
+
 test_expect_success 'git branch -M baz bam should succeed when baz is checked out as linked working tree' '
 	git checkout master &&
 	git worktree add -b baz bazdir &&

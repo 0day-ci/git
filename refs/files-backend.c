@@ -2598,6 +2598,7 @@ static int files_rename_ref(struct ref_store *ref_store,
 	struct stat loginfo;
 	int log = !lstat(git_path("logs/%s", oldrefname), &loginfo);
 	struct strbuf err = STRBUF_INIT;
+	struct strbuf logmsg_del = STRBUF_INIT;
 
 	if (log && S_ISLNK(loginfo.st_mode))
 		return error("reflog for %s is a symlink", oldrefname);
@@ -2616,10 +2617,15 @@ static int files_rename_ref(struct ref_store *ref_store,
 		return error("unable to move logfile logs/%s to "TMP_RENAMED_LOG": %s",
 			oldrefname, strerror(errno));
 
-	if (delete_ref(oldrefname, orig_sha1, REF_NODEREF, NULL)) {
+	strbuf_addf(&logmsg_del, "Deleted %s", oldrefname);
+
+	if (delete_ref(oldrefname, orig_sha1, REF_NODEREF, logmsg_del.buf)) {
 		error("unable to delete old %s", oldrefname);
+		strbuf_release(&logmsg_del);
 		goto rollback;
 	}
+	strbuf_release(&logmsg_del);
+
 
 	/*
 	 * Since we are doing a shallow lookup, sha1 is not the
