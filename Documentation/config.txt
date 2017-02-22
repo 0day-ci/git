@@ -1742,7 +1742,8 @@ http.emptyAuth::
 	Attempt authentication without seeking a username or password.  This
 	can be used to attempt GSS-Negotiate authentication without specifying
 	a username in the URL, as libcurl normally requires a username for
-	authentication.
+	authentication.  Default is true, since if this fails, git will fall
+	back to asking the user for their username/password.
 
 http.delegation::
 	Control GSSAPI credential delegation. The delegation is disabled
