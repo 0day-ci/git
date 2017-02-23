@@ -21,8 +21,6 @@
 #ifndef UBC_CHECK_H
 #define UBC_CHECK_H
 
-#include <stdint.h>
-
 #define DVMASKSIZE 1
 typedef struct { int dvType; int dvK; int dvB; int testt; int maski; int maskb; uint32_t dm[80]; } dv_info_t;
 extern dv_info_t sha1_dvs[];

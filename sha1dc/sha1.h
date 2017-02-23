@@ -5,8 +5,6 @@
 * https://opensource.org/licenses/MIT
 ***/
 
-#include <stdint.h>
-
 // uses SHA-1 message expansion to expand the first 16 words of W[] to 80 words
 void sha1_message_expansion(uint32_t W[80]);
 

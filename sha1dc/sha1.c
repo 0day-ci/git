@@ -5,12 +5,9 @@
 * https://opensource.org/licenses/MIT
 ***/
 
-#include <string.h>
-#include <memory.h>
-#include <stdio.h>
-
-#include "sha1.h"
-#include "ubc_check.h"
+#include "git-compat-util.h"
+#include "sha1dc/sha1.h"
+#include "sha1dc/ubc_check.h"
 
 #define rotate_right(x,n) (((x)>>(n))|((x)<<(32-(n))))
 #define rotate_left(x,n)  (((x)<<(n))|((x)>>(32-(n))))
