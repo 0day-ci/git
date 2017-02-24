@@ -188,6 +188,56 @@ test_expect_success '--recurse-submodules and pathspecs' '
 	test_cmp expect actual
 '
 
+test_expect_failure '--recurse-submodules and relative paths' '
+	# From top works
+	cat >expect <<-\EOF &&
+	.gitmodules
+	a
+	b/b
+	h.txt
+	sib/file
+	sub/file
+	submodule/.gitmodules
+	submodule/c
+	submodule/f.TXT
+	submodule/g.txt
+	submodule/subsub/d
+	submodule/subsub/e.txt
+	EOF
+	git ls-files --recurse-submodules >actual &&
+	test_cmp expect actual &&
+
+	# Relative path to top errors out
+	cat >expect <<-\EOF &&
+	../.gitmodules
+	../a
+	b
+	../h.txt
+	../sib/file
+	../sub/file
+	../submodule/.gitmodules
+	../submodule/c
+	../submodule/f.TXT
+	../submodule/g.txt
+	../submodule/subsub/d
+	../submodule/subsub/e.txt
+	EOF
+	git -C b ls-files --recurse-submodules -- .. >actual &&
+	test_cmp expect actual &&
+
+	# Relative path to submodule errors out
+	cat >expect <<-\EOF &&
+	../submodule/.gitmodules
+	../submodule/c
+	../submodule/f.TXT
+	../submodule/g.txt
+	../submodule/subsub/d
+	../submodule/subsub/e.txt
+	EOF
+	git -C b ls-files --recurse-submodules -- ../submodule >actual &&
+	test_cmp expect actual
+'
+
 test_expect_success '--recurse-submodules does not support --error-unmatch' '
 	test_must_fail git ls-files --recurse-submodules --error-unmatch 2>actual &&
 	test_i18ngrep "does not support --error-unmatch" actual
