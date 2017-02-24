@@ -353,7 +353,7 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	if (pathspec_prefix >= 0) {
 		match = xstrdup(copyfrom);
 		prefixlen = pathspec_prefix;
-	} else if (magic & PATHSPEC_FROMTOP) {
+	} else if ((magic & PATHSPEC_FROMTOP) || (flags & PATHSPEC_FROMROOT)) {
 		match = xstrdup(copyfrom);
 		prefixlen = 0;
 	} else {

@@ -66,6 +66,8 @@ struct pathspec {
  * allowed, then it will automatically set for every pathspec.
  */
 #define PATHSPEC_LITERAL_PATH (1<<8)
+/* For callers that know all paths are relative to the root of the repository */
+#define PATHSPEC_FROMROOT (1<<9)
 
 extern void parse_pathspec(struct pathspec *pathspec,
 			   unsigned magic_mask,
