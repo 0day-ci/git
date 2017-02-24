@@ -194,12 +194,15 @@ static void compile_submodule_options(const struct dir_struct *dir, int show_tag
 static void show_gitlink(const struct cache_entry *ce)
 {
 	struct child_process cp = CHILD_PROCESS_INIT;
+	struct strbuf name = STRBUF_INIT;
 	int status;
 	int i;
 
+	quote_path_relative(ce->name, prefix, &name);
 	argv_array_pushf(&cp.args, "--super-prefix=%s%s/",
 			 super_prefix ? super_prefix : "",
-			 ce->name);
+			 name.buf);
+	strbuf_release(&name);
 	argv_array_push(&cp.args, "ls-files");
 	argv_array_push(&cp.args, "--recurse-submodules");
 
@@ -617,7 +620,8 @@ int cmd_ls_files(int argc, const char **argv, const char *cmd_prefix)
 
 	parse_pathspec(&pathspec, 0,
 		       PATHSPEC_PREFER_CWD |
-		       PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP,
+		       PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP |
+		       (super_prefix ? PATHSPEC_FROMROOT : 0),
 		       prefix, argv);
 
 	/*

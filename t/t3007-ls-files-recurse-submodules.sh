@@ -188,7 +188,7 @@ test_expect_success '--recurse-submodules and pathspecs' '
 	test_cmp expect actual
 '
 
-test_expect_failure '--recurse-submodules and relative paths' '
+test_expect_success '--recurse-submodules and relative paths' '
 	# From top works
 	cat >expect <<-\EOF &&
 	.gitmodules
