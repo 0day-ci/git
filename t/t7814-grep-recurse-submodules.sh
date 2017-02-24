@@ -227,6 +227,48 @@ test_expect_success 'grep history with moved submoules' '
 	test_cmp expect actual
 '
 
+test_expect_failure 'grep using relative path' '
+	test_when_finished "rm -rf parent sub" &&
+	git init sub &&
+	echo "foobar" >sub/file &&
+	git -C sub add file &&
+	git -C sub commit -m "add file" &&
+
+	git init parent &&
+	echo "foobar" >parent/file &&
+	git -C parent add file &&
+	mkdir parent/src &&
+	echo "foobar" >parent/src/file2 &&
+	git -C parent add src/file2 &&
+	git -C parent submodule add ../sub &&
+	git -C parent commit -m "add files and submodule" &&
+
+	# From top works
+	cat >expect <<-\EOF &&
+	file:foobar
+	src/file2:foobar
+	sub/file:foobar
+	EOF
+	git -C parent grep --recurse-submodules -e "foobar" >actual &&
+	test_cmp expect actual &&
+
+	# Relative path to top errors out
+	cat >expect <<-\EOF &&
+	../file:foobar
+	file2:foobar
+	../sub/file:foobar
+	EOF
+	git -C parent/src grep --recurse-submodules -e "foobar" -- .. >actual &&
+	test_cmp expect actual &&
+
+	# Relative path to submodule errors out
+	cat >expect <<-\EOF &&
+	../sub/file:foobar
+	EOF
+	git -C parent/src grep --recurse-submodules -e "foobar" -- ../sub >actual &&
+	test_cmp expect actual
+'
+
 test_incompatible_with_recurse_submodules ()
 {
 	test_expect_success "--recurse-submodules and $1 are incompatible" "
