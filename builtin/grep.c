@@ -538,6 +538,7 @@ static int grep_submodule_launch(struct grep_opt *opt,
 	int status, i;
 	const char *end_of_base;
 	const char *name;
+	struct strbuf buf = STRBUF_INIT;
 	struct work_item *w = opt->output_priv;
 
 	end_of_base = strchr(gs->name, ':');
@@ -550,9 +551,11 @@ static int grep_submodule_launch(struct grep_opt *opt,
 	argv_array_push(&cp.env_array, GIT_DIR_ENVIRONMENT);
 
 	/* Add super prefix */
+	quote_path_relative(name, opt->prefix, &buf);
 	argv_array_pushf(&cp.args, "--super-prefix=%s%s/",
 			 super_prefix ? super_prefix : "",
-			 name);
+			 buf.buf);
+	strbuf_release(&buf);
 	argv_array_push(&cp.args, "grep");
 
 	/*
@@ -1199,7 +1202,8 @@ int cmd_grep(int argc, const char **argv, const char *prefix)
 
 	parse_pathspec(&pathspec, 0,
 		       PATHSPEC_PREFER_CWD |
-		       (opt.max_depth != -1 ? PATHSPEC_MAXDEPTH_VALID : 0),
+		       (opt.max_depth != -1 ? PATHSPEC_MAXDEPTH_VALID : 0) |
+		       (super_prefix ? PATHSPEC_FROMROOT : 0),
 		       prefix, argv + i);
 	pathspec.max_depth = opt.max_depth;
 	pathspec.recursive = 1;

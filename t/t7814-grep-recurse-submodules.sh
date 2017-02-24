@@ -227,7 +227,7 @@ test_expect_success 'grep history with moved submoules' '
 	test_cmp expect actual
 '
 
-test_expect_failure 'grep using relative path' '
+test_expect_success 'grep using relative path' '
 	test_when_finished "rm -rf parent sub" &&
 	git init sub &&
 	echo "foobar" >sub/file &&
