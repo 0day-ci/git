@@ -254,6 +254,8 @@ static struct commit *handle_commit(struct rev_info *revs,
 			die("unable to parse commit %s", name);
 		if (flags & UNINTERESTING) {
 			mark_parents_uninteresting(commit);
+			if (revs->tree_and_blob_objects)
+				mark_tree_uninteresting(commit->tree);
 			revs->limited = 1;
 		}
 		if (revs->show_source && !commit->util)
