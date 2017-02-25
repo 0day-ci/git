@@ -267,7 +267,7 @@ static struct commit *handle_commit(struct rev_info *revs,
 	 */
 	if (object->type == OBJ_TREE) {
 		struct tree *tree = (struct tree *)object;
-		if (!revs->tree_objects)
+		if (!revs->tree_and_blob_objects)
 			return NULL;
 		if (flags & UNINTERESTING) {
 			mark_tree_contents_uninteresting(tree);
@@ -281,7 +281,7 @@ static struct commit *handle_commit(struct rev_info *revs,
 	 * Blob object? You know the drill by now..
 	 */
 	if (object->type == OBJ_BLOB) {
-		if (!revs->blob_objects)
+		if (!revs->tree_and_blob_objects)
 			return NULL;
 		if (flags & UNINTERESTING)
 			return NULL;
@@ -1817,23 +1817,19 @@ static int handle_revision_opt(struct rev_info *revs, int argc, const char **arg
 		revs->limited = 1;
 	} else if (!strcmp(arg, "--objects")) {
 		revs->tag_objects = 1;
-		revs->tree_objects = 1;
-		revs->blob_objects = 1;
+		revs->tree_and_blob_objects = 1;
 	} else if (!strcmp(arg, "--objects-edge")) {
 		revs->tag_objects = 1;
-		revs->tree_objects = 1;
-		revs->blob_objects = 1;
+		revs->tree_and_blob_objects = 1;
 		revs->edge_hint = 1;
 	} else if (!strcmp(arg, "--objects-edge-aggressive")) {
 		revs->tag_objects = 1;
-		revs->tree_objects = 1;
-		revs->blob_objects = 1;
+		revs->tree_and_blob_objects = 1;
 		revs->edge_hint = 1;
 		revs->edge_hint_aggressive = 1;
 	} else if (!strcmp(arg, "--verify-objects")) {
 		revs->tag_objects = 1;
-		revs->tree_objects = 1;
-		revs->blob_objects = 1;
+		revs->tree_and_blob_objects = 1;
 		revs->verify_objects = 1;
 	} else if (!strcmp(arg, "--unpacked")) {
 		revs->unpacked = 1;
