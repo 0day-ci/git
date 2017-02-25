@@ -3652,7 +3652,6 @@ static int check_preimage(struct apply_state *state,
 	if (!old_name)
 		return 0;
 
-	assert(patch->is_new <= 0);
 	previous = previous_patch(state, patch, &status);
 
 	if (status)
