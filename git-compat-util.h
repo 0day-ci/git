@@ -319,8 +319,15 @@ extern char *gitdirname(char *);
 #define PRIo32 "o"
 #endif
 
+#ifdef TIME_T_IS_INT64
+#define PRItime PRId64
+#define parse_timestamp strtoull
+#define TIME_MAX INT64_MAX
+#else
 #define PRItime "lu"
 #define parse_timestamp strtoul
+#define TIME_MAX ULONG_MAX
+#endif
 
 #ifndef PATH_SEP
 #define PATH_SEP ':'

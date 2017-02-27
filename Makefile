@@ -1518,6 +1518,10 @@ ifdef HAVE_GETDELIM
 	BASIC_CFLAGS += -DHAVE_GETDELIM
 endif
 
+ifdef TIME_T_IS_INT64
+	BASIC_CFLAGS += -DTIME_T_IS_INT64
+endif
+
 ifeq ($(TCLTK_PATH),)
 NO_TCLTK = NoThanks
 endif

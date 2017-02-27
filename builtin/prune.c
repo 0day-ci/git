@@ -111,7 +111,7 @@ int cmd_prune(int argc, const char **argv, const char *prefix)
 	};
 	char *s;
 
-	expire = ULONG_MAX;
+	expire = TIME_MAX;
 	save_commit_buffer = 0;
 	check_replace_refs = 0;
 	ref_paranoia = 1;

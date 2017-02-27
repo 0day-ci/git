@@ -52,7 +52,7 @@ static int check_expirations(void)
 	static unsigned long wait_for_entry_until;
 	int i = 0;
 	unsigned long now = time(NULL);
-	unsigned long next = (unsigned long)-1;
+	unsigned long next = TIME_MAX;
 
 	/*
 	 * Initially give the client 30 seconds to actually contact us

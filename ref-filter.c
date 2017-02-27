@@ -638,7 +638,7 @@ static void grab_date(const char *buf, struct atom_value *v, const char *atomnam
 	if (!eoemail)
 		goto bad;
 	timestamp = parse_timestamp(eoemail + 2, &zone, 10);
-	if (timestamp == ULONG_MAX)
+	if (timestamp == TIME_MAX)
 		goto bad;
 	tz = strtol(zone, NULL, 10);
 	if ((tz == LONG_MIN || tz == LONG_MAX) && errno == ERANGE)
