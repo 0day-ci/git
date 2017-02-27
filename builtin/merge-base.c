@@ -132,7 +132,7 @@ static void add_one_commit(unsigned char *sha1, struct rev_collect *revs)
 }
 
 static int collect_one_reflog_ent(unsigned char *osha1, unsigned char *nsha1,
-				  const char *ident, unsigned long timestamp,
+				  const char *ident, time_t timestamp,
 				  int tz, const char *message, void *cbdata)
 {
 	struct rev_collect *revs = cbdata;

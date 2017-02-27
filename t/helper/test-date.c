@@ -47,7 +47,7 @@ static void parse_dates(const char **argv, struct timeval *now)
 	struct strbuf result = STRBUF_INIT;
 
 	for (; *argv; argv++) {
-		unsigned long t;
+		time_t t;
 		int tz;
 
 		strbuf_reset(&result);
@@ -95,7 +95,7 @@ int cmd_main(int argc, const char **argv)
 	else if (!strcmp(*argv, "approxidate"))
 		parse_approxidate(argv+1, &now);
 	else if (!strcmp(*argv, "is64bit"))
-		return sizeof(unsigned long) == 8 ? 0 : 1;
+		return sizeof(time_t) == 8 ? 0 : 1;
 	else
 		usage(usage_msg);
 	return 0;

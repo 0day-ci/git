@@ -47,7 +47,7 @@ static struct {
 
 static struct {
 	uint32_t revision;
-	unsigned long timestamp;
+	time_t timestamp;
 	struct strbuf log, author, note;
 } rev_ctx;
 

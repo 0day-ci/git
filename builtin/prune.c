@@ -13,7 +13,7 @@ static const char * const prune_usage[] = {
 };
 static int show_only;
 static int verbose;
-static unsigned long expire;
+static time_t expire;
 static int show_progress = -1;
 
 static int prune_tmp_file(const char *fullpath)

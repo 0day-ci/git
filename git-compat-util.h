@@ -326,7 +326,7 @@ extern char *gitdirname(char *);
 #else
 #define PRItime "lu"
 #define parse_timestamp strtoul
-#define TIME_MAX ULONG_MAX
+#define TIME_MAX LONG_MAX
 #endif
 
 #ifndef PATH_SEP

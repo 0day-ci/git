@@ -55,12 +55,11 @@ static void mark_commit(struct commit *c, void *data)
 
 struct recent_data {
 	struct rev_info *revs;
-	unsigned long timestamp;
+	time_t timestamp;
 };
 
 static void add_recent_object(const unsigned char *sha1,
-			      unsigned long mtime,
-			      struct recent_data *data)
+			      time_t mtime, struct recent_data *data)
 {
 	struct object *obj;
 	enum object_type type;
@@ -139,7 +138,7 @@ static int add_recent_packed(const unsigned char *sha1,
 }
 
 int add_unseen_recent_objects_to_traversal(struct rev_info *revs,
-					   unsigned long timestamp)
+					   time_t timestamp)
 {
 	struct recent_data data;
 	int r;
@@ -156,8 +155,7 @@ int add_unseen_recent_objects_to_traversal(struct rev_info *revs,
 }
 
 void mark_reachable_objects(struct rev_info *revs, int mark_reflog,
-			    unsigned long mark_recent,
-			    struct progress *progress)
+			    time_t mark_recent, struct progress *progress)
 {
 	struct connectivity_progress cp;
 

@@ -3115,7 +3115,7 @@ static int show_one_reflog_ent(struct strbuf *sb, each_reflog_ent_fn fn, void *c
 {
 	unsigned char osha1[20], nsha1[20];
 	char *email_end, *message;
-	unsigned long timestamp;
+	time_t timestamp;
 	int tz;
 
 	/* old SP new SP name <email> SP time TAB msg LF */
@@ -3940,7 +3940,7 @@ struct expire_reflog_cb {
 };
 
 static int expire_reflog_ent(unsigned char *osha1, unsigned char *nsha1,
-			     const char *email, unsigned long timestamp, int tz,
+			     const char *email, time_t timestamp, int tz,
 			     const char *message, void *cb_data)
 {
 	struct expire_reflog_cb *cb = cb_data;
