@@ -839,8 +839,8 @@ enum discovery_result {
  * the discovered .git/ directory, if any. This path may be relative against
  * `dir` (i.e. *not* necessarily the cwd).
  */
-static enum discovery_result discover_git_directory(struct strbuf *dir,
-						    struct strbuf *gitdir)
+static enum discovery_result discover_git_directory_1(struct strbuf *dir,
+						      struct strbuf *gitdir)
 {
 	const char *env_ceiling_dirs = getenv(CEILING_DIRECTORIES_ENVIRONMENT);
 	struct string_list ceiling_dirs = STRING_LIST_INIT_DUP;
@@ -921,6 +921,29 @@ static enum discovery_result discover_git_directory(struct strbuf *dir,
 	}
 }
 
+const char *discover_git_directory(struct strbuf *gitdir)
+{
+	struct strbuf dir = STRBUF_INIT;
+	int len;
+
+	if (strbuf_getcwd(&dir))
+		return NULL;
+
+	len = dir.len;
+	if (discover_git_directory_1(&dir, gitdir) < 0) {
+		strbuf_release(&dir);
+		return NULL;
+	}
+
+	if (dir.len < len && !is_absolute_path(gitdir->buf)) {
+		strbuf_addch(&dir, '/');
+		strbuf_insert(gitdir, 0, dir.buf, dir.len);
+	}
+	strbuf_release(&dir);
+
+	return gitdir->buf;
+}
+
 const char *setup_git_directory_gently(int *nongit_ok)
 {
 	struct strbuf cwd = STRBUF_INIT, dir = STRBUF_INIT, gitdir = STRBUF_INIT;
@@ -947,7 +970,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 		die_errno(_("Unable to read current working directory"));
 	strbuf_addbuf(&dir, &cwd);
 
-	switch (discover_git_directory(&dir, &gitdir)) {
+	switch (discover_git_directory_1(&dir, &gitdir)) {
 	case GIT_DIR_NONE:
 		prefix = NULL;
 		break;
