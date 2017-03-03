@@ -11,6 +11,13 @@ int is_directory(const char *path)
 	return (!stat(path, &st) && S_ISDIR(st.st_mode));
 }
 
+int is_not_file(const char *path)
+{
+	struct stat st;
+
+	return !stat(path, &st) && !S_ISREG(st.st_mode);
+}
+
 /* removes the last path component from 'path' except if 'path' is root */
 static void strip_last_component(struct strbuf *path)
 {

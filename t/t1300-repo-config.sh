@@ -1477,4 +1477,9 @@ test_expect_success !MINGW '--show-origin blob ref' '
 	test_cmp expect output
 '
 
+test_expect_success 'a directory is given as a config file' '
+	mkdir config-dir &&
+	test_must_fail git config --file=config-dir --list
+'
+
 test_done

@@ -13,6 +13,7 @@
 #include "hashmap.h"
 #include "string-list.h"
 #include "utf8.h"
+#include "dir.h"
 
 struct config_source {
 	struct config_source *prev;
@@ -1211,6 +1212,9 @@ int git_config_from_file(config_fn_t fn, const char *filename, void *data)
 {
 	int ret = -1;
 	FILE *f;
+
+	if (is_not_file(filename))
+		return error(_("'%s' is not a file"), filename);
 
 	f = fopen(filename, "r");
 	if (f) {
@@ -2448,6 +2452,11 @@ int git_config_rename_section_in_file(const char *config_filename,
 
 	if (fstat(fileno(config_file), &st) == -1) {
 		ret = error_errno(_("fstat on %s failed"), config_filename);
+		goto out;
+	}
+
+	if (!S_ISREG(st.st_mode)) {
+		ret = error(_("'%s' is not a file"), config_filename);
 		goto out;
 	}
 
