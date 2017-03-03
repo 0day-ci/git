@@ -703,11 +703,17 @@ void git_attr_set_direction(enum git_attr_direction new_direction,
 
 static struct attr_stack *read_attr_from_file(const char *path, int macro_ok)
 {
-	FILE *fp = fopen(path, "r");
+	FILE *fp;
 	struct attr_stack *res;
 	char buf[2048];
 	int lineno = 0;
 
+	if (is_not_file(path)) {
+		warning(_("'%s' is not a file"), path);
+		return NULL;
+	}
+
+	fp = fopen(path, "r");
 	if (!fp) {
 		if (errno != ENOENT && errno != ENOTDIR)
 			warn_on_inaccessible(path);
