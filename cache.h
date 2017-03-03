@@ -2070,7 +2070,7 @@ const char *split_cmdline_strerror(int cmdline_errno);
 
 /* setup.c */
 struct startup_info {
-	int have_repository;
+	int have_repository, creating_repository;
 	const char *prefix;
 };
 extern struct startup_info *startup_info;

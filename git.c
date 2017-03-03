@@ -337,6 +337,9 @@ static int run_builtin(struct cmd_struct *p, int argc, const char **argv)
 	struct stat st;
 	const char *prefix;
 
+	if (p->fn == cmd_init_db || p->fn == cmd_clone)
+		startup_info->creating_repository = 1;
+
 	prefix = NULL;
 	help = argc == 2 && !strcmp(argv[1], "-h");
 	if (!help) {
