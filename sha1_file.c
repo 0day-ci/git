@@ -27,6 +27,7 @@
 #include "list.h"
 #include "mergesort.h"
 #include "quote.h"
+#include "on_demand.h"
 
 #define SZ_FMT PRIuMAX
 static inline uintmax_t sz_fmt(size_t s) { return s; }
@@ -2979,7 +2980,7 @@ int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi,
 		/* Not a loose object; someone else may have just packed it. */
 		reprepare_packed_git();
 		if (!find_pack_entry(real, &e))
-			return -1;
+			return object_info_on_demand(real, oi);
 	}
 
 	/*
@@ -3091,7 +3092,10 @@ static void *read_object(const unsigned char *sha1, enum object_type *type,
 		return buf;
 	}
 	reprepare_packed_git();
-	return read_packed_sha1(sha1, type, size);
+	buf = read_packed_sha1(sha1, type, size);
+	if (buf)
+		return buf;
+	return read_remote_on_demand(sha1, type, size);
 }
 
 /*

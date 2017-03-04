@@ -1730,7 +1730,8 @@ struct object_info {
 		OI_CACHED,
 		OI_LOOSE,
 		OI_PACKED,
-		OI_DBCACHED
+		OI_DBCACHED,
+		OI_ONDEMAND
 	} whence;
 	union {
 		/*
