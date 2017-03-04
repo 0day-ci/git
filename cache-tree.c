@@ -356,7 +356,7 @@ static int update_one(struct cache_tree *it,
 		}
 		if (mode != S_IFGITLINK && !missing_ok && !has_sha1_file(sha1)) {
 			strbuf_release(&buffer);
-			if (expected_missing)
+			if (expected_missing || 1 /*** FIXME: markbt temp hack, to allow missing files ***/)
 				return -1;
 			return error("invalid object %06o %s for '%.*s'",
 				mode, sha1_to_hex(sha1), entlen+baselen, path);

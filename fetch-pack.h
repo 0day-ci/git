@@ -29,6 +29,7 @@ struct fetch_pack_args {
 	unsigned cloning:1;
 	unsigned update_shallow:1;
 	unsigned deepen:1;
+	unsigned on_demand:1;
 };
 
 /*

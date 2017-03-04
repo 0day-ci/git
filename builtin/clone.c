@@ -40,6 +40,7 @@ static const char * const builtin_clone_usage[] = {
 
 static int option_no_checkout, option_bare, option_mirror, option_single_branch = -1;
 static int option_local = -1, option_no_hardlinks, option_shared, option_recursive;
+static int option_on_demand;
 static int option_shallow_submodules;
 static int deepen;
 static char *option_template, *option_depth, *option_since;
@@ -100,6 +101,8 @@ static struct option builtin_clone_options[] = {
 		    N_("create a shallow clone since a specific time")),
 	OPT_STRING_LIST(0, "shallow-exclude", &option_not, N_("revision"),
 			N_("deepen history of shallow clone, excluding rev")),
+	OPT_BOOL(0, "on-demand", &option_on_demand,
+		 N_("Make shallow clone an on-demand clone")),
 	OPT_BOOL(0, "single-branch", &option_single_branch,
 		    N_("clone only one branch, HEAD or --branch")),
 	OPT_BOOL(0, "shallow-submodules", &option_shallow_submodules,
@@ -1045,6 +1048,8 @@ int cmd_clone(int argc, const char **argv, const char *prefix)
 	if (option_not.nr)
 		transport_set_option(transport, TRANS_OPT_DEEPEN_NOT,
 				     (const char *)&option_not);
+	if (option_on_demand)
+		transport_set_option(transport, TRANS_OPT_ON_DEMAND, "1");
 	if (option_single_branch)
 		transport_set_option(transport, TRANS_OPT_FOLLOWTAGS, "1");
 
@@ -1118,7 +1123,7 @@ int cmd_clone(int argc, const char **argv, const char *prefix)
 		transport_fetch_refs(transport, mapped_refs);
 
 	update_remote_refs(refs, mapped_refs, remote_head_points_at,
-			   branch_top.buf, reflog_msg.buf, transport, !is_local);
+			   branch_top.buf, reflog_msg.buf, transport, !is_local && !option_on_demand);
 
 	update_head(our_head_points_at, remote_head, reflog_msg.buf);
 

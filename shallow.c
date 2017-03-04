@@ -45,7 +45,7 @@ int is_repository_shallow(void)
 	FILE *fp;
 	char buf[1024];
 	const char *path = alternate_shallow_file;
-
+	is_shallow = 0;  /*** FIXME: markbt temp hack to allow shallow repos with on-demand files ***/
 	if (is_shallow >= 0)
 		return is_shallow;
 

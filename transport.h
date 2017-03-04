@@ -15,6 +15,7 @@ struct git_transport_options {
 	unsigned self_contained_and_connected : 1;
 	unsigned update_shallow : 1;
 	unsigned deepen_relative : 1;
+	unsigned on_demand : 1;
 	int depth;
 	const char *deepen_since;
 	const struct string_list *deepen_not;
@@ -209,6 +210,9 @@ void transport_check_allowed(const char *type);
 
 /* Send push certificates */
 #define TRANS_OPT_PUSH_CERT "pushcert"
+
+/* On-demand clone */
+#define TRANS_OPT_ON_DEMAND "on-demand"
 
 /**
  * Returns 0 if the option was used, non-zero otherwise. Prints a
