@@ -479,6 +479,11 @@ static int upload_pack(void)
 	return run_service_command(argv);
 }
 
+static int upload_file(void)
+{
+	const char *argv[] = { "upload-file", ".", NULL };
+	return run_service_command(argv);
+}
 static int upload_archive(void)
 {
 	static const char *argv[] = { "upload-archive", ".", NULL };
@@ -494,6 +499,7 @@ static int receive_pack(void)
 static struct daemon_service daemon_service[] = {
 	{ "upload-archive", "uploadarch", upload_archive, 0, 1 },
 	{ "upload-pack", "uploadpack", upload_pack, 1, 1 },
+	{ "upload-file", "uploadfile", upload_file, 1, 1 },
 	{ "receive-pack", "receivepack", receive_pack, 0, 1 },
 };
 

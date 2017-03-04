@@ -165,6 +165,7 @@
 /git-update-ref
 /git-update-server-info
 /git-upload-archive
+/git-upload-file
 /git-upload-pack
 /git-var
 /git-verify-commit
