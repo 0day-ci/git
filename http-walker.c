@@ -296,11 +296,13 @@ static void process_alternates_response(void *callback_data)
 					okay = 1;
 				}
 			}
-			/* skip "objects\n" at end */
 			if (okay) {
 				struct strbuf target = STRBUF_INIT;
 				strbuf_add(&target, base, serverlen);
-				strbuf_add(&target, data + i, posn - i - 7);
+				strbuf_add(&target, data + i, posn - i);
+				strbuf_rtrim(&target);
+				strbuf_strip_suffix(&target, "objects");
+				strbuf_complete(&target, '/');
 
 				if (is_alternate_allowed(target.buf)) {
 					warning("adding alternate object store: %s",
