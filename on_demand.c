@@ -155,3 +155,29 @@ int object_info_on_demand(const unsigned char *sha1, struct object_info *oi)
 	die("git on-demand: protocol error, "
 	    "unexpected response: '%s'", line);
 }
+
+#define ON_DEMAND_CUTOFF	(1u << 21)
+#define ON_DEMAND_SHOW_TREE	(1u << 22)
+
+void register_on_demand_cutoff(const unsigned char *sha1)
+{
+	struct commit *commit = lookup_commit(sha1);
+	if (commit)
+		commit->object.flags |= ON_DEMAND_CUTOFF;
+}
+
+int on_demand_include_check(struct commit *commit, void *data)
+{
+	return !(commit->object.flags & ON_DEMAND_CUTOFF);
+}
+
+void on_demand_show_commit_tree(struct commit *commit, void *data)
+{
+	commit->object.flags |= ON_DEMAND_SHOW_TREE;
+}
+
+int on_demand_show_tree_check(struct commit *commit, void *data)
+{
+	return !!(commit->object.flags &
+		  (ON_DEMAND_SHOW_TREE|ON_DEMAND_CUTOFF));
+}

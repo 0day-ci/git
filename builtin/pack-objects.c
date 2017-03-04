@@ -24,6 +24,7 @@
 #include "sha1-array.h"
 #include "argv-array.h"
 #include "mru.h"
+#include "on_demand.h"
 
 static const char *pack_usage[] = {
 	N_("git pack-objects --stdout [<options>...] [< <ref-list> | < <object-list>]"),
@@ -76,6 +77,8 @@ static unsigned long max_delta_cache_size = 256 * 1024 * 1024;
 static unsigned long cache_max_small_delta_size = 1000;
 
 static unsigned long window_memory_limit = 0;
+
+static int send_all_commits;
 
 /*
  * stats
@@ -2750,12 +2753,15 @@ static void record_recent_commit(struct commit *commit, void *data)
 static void get_object_list(int ac, const char **av)
 {
 	struct rev_info revs;
+	struct rev_info revs2;
 	char line[1000];
 	int flags = 0;
 
 	init_revisions(&revs, NULL);
+	init_revisions(&revs2, NULL);
 	save_commit_buffer = 0;
 	setup_revisions(ac, av, &revs, NULL);
+	setup_revisions(ac, av, &revs2, NULL);
 
 	/* make sure shallows are read */
 	is_repository_shallow();
@@ -2776,13 +2782,18 @@ static void get_object_list(int ac, const char **av)
 				unsigned char sha1[20];
 				if (get_sha1_hex(line + 10, sha1))
 					die("not an SHA-1 '%s'", line + 10);
-				register_shallow(sha1);
+				if (send_all_commits)
+					register_on_demand_cutoff(sha1);
+				else
+					register_shallow(sha1);
 				use_bitmap_index = 0;
 				continue;
 			}
 			die("not a rev '%s'", line);
 		}
 		if (handle_revision_arg(line, &revs, flags, REVARG_CANNOT_BE_FILENAME))
+			die("bad revision '%s'", line);
+		if (handle_revision_arg(line, &revs2, flags, REVARG_CANNOT_BE_FILENAME))
 			die("bad revision '%s'", line);
 	}
 
@@ -2792,7 +2803,16 @@ static void get_object_list(int ac, const char **av)
 	if (prepare_revision_walk(&revs))
 		die("revision walk setup failed");
 	mark_edges_uninteresting(&revs, show_edge);
-	traverse_commit_list(&revs, show_commit, show_object, NULL);
+
+	if (send_all_commits) {
+		revs2.include_check = on_demand_include_check;
+		traverse_commit_list(&revs2, on_demand_show_commit_tree, NULL,
+				     NULL);
+		reset_revision_walk();
+	}
+
+	traverse_commit_list_extended(&revs, show_commit, show_object,
+				      on_demand_show_tree_check, NULL);
 
 	if (unpack_unreachable_expiration) {
 		revs.ignore_missing_links = 1;
@@ -2928,6 +2948,8 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 			 N_("use a bitmap index if available to speed up counting objects")),
 		OPT_BOOL(0, "write-bitmap-index", &write_bitmap_index,
 			 N_("write a bitmap index together with the pack index")),
+		OPT_BOOL(0, "send-all-commits", &send_all_commits,
+			 N_("send all commits for on-demand shallow fetches")),
 		OPT_END(),
 	};
 

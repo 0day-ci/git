@@ -183,10 +183,11 @@ static void add_pending_tree(struct rev_info *revs, struct tree *tree)
 	add_pending_object(revs, &tree->object, "");
 }
 
-void traverse_commit_list(struct rev_info *revs,
-			  show_commit_fn show_commit,
-			  show_object_fn show_object,
-			  void *data)
+void traverse_commit_list_extended(struct rev_info *revs,
+				   show_commit_fn show_commit,
+				   show_object_fn show_object,
+				   show_tree_check_fn show_tree_check,
+				   void *data)
 {
 	int i;
 	struct commit *commit;
@@ -198,7 +199,8 @@ void traverse_commit_list(struct rev_info *revs,
 		 * an uninteresting boundary commit may not have its tree
 		 * parsed yet, but we are not going to show them anyway
 		 */
-		if (commit->tree)
+		if (show_object && commit->tree &&
+		    (!show_tree_check || show_tree_check(commit, data)))
 			add_pending_tree(revs, commit->tree);
 		show_commit(commit, data);
 	}

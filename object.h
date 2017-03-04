@@ -38,6 +38,7 @@ struct object_array {
  * http-push.c:                            16-----19
  * commit.c:                               16-----19
  * sha1_name.c:                                     20
+ * on_demand.c:                                       21-22
  */
 #define FLAG_BITS  27
 

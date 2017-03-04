@@ -42,6 +42,7 @@ static int multi_ack;
 static int no_done;
 static int use_thin_pack, use_ofs_delta, use_include_tag;
 static int no_progress, daemon_mode;
+static int send_all_commits;
 /* Allow specifying sha1 if it is a ref tip. */
 #define ALLOW_TIP_SHA1	01
 /* Allow request of a sha1 if it is reachable from a ref (possibly hidden ref). */
@@ -130,6 +131,8 @@ static void create_pack_file(void)
 		argv_array_push(&pack_objects.args, "--delta-base-offset");
 	if (use_include_tag)
 		argv_array_push(&pack_objects.args, "--include-tag");
+	if (send_all_commits)
+		argv_array_push(&pack_objects.args, "--send-all-commits");
 
 	pack_objects.in = -1;
 	pack_objects.out = -1;
@@ -820,6 +823,8 @@ static void receive_needs(void)
 			no_progress = 1;
 		if (parse_feature_request(features, "include-tag"))
 			use_include_tag = 1;
+		if (parse_feature_request(features, "on-demand"))
+			send_all_commits = 1;
 
 		o = parse_object(sha1_buf);
 		if (!o)
@@ -924,7 +929,8 @@ static int send_ref(const char *refname, const struct object_id *oid,
 {
 	static const char *capabilities = "multi_ack thin-pack side-band"
 		" side-band-64k ofs-delta shallow deepen-since deepen-not"
-		" deepen-relative no-progress include-tag multi_ack_detailed";
+		" deepen-relative no-progress include-tag multi_ack_detailed"
+		" on-demand";
 	const char *refname_nons = strip_namespace(refname);
 	struct object_id peeled;
 
