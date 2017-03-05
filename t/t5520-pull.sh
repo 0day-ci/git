@@ -664,4 +664,16 @@ test_expect_success 'git pull --rebase against local branch' '
 	test file = "$(cat file2)"
 '
 
+test_expect_success 'git pull --rebase with corrupt HEAD does not segfault' '
+	mkdir corrupted &&
+	(cd corrupted &&
+	git init &&
+	echo one >file && git add file &&
+	git commit -m one &&
+	REV=$(git rev-parse HEAD) &&
+	rm -f .git/objects/${REV:0:2}/${REV:2} &&
+	test_expect_code 128 git pull --rebase > /dev/null
+	)
+'
+
 test_done
