@@ -1514,3 +1514,90 @@ void absorb_git_dir_into_superproject(const char *prefix,
 		strbuf_release(&sb);
 	}
 }
+
+static int superproject_exists(void)
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	struct strbuf sb = STRBUF_INIT;
+	struct strbuf buf = STRBUF_INIT;
+	const char *one_up = real_path_if_valid("../");
+	const char *dirname;
+	int code, has_superproject = 0;
+
+	if (!one_up)
+		/* At the root of the file system. */
+		return 0;
+
+	dirname = relative_path(xgetcwd(), one_up, &sb);
+	prepare_submodule_repo_env(&cp.env_array);
+	argv_array_pop(&cp.env_array);
+	argv_array_pushl(&cp.args, "--literal-pathspecs", "-C", "..",
+			"ls-tree", "HEAD", "--", dirname, NULL);
+
+	cp.no_stdin = 1;
+	cp.no_stderr = 1;
+	cp.out = -1;
+	cp.git_cmd = 1;
+
+	if (start_command(&cp))
+		die(_("could not start ls-tree in .."));
+
+	strbuf_read(&buf, cp.out, 7);
+	close(cp.out);
+	if (starts_with(buf.buf, "160000"))
+		/* there is a superproject having this as a submodule */
+		has_superproject = 1;
+
+	code = finish_command(&cp);
+
+	if (code == 128)
+		/* not a git repository */
+		goto out;
+	if (code == 0 && !has_superproject)
+		/* there is an unrelated git repository */
+		goto out;
+
+	if (code)
+		die(_("ls-tree returned unexpected return code"));
+
+	return 1;
+
+out:
+	strbuf_release(&sb);
+
+	return 0;
+}
+
+const char *get_superproject_working_tree()
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	struct strbuf sb = STRBUF_INIT;
+
+	if (!superproject_exists())
+		return NULL;
+
+	prepare_submodule_repo_env(&cp.env_array);
+	argv_array_pop(&cp.env_array);
+
+	argv_array_pushl(&cp.args, "-C", "..",
+			"rev-parse", "--show-toplevel", NULL);
+
+	cp.no_stdin = 1;
+	cp.no_stderr = 1;
+	cp.out = -1;
+	cp.git_cmd = 1;
+
+	if (start_command(&cp))
+		die(_("could not start rev-parse in .."));
+
+	strbuf_reset(&sb);
+	strbuf_read(&sb, cp.out, PATH_MAX);
+
+	/* remove trailing new line */
+	strbuf_rtrim(&sb);
+
+	if (finish_command(&cp))
+		die(_("rev-parse died unexpectedly"));
+
+	return strbuf_detach(&sb, NULL);
+}
