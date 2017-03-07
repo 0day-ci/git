@@ -143,6 +143,15 @@ other objects in that pack they already have locally.
 	being removed. In addition, any unreachable loose objects will
 	be packed (and their loose counterparts removed).
 
+--preserve-oldpacks::
+	 Move old pack files into the preserved subdirectory instead
+	 of deleting them after repacking.
+
+--prune-preserved::
+	 Prune old pack files from the preserved subdirectory after
+	 repacking, but before potentially moving the latest old
+	 packfiles to this subdirectory
+
 Configuration
 -------------
 

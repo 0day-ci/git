@@ -10,8 +10,10 @@
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
+static int preserve_oldpacks = 0;
+static int prune_preserved = 0;
 static int write_bitmaps;
-static char *packdir, *packtmp;
+static char *packdir, *packtmp, *preservedir;
 
 static const char *const git_repack_usage[] = {
 	N_("git repack [<options>]"),
@@ -108,6 +110,27 @@ static void get_non_kept_pack_filenames(struct string_list *fname_list)
 	closedir(dir);
 }
 
+static void preserve_pack(const char *file_path, const char *file_name,  const char *file_ext)
+{
+	char *fname_old;
+
+	if (mkdir(preservedir, 0700) && errno != EEXIST)
+		error(_("failed to create preserve directory"));
+
+	fname_old = mkpathdup("%s/%s.old-%s", preservedir, file_name, ++file_ext);
+	rename(file_path, fname_old);
+
+	free(fname_old);
+}
+
+static void remove_preserved_dir(void) {
+	struct strbuf buf = STRBUF_INIT;
+
+	strbuf_addstr(&buf, preservedir);
+	remove_dir_recursively(&buf, 0);
+	strbuf_release(&buf);
+}
+
 static void remove_redundant_pack(const char *dir_name, const char *base_name)
 {
 	const char *exts[] = {".pack", ".idx", ".keep", ".bitmap"};
@@ -121,7 +144,10 @@ static void remove_redundant_pack(const char *dir_name, const char *base_name)
 	for (i = 0; i < ARRAY_SIZE(exts); i++) {
 		strbuf_setlen(&buf, plen);
 		strbuf_addstr(&buf, exts[i]);
-		unlink(buf.buf);
+		if (preserve_oldpacks)
+			preserve_pack(buf.buf, base_name, exts[i]);
+		else
+			unlink(buf.buf);
 	}
 	strbuf_release(&buf);
 }
@@ -194,6 +220,10 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 				N_("maximum size of each packfile")),
 		OPT_BOOL(0, "pack-kept-objects", &pack_kept_objects,
 				N_("repack objects in packs marked with .keep")),
+		OPT_BOOL(0, "preserve-oldpacks", &preserve_oldpacks,
+				N_("move old pack files into the preserved subdirectory")),
+		OPT_BOOL(0, "prune-preserved", &prune_preserved,
+				N_("prune old pack files from the preserved subdirectory after repacking")),
 		OPT_END()
 	};
 
@@ -217,6 +247,7 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 
 	packdir = mkpathdup("%s/pack", get_object_directory());
 	packtmp = mkpathdup("%s/.tmp-%d-pack", packdir, (int)getpid());
+	preservedir = mkpathdup("%s/preserved", packdir);
 
 	sigchain_push_common(remove_pack_on_signal);
 
@@ -403,6 +434,9 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	}
 
 	/* End of pack replacement. */
+
+	if (prune_preserved)
+		remove_preserved_dir();
 
 	if (delete_redundant) {
 		int opts = 0;
