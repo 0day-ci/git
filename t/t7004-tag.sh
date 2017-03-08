@@ -1385,6 +1385,23 @@ test_expect_success 'checking that first commit is in all tags (relative)' "
 	test_cmp expected actual
 "
 
+# All the --contains tests above, but with --no-contains
+test_expect_success 'checking that first commit is not listed in any tag with --no-contains  (hash)' "
+	>expected &&
+	git tag -l --no-contains $hash1 v* >actual &&
+	test_cmp expected actual
+"
+
+test_expect_success 'checking that first commit is in all tags (tag)' "
+	git tag -l --no-contains v1.0 v* >actual &&
+	test_cmp expected actual
+"
+
+test_expect_success 'checking that first commit is in all tags (relative)' "
+	git tag -l --no-contains HEAD~2 v* >actual &&
+	test_cmp expected actual
+"
+
 cat > expected <<EOF
 v2.0
 EOF
@@ -1394,12 +1411,36 @@ test_expect_success 'checking that second commit only has one tag' "
 	test_cmp expected actual
 "
 
+cat > expected <<EOF
+v0.2.1
+v1.0
+v1.0.1
+v1.1.3
+EOF
+
+test_expect_success 'inverse of the last test, with --no-contains' "
+	git tag -l --no-contains $hash2 v* >actual &&
+	test_cmp expected actual
+"
 
 cat > expected <<EOF
 EOF
 
 test_expect_success 'checking that third commit has no tags' "
 	git tag -l --contains $hash3 v* >actual &&
+	test_cmp expected actual
+"
+
+cat > expected <<EOF
+v0.2.1
+v1.0
+v1.0.1
+v1.1.3
+v2.0
+EOF
+
+test_expect_success 'conversely --no-contains on the third commit lists all tags' "
+	git tag -l --no-contains $hash3 v* >actual &&
 	test_cmp expected actual
 "
 
@@ -1424,6 +1465,19 @@ test_expect_success 'checking that branch head only has one tag' "
 	test_cmp expected actual
 "
 
+cat > expected <<EOF
+v0.2.1
+v1.0
+v1.0.1
+v1.1.3
+v2.0
+EOF
+
+test_expect_success 'checking that branch head with --no-contains lists all but one tag' "
+	git tag -l --no-contains $hash4 v* >actual &&
+	test_cmp expected actual
+"
+
 test_expect_success 'merging original branch into this branch' '
 	git merge --strategy=ours master &&
         git tag v4.0
@@ -1445,11 +1499,31 @@ v1.0.1
 v1.1.3
 v2.0
 v3.0
+EOF
+
+test_expect_success 'checking that original branch head with --no-contains lists all but one tag now' "
+	git tag -l --no-contains $hash3 v* >actual &&
+	test_cmp expected actual
+"
+
+cat > expected <<EOF
+v0.2.1
+v1.0
+v1.0.1
+v1.1.3
+v2.0
+v3.0
 v4.0
 EOF
 
 test_expect_success 'checking that initial commit is in all tags' "
 	git tag -l --contains $hash1 v* >actual &&
+	test_cmp expected actual
+"
+
+test_expect_success 'checking that initial commit is in all tags with --no-contains' "
+	>expected &&
+	git tag -l --no-contains $hash1 v* >actual &&
 	test_cmp expected actual
 "
 
@@ -1708,8 +1782,91 @@ run_with_limited_stack () {
 
 test_lazy_prereq ULIMIT_STACK_SIZE 'run_with_limited_stack true'
 
+# These are all the tags we've created above
+cat >expect.no-contains <<EOF
+a1
+aa1
+annotated-again-v4.0
+annotated-tag
+annotated-v4.0
+blank-annotated-tag
+blank-signed-tag
+blankfile-annotated-tag
+blankfile-signed-tag
+blanknonlfile-annotated-tag
+blanknonlfile-signed-tag
+blanks-annotated-tag
+blanks-signed-tag
+cba
+comment-annotated-tag
+comment-signed-tag
+commentfile-annotated-tag
+commentfile-signed-tag
+commentnonlfile-annotated-tag
+commentnonlfile-signed-tag
+comments-annotated-tag
+comments-signed-tag
+empty-annotated-tag
+empty-signed-tag
+emptyfile-annotated-tag
+emptyfile-signed-tag
+far-far-away
+file-annotated-tag
+file-signed-tag
+foo1.10
+foo1.10-alpha
+foo1.10-beta
+foo1.10-delta
+foo1.10-gamma
+foo1.10-unlisted-suffix
+foo1.3
+foo1.6
+foo1.6-rc1
+foo1.6-rc2
+foo1.7
+foo1.7-after1
+foo1.7-before1
+foo1.8
+foo1.8-foo-bar
+foo1.8-foo-baz
+foo1.9-pre1
+foo1.9-pre2
+foo1.9-prerelease1
+forcesignannotated-annotate
+forcesignannotated-disabled
+forcesignannotated-implied-sign
+forcesignannotated-lightweight
+forged-tag
+implied-annotate
+implied-sign
+non-annotated-tag
+reuse
+signed-tag
+stag-lines
+stag-one-line
+stag-zero-lines
+stdin-annotated-tag
+stdin-signed-tag
+t210
+t211
+tag-from-subdir
+tag-from-subdir-2
+tag-lines
+tag-one-line
+tag-signed-tag
+tag-zero-lines
+u-signed-tag
+v0.2.1
+v1.0
+v1.0.1
+v1.1.3
+v2.0
+v3.0
+v4.0
+EOF
+
 # we require ulimit, this excludes Windows
-test_expect_success ULIMIT_STACK_SIZE '--contains works in a deep repo' '
+test_expect_success ULIMIT_STACK_SIZE '--contains and --no-contains work in a deep repo' '
 	>expect &&
 	i=1 &&
 	while test $i -lt 8000
@@ -1725,7 +1882,9 @@ EOF"
 	git checkout master &&
 	git tag far-far-away HEAD^ &&
 	run_with_limited_stack git tag --contains HEAD >actual &&
-	test_cmp expect actual
+	test_cmp expect actual &&
+	run_with_limited_stack git tag --no-contains HEAD >actual &&
+	test_cmp expect.no-contains actual
 '
 
 test_expect_success '--format should list tags as per format given' '

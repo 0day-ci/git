@@ -1571,11 +1571,12 @@ static enum contains_result contains_tag_algo(struct commit *candidate,
 	return contains_test(candidate, want);
 }
 
-static int commit_contains(struct ref_filter *filter, struct commit *commit)
+static int commit_contains(struct ref_filter *filter, struct commit *commit, const int with_commit)
 {
+	struct commit_list *tmp = with_commit ? filter->with_commit : filter->no_commit;
 	if (filter->with_commit_tag_algo)
-		return contains_tag_algo(commit, filter->with_commit);
-	return is_descendant_of(commit, filter->with_commit);
+		return contains_tag_algo(commit, tmp);
+	return is_descendant_of(commit, tmp);
 }
 
 /*
@@ -1765,13 +1766,17 @@ static int ref_filter_handler(const char *refname, const struct object_id *oid, 
 	 * obtain the commit using the 'oid' available and discard all
 	 * non-commits early. The actual filtering is done later.
 	 */
-	if (filter->merge_commit || filter->with_commit || filter->verbose) {
+	if (filter->merge_commit || filter->with_commit || filter->no_commit || filter->verbose) {
 		commit = lookup_commit_reference_gently(oid->hash, 1);
 		if (!commit)
 			return 0;
-		/* We perform the filtering for the '--contains' option */
+		/* We perform the filtering for the '--contains' option... */
 		if (filter->with_commit &&
-		    !commit_contains(filter, commit))
+		    !commit_contains(filter, commit, 1))
+			return 0;
+		/* ...or for the `--no-contains' option */
+		if (filter->no_commit &&
+		    commit_contains(filter, commit, 0))
 			return 0;
 	}
 
