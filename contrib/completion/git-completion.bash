@@ -1093,9 +1093,9 @@ _git_branch ()
 	--*)
 		__gitcomp "
 			--color --no-color --verbose --abbrev= --no-abbrev
-			--track --no-track --contains --merged --no-merged
-			--set-upstream-to= --edit-description --list
-			--unset-upstream --delete --move --remotes
+			--track --no-track --contains --no-contains --merged
+			--no-merged --set-upstream-to= --edit-description
+			--list --unset-upstream --delete --move --remotes
 			--column --no-column --sort= --points-at
 			"
 		;;
@@ -2862,7 +2862,8 @@ _git_tag ()
 		__gitcomp "
 			--list --delete --verify --annotate --message --file
 			--sign --cleanup --local-user --force --column --sort=
-			--contains --points-at --merged --no-merged --create-reflog
+			--contains --no-contains --points-at --merged
+			--no-merged --create-reflog
 			"
 		;;
 	esac
