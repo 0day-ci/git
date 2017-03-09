@@ -9,6 +9,12 @@
 #include "version.h"
 #include "refs.h"
 
+#ifdef GIT_BUG_REPORT_HELP
+const char git_bug_reporting_string[] = GIT_BUG_REPORT_HELP;
+#else
+const char git_bug_reporting_string[] = "To report bugs send a plain text email to git@vger.kernel.org";
+#endif
+
 void add_cmdname(struct cmdnames *cmds, const char *name, int len)
 {
 	struct cmdname *ent;
@@ -435,6 +441,8 @@ int cmd_version(int argc, const char **argv, const char *prefix)
 			/* NEEDSWORK: also save and output GIT-BUILD_OPTIONS? */
 		}
 	}
+	if (isatty(1))
+		puts(git_bug_reporting_string);
 	return 0;
 }
 
