@@ -1439,6 +1439,7 @@ int handle_revision_arg(const char *arg_, struct rev_info *revs, int flags, unsi
 	const char *arg = arg_;
 	int cant_be_filename = revarg_opt & REVARG_CANNOT_BE_FILENAME;
 	unsigned get_sha1_flags = 0;
+	static const char previous_branch[] = "@{-1}";
 
 	flags = flags & UNINTERESTING ? flags | BOTTOM : flags & ~BOTTOM;
 
@@ -1457,6 +1458,8 @@ int handle_revision_arg(const char *arg_, struct rev_info *revs, int flags, unsi
 
 		if (!*next)
 			next = head_by_default;
+		else if (!strcmp(next, "-"))
+			next = previous_branch;
 		if (dotdot == arg)
 			this = head_by_default;
 		if (this == head_by_default && next == head_by_default &&
@@ -1469,6 +1472,8 @@ int handle_revision_arg(const char *arg_, struct rev_info *revs, int flags, unsi
 				*dotdot = '.';
 				return -1;
 			}
+		} else if (!strcmp(this, "-")) {
+			this = previous_branch;
 		}
 		if (!get_sha1_committish(this, from_sha1) &&
 		    !get_sha1_committish(next, sha1)) {
@@ -1568,6 +1573,8 @@ int handle_revision_arg(const char *arg_, struct rev_info *revs, int flags, unsi
 	if (revarg_opt & REVARG_COMMITTISH)
 		get_sha1_flags = GET_SHA1_COMMITTISH;
 
+	if (!strcmp(arg, "-"))
+		arg = previous_branch;
 	if (get_sha1_with_context(arg, get_sha1_flags, sha1, &oc))
 		return revs->ignore_missing ? 0 : -1;
 	if (!cant_be_filename)
@@ -1576,6 +1583,15 @@ int handle_revision_arg(const char *arg_, struct rev_info *revs, int flags, unsi
 	add_rev_cmdline(revs, object, arg_, REV_CMD_REV, flags ^ local_flags);
 	add_pending_object_with_mode(revs, object, arg, oc.mode);
 	return 0;
+}
+
+/*
+ * Check if the argument is supposed to be a revision argument instead of an
+ * option even though it starts with a dash.
+ */
+static int is_revision_arg(const char *arg)
+{
+	return *arg == '\0' || starts_with(arg, "..");
 }
 
 struct cmdline_pathspec {
@@ -1621,7 +1637,9 @@ static void read_revisions_from_stdin(struct rev_info *revs,
 				seen_dashdash = 1;
 				break;
 			}
-			die("options not supported in --stdin mode");
+			if (!is_revision_arg(sb.buf + 1)) {
+				die("options not supported in --stdin mode");
+			}
 		}
 		if (handle_revision_arg(sb.buf, revs, 0,
 					REVARG_CANNOT_BE_FILENAME))
@@ -2205,7 +2223,7 @@ int setup_revisions(int argc, const char **argv, struct rev_info *revs, struct s
 	read_from_stdin = 0;
 	for (left = i = 1; i < argc; i++) {
 		const char *arg = argv[i];
-		if (*arg == '-') {
+		if (*arg == '-' && !is_revision_arg(arg + 1)) {
 			int opts;
 
 			opts = handle_revision_pseudo_opt(submodule,
