@@ -290,7 +290,7 @@ static int crlf_to_git(const char *path, const char *src, size_t len,
 	if ((checksafe == SAFE_CRLF_WARN ||
 	    (checksafe == SAFE_CRLF_FAIL)) && len) {
 		struct text_stat new_stats;
-		memcpy(&new_stats, &stats, sizeof(new_stats));
+		new_stats = stats;
 		/* simulate "git add" */
 		if (convert_crlf_into_lf) {
 			new_stats.lonelf += new_stats.crlf;

@@ -22,7 +22,7 @@ static void cache_credential(struct credential *c, int timeout)
 	e = &entries[entries_nr++];
 
 	/* take ownership of pointers */
-	memcpy(&e->item, c, sizeof(*c));
+	e->item = *c;
 	memset(c, 0, sizeof(*c));
 	e->expiration = time(NULL) + timeout;
 }

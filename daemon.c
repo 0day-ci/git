@@ -785,7 +785,7 @@ static void add_child(struct child_process *cld, struct sockaddr *addr, socklen_
 
 	newborn = xcalloc(1, sizeof(*newborn));
 	live_children++;
-	memcpy(&newborn->cld, cld, sizeof(*cld));
+	newborn->cld = *cld;
 	memcpy(&newborn->address, addr, addrlen);
 	for (cradle = &firstborn; *cradle; cradle = &(*cradle)->next)
 		if (!addrcmp(&(*cradle)->address, &newborn->address))

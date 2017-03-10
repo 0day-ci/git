@@ -2738,7 +2738,7 @@ int prepare_revision_walk(struct rev_info *revs)
 	struct object_array old_pending;
 	struct commit_list **next = &revs->commits;
 
-	memcpy(&old_pending, &revs->pending, sizeof(old_pending));
+	old_pending = revs->pending;
 	revs->pending.nr = 0;
 	revs->pending.alloc = 0;
 	revs->pending.objects = NULL;
