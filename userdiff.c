@@ -160,6 +160,16 @@ IPATTERN("css",
 	 "-?[_a-zA-Z][-_a-zA-Z0-9]*" /* identifiers */
 	 "|-?[0-9]+|\\#[0-9a-fA-F]+" /* numbers */
 ),
+PATTERNS("javascript",
+	 /* keywords/patterns*/
+	 "^[ \t]*(var|if|else|for|do|while|switch|case|function|break|continue|new|return|class|super|instanceof)"
+	 "^[ \t]*(([a-zA-Z_][a-zA-Z0-9])*[ \t]*\\.?[a-zA-Z_]*\\(\\)[ \t]*);$",
+	 /* word_regex */
+	 "[a-zA-Z_][a-zA-Z0-9]*"
+	 "|[-+0-9.eE]+|0[bB]?|[xX]?|o?[0-9a-fA-F]+"
+	 "|[==-+*/%<>&|!**=^]="
+	 "|--|\\+\\+|<<=?|>>>?=?|&&|\|\|"
+),
 { "default", NULL, -1, { NULL, 0 } },
 };
 #undef PATTERNS
