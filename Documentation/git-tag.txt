@@ -94,6 +94,9 @@ OPTIONS
 	lists all tags. The pattern is a shell wildcard (i.e., matched
 	using fnmatch(3)).  Multiple patterns may be given; if any of
 	them matches, the tag is shown.
++
+We supply this option implicitly if any other list-like option is
+provided. E.g. `--contains`, `--points-at` etc.
 
 --sort=<key>::
 	Sort based on the key given.  Prefix `-` to sort in

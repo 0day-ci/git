@@ -454,6 +454,12 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 	}
 	create_tag_object = (opt.sign || annotate || msg.given || msgfile);
 
+	/* We implicitly supply --list with --contains, --points-at,
+	   --merged and --no-merged, just like git-branch */
+	if (filter.with_commit || filter.points_at.nr || filter.merge_commit)
+		cmdmode = 'l';
+
+	/* Just plain "git tag" is like "git tag --list" */
 	if (argc == 0 && !cmdmode)
 		cmdmode = 'l';
 
@@ -486,12 +492,6 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 	}
 	if (filter.lines != -1)
 		die(_("-n option is only allowed with -l."));
-	if (filter.with_commit)
-		die(_("--contains option is only allowed with -l."));
-	if (filter.points_at.nr)
-		die(_("--points-at option is only allowed with -l."));
-	if (filter.merge_commit)
-		die(_("--merged and --no-merged option are only allowed with -l"));
 	if (cmdmode == 'd')
 		return for_each_tag_name(argv, delete_tag, NULL);
 	if (cmdmode == 'v') {
