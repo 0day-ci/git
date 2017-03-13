@@ -270,6 +270,34 @@ static int module_list_compute(int argc, const char **argv,
 	return result;
 }
 
+static void module_list_active(struct module_list *list)
+{
+	int i;
+
+	if (read_cache() < 0)
+		die(_("index file corrupt"));
+
+	gitmodules_config();
+
+	for (i = 0; i < active_nr; i++) {
+		const struct cache_entry *ce = active_cache[i];
+
+		if (!S_ISGITLINK(ce->ce_mode) ||
+		    !is_submodule_initialized(ce->name))
+			continue;
+
+		ALLOC_GROW(list->entries, list->nr + 1, list->alloc);
+		list->entries[list->nr++] = ce;
+		while (i + 1 < active_nr &&
+		       !strcmp(ce->name, active_cache[i + 1]->name))
+			/*
+			 * Skip entries with the same name in different stages
+			 * to make sure an entry is returned only once.
+			 */
+			i++;
+	}
+}
+
 static int module_list(int argc, const char **argv, const char *prefix)
 {
 	int i;
@@ -402,9 +430,12 @@ static int module_init(int argc, const char **argv, const char *prefix)
 	struct pathspec pathspec;
 	struct module_list list = MODULE_LIST_INIT;
 	int quiet = 0;
+	int active = 0;
 	int i;
 
 	struct option module_init_options[] = {
+		OPT_BOOL(0, "active", &active,
+			 N_("ensure all active submodules are properly initialized")),
 		OPT__QUIET(&quiet, N_("Suppress output for initializing a submodule")),
 		OPT_END()
 	};
@@ -417,7 +448,9 @@ static int module_init(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, module_init_options,
 			     git_submodule_helper_usage, 0);
 
-	if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
+	if (active)
+		module_list_active(&list);
+	else if (module_list_compute(argc, argv, prefix, &pathspec, &list) < 0)
 		return 1;
 
 	for (i = 0; i < list.nr; i++)
