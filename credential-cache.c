@@ -83,6 +83,19 @@ static void do_cache(const char *socket, const char *action, int timeout,
 	strbuf_release(&buf);
 }
 
+static char* get_socket_path(void) {
+	char *home_socket;
+
+	home_socket = expand_user_path("~/.git_credential_cache/socket");
+	if (home_socket)
+		if (file_exists(home_socket))
+			return home_socket;
+		else
+			free(home_socket);
+
+	return xdg_cache_home("credential/socket");
+}
+
 int cmd_main(int argc, const char **argv)
 {
 	char *socket_path = NULL;
@@ -106,7 +119,7 @@ int cmd_main(int argc, const char **argv)
 	op = argv[0];
 
 	if (!socket_path)
-		socket_path = expand_user_path("~/.git-credential-cache/socket");
+		socket_path = get_socket_path();
 	if (!socket_path)
 		die("unable to find a suitable socket path; use --socket");
 
