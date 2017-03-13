@@ -361,6 +361,13 @@ static void init_submodule(const char *path, const char *prefix, int quiet)
 		die(_("No url found for submodule path '%s' in .gitmodules"),
 			displaypath);
 
+	/* Set active flag for the submodule being initialized */
+	if (!is_submodule_initialized(path)) {
+		strbuf_reset(&sb);
+		strbuf_addf(&sb, "submodule.%s.active", sub->name);
+		git_config_set_gently(sb.buf, "true");
+	}
+
 	/*
 	 * Copy url setting when it is not set yet.
 	 * To look up the url in .git/config, we must not fall back to
