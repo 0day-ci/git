@@ -623,4 +623,44 @@ test_expect_success SYMLINKS 'difftool --dir-diff symlinked directories' '
 	)
 '
 
+test_expect_success SYMLINKS 'difftool --dir-diff' '
+	touch b &&
+	ln -s b c &&
+	git add . &&
+	test_tick &&
+	git commit -m initial &&
+	touch d &&
+	rm c &&
+	ln -s d c &&
+
+	git difftool --dir-diff --extcmd ls >output &&
+	grep -v ^/ output >actual &&
+	cat >expect <<-EOF &&
+		b
+		c
+		dirlinks
+		output
+		submod
+
+		c
+		dirlinks
+		output
+		submod
+	EOF
+	test_cmp expect actual &&
+
+	# The left side contains symlink "c" that points to "b"
+	test_config difftool.cat.cmd "cat \$LOCAL/c" &&
+	git difftool --dir-diff --tool cat >actual &&
+	echo b >expect &&
+	test_cmp expect actual &&
+
+	# The right side contains symlink "c" that points to "d",
+	# which mimics the state of the worktree.
+	test_config difftool.cat.cmd "cat \$REMOTE/c" &&
+	git difftool --dir-diff --tool cat >actual &&
+	echo -n d >expect &&
+	test_cmp expect actual
+'
+
 test_done

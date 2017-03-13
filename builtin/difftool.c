@@ -254,6 +254,31 @@ static int ensure_leading_directories(char *path)
 	}
 }
 
+static int create_symlink_file(struct cache_entry* ce, struct checkout* state)
+{
+	/*
+	 * Dereference a worktree symlink and writes its contents
+	 * into the checkout state's path.
+	 */
+	struct strbuf path = STRBUF_INIT;
+	struct strbuf link = STRBUF_INIT;
+
+	int ok = 0;
+
+	if (strbuf_readlink(&link, ce->name, ce_namelen(ce)) == 0) {
+		strbuf_add(&path, state->base_dir, state->base_dir_len);
+		strbuf_add(&path, ce->name, ce_namelen(ce));
+
+		write_file_buf(path.buf, link.buf, link.len);
+		ok = 1;
+	}
+
+	strbuf_release(&path);
+	strbuf_release(&link);
+
+	return ok;
+}
+
 static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 			int argc, const char **argv)
 {
@@ -376,13 +401,13 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 			continue;
 		}
 
-		if (S_ISLNK(lmode)) {
+		if (S_ISLNK(lmode) && !is_null_oid(&loid)) {
 			char *content = read_sha1_file(loid.hash, &type, &size);
 			add_left_or_right(&symlinks2, src_path, content, 0);
 			free(content);
 		}
 
-		if (S_ISLNK(rmode)) {
+		if (S_ISLNK(rmode) && !is_null_oid(&roid)) {
 			char *content = read_sha1_file(roid.hash, &type, &size);
 			add_left_or_right(&symlinks2, dst_path, content, 1);
 			free(content);
@@ -414,7 +439,12 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 				oidcpy(&ce->oid, &roid);
 				strcpy(ce->name, dst_path);
 				ce->ce_namelen = dst_path_len;
-				if (checkout_entry(ce, &rstate, NULL))
+
+				if (S_ISLNK(rmode) && is_null_oid(&roid)) {
+					if (!create_symlink_file(ce, &rstate))
+						return error("unable to create symlink file %s",
+							     dst_path);
+				} else if (checkout_entry(ce, &rstate, NULL))
 					return error("could not write '%s'",
 						     dst_path);
 			} else if (!is_null_oid(&roid)) {
