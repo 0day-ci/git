@@ -1380,6 +1380,23 @@ static void fix_unresolved_deltas(struct sha1file *f)
 	free(sorted_by_pos);
 }
 
+static void finalize_file(const char *final_name, const char *curr_name,
+			  unsigned char *sha1, const char *ext)
+{
+	if (final_name != curr_name) {
+		char name[PATH_MAX];
+		if (!final_name) {
+			snprintf(name, sizeof(name), "%s/pack/pack-%s.%s",
+				 get_object_directory(), sha1_to_hex(sha1),
+				 ext);
+			final_name = name;
+		}
+		if (finalize_object_file(curr_name, final_name))
+			die(_("cannot store %s file"), ext);
+	} else if (from_stdin)
+		chmod(final_name, 0444);
+}
+
 static void final(const char *final_pack_name, const char *curr_pack_name,
 		  const char *final_index_name, const char *curr_index_name,
 		  const char *keep_name, const char *keep_msg,
@@ -1422,27 +1439,8 @@ static void final(const char *final_pack_name, const char *curr_pack_name,
 		}
 	}
 
-	if (final_pack_name != curr_pack_name) {
-		if (!final_pack_name) {
-			snprintf(name, sizeof(name), "%s/pack/pack-%s.pack",
-				 get_object_directory(), sha1_to_hex(sha1));
-			final_pack_name = name;
-		}
-		if (finalize_object_file(curr_pack_name, final_pack_name))
-			die(_("cannot store pack file"));
-	} else if (from_stdin)
-		chmod(final_pack_name, 0444);
-
-	if (final_index_name != curr_index_name) {
-		if (!final_index_name) {
-			snprintf(name, sizeof(name), "%s/pack/pack-%s.idx",
-				 get_object_directory(), sha1_to_hex(sha1));
-			final_index_name = name;
-		}
-		if (finalize_object_file(curr_index_name, final_index_name))
-			die(_("cannot store index file"));
-	} else
-		chmod(final_index_name, 0444);
+	finalize_file(final_pack_name, curr_pack_name, sha1, "pack");
+	finalize_file(final_index_name, curr_index_name, sha1, "idx");
 
 	if (!from_stdin) {
 		printf("%s\n", sha1_to_hex(sha1));
