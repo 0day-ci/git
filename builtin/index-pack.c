@@ -1399,7 +1399,6 @@ static void final(const char *final_pack_name, const char *curr_pack_name,
 		  unsigned char *sha1)
 {
 	const char *report = "pack";
-	char name[PATH_MAX];
 	int err;
 
 	if (!from_stdin) {
@@ -1412,17 +1411,17 @@ static void final(const char *final_pack_name, const char *curr_pack_name,
 	}
 
 	if (keep_msg) {
+		struct strbuf name = STRBUF_INIT;
 		int keep_fd, keep_msg_len = strlen(keep_msg);
 
 		if (!keep_name)
-			keep_fd = odb_pack_keep(name, sizeof(name), sha1);
-		else
-			keep_fd = open(keep_name, O_RDWR|O_CREAT|O_EXCL, 0600);
+			keep_name = odb_pack_name(&name, sha1, "keep");
 
+		keep_fd = odb_pack_keep(keep_name);
 		if (keep_fd < 0) {
 			if (errno != EEXIST)
 				die_errno(_("cannot write keep file '%s'"),
-					  keep_name ? keep_name : name);
+					  keep_name);
 		} else {
 			if (keep_msg_len > 0) {
 				write_or_die(keep_fd, keep_msg, keep_msg_len);
@@ -1430,9 +1429,10 @@ static void final(const char *final_pack_name, const char *curr_pack_name,
 			}
 			if (close(keep_fd) != 0)
 				die_errno(_("cannot close written keep file '%s'"),
-					  keep_name ? keep_name : name);
+					  keep_name);
 			report = "keep";
 		}
+		strbuf_release(&name);
 	}
 
 	finalize_file(final_pack_name, curr_pack_name, sha1, "pack");
