@@ -1384,13 +1384,9 @@ static void finalize_file(const char *final_name, const char *curr_name,
 			  unsigned char *sha1, const char *ext)
 {
 	if (final_name != curr_name) {
-		char name[PATH_MAX];
-		if (!final_name) {
-			snprintf(name, sizeof(name), "%s/pack/pack-%s.%s",
-				 get_object_directory(), sha1_to_hex(sha1),
-				 ext);
-			final_name = name;
-		}
+		struct strbuf buf = STRBUF_INIT;
+		if (!final_name)
+			final_name = odb_pack_name(&buf, sha1, ext);
 		if (finalize_object_file(curr_name, final_name))
 			die(_("cannot store %s file"), ext);
 	} else if (from_stdin)
