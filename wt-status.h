@@ -70,6 +70,7 @@ struct wt_status {
 	int display_comment_prefix;
 	int relative_paths;
 	int submodule_summary;
+	int submodule_porcelain1;
 	int show_ignored_files;
 	enum untracked_status_type show_untracked_files;
 	const char *ignore_submodule_arg;

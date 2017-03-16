@@ -1664,9 +1664,19 @@ static void wt_shortstatus_status(struct string_list_item *it,
 		color_fprintf(s->fp, color(WT_STATUS_UPDATED, s), "%c", d->index_status);
 	else
 		putchar(' ');
-	if (d->worktree_status)
+	if (d->worktree_status) {
+		if (!s->submodule_porcelain1 &&
+		    (d->dirty_submodule || d->new_submodule_commits)) {
+			/* It is a submodule, and we're not in plumbing mode. */
+			if (d->new_submodule_commits)
+				d->worktree_status = 'M';
+			else if (d->dirty_submodule & DIRTY_SUBMODULE_MODIFIED)
+				d->worktree_status = 'm';
+			else if (d->dirty_submodule & DIRTY_SUBMODULE_UNTRACKED)
+				d->worktree_status = '?';
+		}
 		color_fprintf(s->fp, color(WT_STATUS_CHANGED, s), "%c", d->worktree_status);
-	else
+	} else
 		putchar(' ');
 	putchar(' ');
 	if (s->null_termination) {
@@ -1821,6 +1831,7 @@ static void wt_porcelain_print(struct wt_status *s)
 	s->relative_paths = 0;
 	s->prefix = NULL;
 	s->no_gettext = 1;
+	s->submodule_porcelain1 = 1;
 	wt_shortstatus_print(s);
 }
 
