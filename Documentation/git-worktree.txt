@@ -58,10 +58,10 @@ as if `-b $(basename <path>)` was specified.
 
 list::
 
-List details of each worktree.  The main worktree is listed first, followed by
-each of the linked worktrees.  The output details include if the worktree is
-bare, the revision currently checked out, and the branch currently checked out
-(or 'detached HEAD' if none).
+List details of each working tree.  The main working tree is listed first,
+followed by each of the linked working trees.  The output details include if
+the working tree is bare, the revision currently checked out, and the branch
+currently checked out (or 'detached HEAD' if none).
 
 lock::
 
