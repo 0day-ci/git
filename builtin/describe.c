@@ -49,7 +49,7 @@ struct commit_name {
 };
 
 static const char *prio_names[] = {
-	"head", "lightweight", "annotated",
+	N_("head"), N_("lightweight"), N_("annotated"),
 };
 
 static int commit_name_cmp(const struct commit_name *cn1,
@@ -396,8 +396,8 @@ static void describe(const char *arg, int last_one)
 	if (debug) {
 		for (cur_match = 0; cur_match < match_cnt; cur_match++) {
 			struct possible_tag *t = &all_matches[cur_match];
-			fprintf(stderr, " %-11s %8d %s\n",
-				prio_names[t->name->prio],
+			fprintf(stderr, " %-15s %8d %s\n",
+				_(prio_names[t->name->prio]),
 				t->depth, t->name->path);
 		}
 		fprintf(stderr, _("traversed %lu commits\n"), seen_commits);
