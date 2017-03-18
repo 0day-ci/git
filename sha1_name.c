@@ -549,7 +549,7 @@ static inline int at_mark(const char *string, int len,
 	for (i = 0; i < nr; i++) {
 		int suffix_len = strlen(suffix[i]);
 		if (suffix_len <= len
-		    && !memcmp(string, suffix[i], suffix_len))
+		    && !strncasecmp(string, suffix[i], suffix_len))
 			return suffix_len;
 	}
 	return 0;
@@ -821,15 +821,15 @@ static int peel_onion(const char *name, int len, unsigned char *sha1,
 		return -1;
 
 	sp++; /* beginning of type name, or closing brace for empty */
-	if (starts_with(sp, "commit}"))
+	if (starts_with_case(sp, "commit}"))
 		expected_type = OBJ_COMMIT;
-	else if (starts_with(sp, "tag}"))
+	else if (starts_with_case(sp, "tag}"))
 		expected_type = OBJ_TAG;
-	else if (starts_with(sp, "tree}"))
+	else if (starts_with_case(sp, "tree}"))
 		expected_type = OBJ_TREE;
-	else if (starts_with(sp, "blob}"))
+	else if (starts_with_case(sp, "blob}"))
 		expected_type = OBJ_BLOB;
-	else if (starts_with(sp, "object}"))
+	else if (starts_with_case(sp, "object}"))
 		expected_type = OBJ_ANY;
 	else if (sp[0] == '}')
 		expected_type = OBJ_NONE;

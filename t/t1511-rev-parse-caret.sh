@@ -48,6 +48,10 @@ test_expect_success 'ref^{commit}' '
 	git rev-parse ref >expected &&
 	git rev-parse ref^{commit} >actual &&
 	test_cmp expected actual &&
+	git rev-parse ref^{COMMIT} >actual &&
+	test_cmp expected actual &&
+	git rev-parse ref^{CoMMiT} >actual &&
+	test_cmp expected actual &&
 	git rev-parse commit-tag^{commit} >actual &&
 	test_cmp expected actual &&
 	test_must_fail git rev-parse tree-tag^{commit} &&
@@ -58,6 +62,10 @@ test_expect_success 'ref^{tree}' '
 	echo $TREE_SHA1 >expected &&
 	git rev-parse ref^{tree} >actual &&
 	test_cmp expected actual &&
+	git rev-parse ref^{TREE} >actual &&
+	test_cmp expected actual &&
+	git rev-parse ref^{TrEe} >actual &&
+	test_cmp expected actual &&
 	git rev-parse commit-tag^{tree} >actual &&
 	test_cmp expected actual &&
 	git rev-parse tree-tag^{tree} >actual &&
@@ -67,8 +75,13 @@ test_expect_success 'ref^{tree}' '
 
 test_expect_success 'ref^{tag}' '
 	test_must_fail git rev-parse HEAD^{tag} &&
+	test_must_fail git rev-parse HEAD^{TAG} &&
 	git rev-parse commit-tag >expected &&
 	git rev-parse commit-tag^{tag} >actual &&
+	test_cmp expected actual &&
+	git rev-parse commit-tag^{TAG} >actual &&
+	test_cmp expected actual &&
+	git rev-parse commit-tag^{Tag} >actual &&
 	test_cmp expected actual
 '
 
