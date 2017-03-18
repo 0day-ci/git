@@ -292,7 +292,7 @@ static int try_difference(const char *arg)
 	return 0;
 }
 
-static int try_parent_shorthands(const char *arg)
+static int try_parent_shorthands(int type, const char *arg)
 {
 	char *dotdot;
 	unsigned char sha1[20];
@@ -338,7 +338,7 @@ static int try_parent_shorthands(const char *arg)
 	}
 
 	if (include_rev)
-		show_rev(NORMAL, sha1, arg);
+		show_rev(type, sha1, arg);
 	for (parents = commit->parents, parent_number = 1;
 	     parents;
 	     parents = parents->next, parent_number++) {
@@ -349,7 +349,7 @@ static int try_parent_shorthands(const char *arg)
 
 		if (symbolic)
 			name = xstrfmt("%s^%d", arg, parent_number);
-		show_rev(include_parents ? NORMAL : REVERSED,
+		show_rev(include_parents ? type : !type,
 			 parents->item->object.oid.hash, name);
 		free(name);
 	}
@@ -889,14 +889,14 @@ int cmd_rev_parse(int argc, const char **argv, const char *prefix)
 		/* Not a flag argument */
 		if (try_difference(arg))
 			continue;
-		if (try_parent_shorthands(arg))
-			continue;
 		name = arg;
 		type = NORMAL;
 		if (*arg == '^') {
 			name++;
 			type = REVERSED;
 		}
+		if (try_parent_shorthands(type, name))
+			continue;
 		if (!get_sha1_with_context(name, flags, sha1, &unused)) {
 			if (verify)
 				revs_count++;
