@@ -461,7 +461,8 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 		if (argc == 0)
 			cmdmode = 'l';
 		else if (filter.with_commit || filter.no_commit ||
-			 filter.points_at.nr || filter.merge_commit)
+			 filter.points_at.nr || filter.merge_commit ||
+			 filter.lines != -1)
 			cmdmode = 'l';
 	}
 
