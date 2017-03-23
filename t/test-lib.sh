@@ -627,6 +627,10 @@ test_run_ () {
 		test_eval_ "(exit 117) && $1"
 		if test "$?" != 117; then
 			error "bug in the test script: broken &&-chain: $1"
+		elif ! OK=$(test_eval_ "false && $1${LF}${LF}echo OK" 2>/dev/null) ||
+		   test OK != "$OK"
+		then
+			error "bug in the test script: possibly unterminated HERE-DOC"
 		fi
 		trace=$trace_tmp
 	fi
