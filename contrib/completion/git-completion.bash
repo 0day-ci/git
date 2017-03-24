@@ -2396,6 +2396,7 @@ _git_config ()
 		pull.octopus
 		pull.twohead
 		push.default
+		push.atomic
 		push.followTags
 		rebase.autosquash
 		rebase.stat

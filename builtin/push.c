@@ -498,6 +498,12 @@ static int git_push_config(const char *k, const char *v, void *cb)
 		const char *value;
 		if (!git_config_get_value("push.recursesubmodules", &value))
 			recurse_submodules = parse_push_recurse_submodules_arg(k, value);
+	} else if (!strcmp(k, "push.atomic")) {
+		if (git_config_bool(k, v))
+			*flags |= TRANSPORT_PUSH_ATOMIC;
+		else
+			*flags &= ~TRANSPORT_PUSH_ATOMIC;
+		return 0;
 	}
 
 	return git_default_config(k, v, NULL);

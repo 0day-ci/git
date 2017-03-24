@@ -2555,6 +2555,11 @@ new default).
 
 --
 
+push.atomic::
+	If set to true enable `--atomic` option by default.  You
+	may override this configuration at time of push by specifying
+	`--no-atomic`.
+
 push.followTags::
 	If set to true enable `--follow-tags` option by default.  You
 	may override this configuration at time of push by specifying
