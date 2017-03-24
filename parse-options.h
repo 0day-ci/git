@@ -38,7 +38,9 @@ enum parse_opt_option_flags {
 	PARSE_OPT_LASTARG_DEFAULT = 16,
 	PARSE_OPT_NODASH = 32,
 	PARSE_OPT_LITERAL_ARGHELP = 64,
-	PARSE_OPT_SHELL_EVAL = 256
+	PARSE_OPT_SHELL_EVAL = 256,
+	PARSE_OPT_CONFIGURABLE = 512,
+	PARSE_OPT_VIA_CLI = 1024
 };
 
 struct option;
@@ -110,6 +112,9 @@ struct option {
 	int flags;
 	parse_opt_cb *callback;
 	intptr_t defval;
+
+	const char *conf_key;
+	parse_opt_cb *conf_callback;
 };
 
 #define OPT_END()                   { OPTION_END }
@@ -124,7 +129,11 @@ struct option {
 				      (h), PARSE_OPT_NOARG }
 #define OPT_SET_INT(s, l, v, h, i)  { OPTION_SET_INT, (s), (l), (v), NULL, \
 				      (h), PARSE_OPT_NOARG, NULL, (i) }
+#define OPT_SET_INT_C(s, l, v, h, i, ck, cb) \
+				    { OPTION_SET_INT, (s), (l), (v), NULL, \
+				      (h), PARSE_OPT_NOARG | PARSE_OPT_CONFIGURABLE, NULL, (i), ck, cb }
 #define OPT_BOOL(s, l, v, h)        OPT_SET_INT(s, l, v, h, 1)
+#define OPT_BOOL_C(s, l, v, h, ck, cb) OPT_SET_INT_C(s, l, v, h, 1, ck, cb)
 #define OPT_HIDDEN_BOOL(s, l, v, h) { OPTION_SET_INT, (s), (l), (v), NULL, \
 				      (h), PARSE_OPT_NOARG | PARSE_OPT_HIDDEN, NULL, 1}
 #define OPT_CMDMODE(s, l, v, h, i)  { OPTION_CMDMODE, (s), (l), (v), NULL, \
@@ -166,7 +175,7 @@ struct option {
  * Returns the number of arguments left in argv[].
  */
 extern int parse_options(int argc, const char **argv, const char *prefix,
-                         const struct option *options,
+                         struct option *options,
                          const char * const usagestr[], int flags);
 
 extern NORETURN void usage_with_options(const char * const *usagestr,
@@ -210,7 +219,7 @@ extern void parse_options_start(struct parse_opt_ctx_t *ctx,
 				const struct option *options, int flags);
 
 extern int parse_options_step(struct parse_opt_ctx_t *ctx,
-			      const struct option *options,
+			      struct option *options,
 			      const char * const usagestr[]);
 
 extern int parse_options_end(struct parse_opt_ctx_t *ctx);
@@ -231,6 +240,7 @@ extern int parse_opt_noop_cb(const struct option *, const char *, int);
 extern int parse_opt_unknown_cb(const struct option *, const char *, int);
 extern int parse_opt_passthru(const struct option *, const char *, int);
 extern int parse_opt_passthru_argv(const struct option *, const char *, int);
+extern int parse_opt_confkey_bool(const struct option *, const char *, int);
 
 #define OPT__VERBOSE(var, h)  OPT_COUNTUP('v', "verbose", (var), (h))
 #define OPT__QUIET(var, h)    OPT_COUNTUP('q', "quiet",   (var), (h))
