@@ -12,6 +12,7 @@
 /test-hashmap
 /test-index-version
 /test-line-buffer
+/test-lazy-init-name-hash
 /test-match-trees
 /test-mergesort
 /test-mktemp
