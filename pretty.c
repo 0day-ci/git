@@ -1641,6 +1641,21 @@ void pp_title_line(struct pretty_print_context *pp,
 	if (pp->after_subject) {
 		strbuf_addstr(sb, pp->after_subject);
 	}
+	if (pp->print_email_subject && pp->rev && pp->rev->mime_boundary) {
+		strbuf_addf(sb,
+			    "MIME-Version: 1.0\n"
+			    "Content-Type: multipart/mixed;"
+			    " boundary=\"%s%s\"\n"
+			    "\n"
+			    "This is a multi-part message in MIME "
+			    "format.\n"
+			    "--%s%s\n"
+			    "Content-Type: text/plain; "
+			    "charset=UTF-8; format=fixed\n"
+			    "Content-Transfer-Encoding: 8bit\n\n",
+			    mime_boundary_leader, pp->rev->mime_boundary,
+			    mime_boundary_leader, pp->rev->mime_boundary);
+	}
 	if (cmit_fmt_is_mail(pp->fmt)) {
 		strbuf_addch(sb, '\n');
 	}
