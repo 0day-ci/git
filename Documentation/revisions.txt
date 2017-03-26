@@ -99,8 +99,8 @@ some output processing may assume ref names in UTF-8.
   current one. These suffixes are accepted when spelled in uppercase, and
   they mean the same thing no matter the case.
 
-'<branchname>@\{push\}', e.g. 'master@\{push\}', '@\{push\}'::
-  The suffix '@\{push}' reports the branch "where we would push to" if
+'<branchname>@\{push\}', e.g. 'master@\{push\}', '@\{p\}'::
+  The suffix '@\{push}' (short form '@\{push}') reports the branch "where we would push to" if
   `git push` were run while `branchname` was checked out (or the current
   `HEAD` if no branchname is specified). Since our push destination is
   in a remote repository, of course, we report the local tracking branch
@@ -124,8 +124,8 @@ Note in the example that we set up a triangular workflow, where we pull
 from one location and push to another. In a non-triangular workflow,
 '@\{push}' is the same as '@\{upstream}', and there is no need for it.
 +
-This suffix is accepted when spelled in uppercase, and means the same
-thing no matter the case.
+These suffixes are accepted when spelled in uppercase, and they mean
+the same thing no matter the case.
 
 '<rev>{caret}', e.g. 'HEAD{caret}, v1.5.1{caret}0'::
   A suffix '{caret}' to a revision parameter means the first parent of

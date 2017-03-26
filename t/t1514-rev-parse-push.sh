@@ -31,6 +31,8 @@ test_expect_success '@{push} with default=nothing' '
 
 test_expect_success '@{push} with default=simple' '
 	test_config push.default simple &&
+	resolve master@{p} refs/remotes/origin/master &&
+	resolve master@{P} refs/remotes/origin/master &&
 	resolve master@{push} refs/remotes/origin/master &&
 	resolve master@{PUSH} refs/remotes/origin/master &&
 	resolve master@{pUSh} refs/remotes/origin/master
