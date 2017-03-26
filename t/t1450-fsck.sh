@@ -505,6 +505,13 @@ test_expect_success 'fsck notices missing tagged object' '
 	test_must_fail git -C missing fsck
 '
 
+test_expect_success 'fsck notices missing tagged object with case insensitive {blob}' '
+	create_repo_missing tag^{BLOB} &&
+	test_must_fail git -C missing fsck &&
+	create_repo_missing tag^{BloB} &&
+	test_must_fail git -C missing fsck
+'
+
 test_expect_success 'fsck notices ref pointing to missing commit' '
 	create_repo_missing HEAD &&
 	test_must_fail git -C missing fsck

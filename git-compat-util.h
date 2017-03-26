@@ -448,6 +448,7 @@ extern void set_die_is_recursing_routine(int (*routine)(void));
 extern void set_error_handle(FILE *);
 
 extern int starts_with(const char *str, const char *prefix);
+extern int starts_with_icase(const char *str, const char *prefix);
 
 /*
  * If the string "str" begins with the string found in "prefix", return 1.

@@ -821,15 +821,15 @@ static int peel_onion(const char *name, int len, unsigned char *sha1,
 		return -1;
 
 	sp++; /* beginning of type name, or closing brace for empty */
-	if (starts_with(sp, "commit}"))
+	if (starts_with_icase(sp, "commit}"))
 		expected_type = OBJ_COMMIT;
-	else if (starts_with(sp, "tag}"))
+	else if (starts_with_icase(sp, "tag}"))
 		expected_type = OBJ_TAG;
-	else if (starts_with(sp, "tree}"))
+	else if (starts_with_icase(sp, "tree}"))
 		expected_type = OBJ_TREE;
-	else if (starts_with(sp, "blob}"))
+	else if (starts_with_icase(sp, "blob}"))
 		expected_type = OBJ_BLOB;
-	else if (starts_with(sp, "object}"))
+	else if (starts_with_icase(sp, "object}"))
 		expected_type = OBJ_ANY;
 	else if (sp[0] == '}')
 		expected_type = OBJ_NONE;
