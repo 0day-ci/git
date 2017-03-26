@@ -29,6 +29,8 @@ onto=         try connecting new tree to an existing one
 rejoin        merge the new branch back into HEAD
  options for 'add', 'merge', and 'pull'
 squash        merge subtree changes as a single commit
+ options for 'merge' and 'pull'
+no-commit     perform the merge, but don't commit
 "
 eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 
@@ -48,6 +50,7 @@ annotate=
 squash=
 message=
 prefix=
+commit_option="--commit"
 
 debug () {
 	if test -n "$debug"
@@ -136,6 +139,12 @@ do
 		;;
 	--no-squash)
 		squash=
+		;;
+	--no-commit)
+		commit_option="--no-commit"
+		;;
+	--no-no-commit)
+		commit_option="--commit"
 		;;
 	--)
 		break
@@ -815,17 +824,17 @@ cmd_merge () {
 	then
 		if test -n "$message"
 		then
-			git merge -s subtree --message="$message" "$rev"
+			git merge -s subtree --message="$message" "$commit_option" "$rev"
 		else
-			git merge -s subtree "$rev"
+			git merge -s subtree "$commit_option" "$rev"
 		fi
 	else
 		if test -n "$message"
 		then
 			git merge -Xsubtree="$prefix" \
-				--message="$message" "$rev"
+				--message="$message" "$commit_option" "$rev"
 		else
-			git merge -Xsubtree="$prefix" $rev
+			git merge -Xsubtree="$prefix" "$commit_option" $rev
 		fi
 	fi
 }
