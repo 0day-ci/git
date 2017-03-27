@@ -747,6 +747,11 @@ extern int protect_ntfs;
 extern int git_db_env, git_index_env, git_graft_env, git_common_dir_env;
 
 /*
+ * When set, skip verification of the index SHA in read_index().
+ */
+extern int skip_verify_index;
+
+/*
  * Include broken refs in all ref iterations, which will
  * generally choke dangerous operations rather than letting
  * them silently proceed without taking the broken ref into
