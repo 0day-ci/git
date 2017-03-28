@@ -147,6 +147,8 @@ struct diff_options {
 	int setup;
 	int abbrev;
 	int ita_invisible_in_index;
+#define DEFAULT_EXPAND_TAB_WIDTH 8
+	int expand_tabs;
 /* white-space error highlighting */
 #define WSEH_NEW 1
 #define WSEH_CONTEXT 2
@@ -308,6 +310,10 @@ extern void diffcore_fix_diff_index(struct diff_options *);
 "  --name-status show names and status of changed files.\n" \
 "  --full-index  show full object name on index lines.\n" \
 "  --abbrev=<n>  abbreviate object names in diff-tree header and diff-raw.\n" \
+"  --diff-expand-tabs=<n>\n" \
+"                expand tabs in the output to spaces, to preserve the\n" \
+"                alignment of tabs as compared to the input. Tabs will expand\n" \
+"                to <n> spaces. If <n> is 0, expansion is disabled.\n" \
 "  -R            swap input file pairs.\n" \
 "  -B            detect complete rewrites.\n" \
 "  -M            detect renames.\n" \

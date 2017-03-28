@@ -329,6 +329,12 @@ endif::git-format-patch[]
 	the diff-patch output format.  Non default number of
 	digits can be specified with `--abbrev=<n>`.
 
+--diff-expand-tabs[=<n>]::
+	When showing diff output, expand any tabs into spaces first before
+	printing. The size of the tabs is determined by <n> which defaults to
+	8 if not provided. --no-diff-expand-tabs or a size of 0 will disable
+	expansion.
+
 -B[<n>][/<m>]::
 --break-rewrites[=[<n>][/<m>]]::
 	Break complete rewrite changes into pairs of delete and

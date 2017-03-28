@@ -544,7 +544,14 @@ static void emit_line_0(struct diff_options *o, const char *set, const char *res
 		fputs(set, file);
 		if (!nofirst)
 			fputc(first, file);
-		fwrite(line, len, 1, file);
+		if (o->expand_tabs) {
+			struct strbuf sb = STRBUF_INIT;
+			strbuf_add_tabexpand(&sb, o->expand_tabs, line, len);
+			fwrite(sb.buf, sb.len, 1, file);
+			strbuf_release(&sb);
+		} else {
+			fwrite(line, len, 1, file);
+		}
 		fputs(reset, file);
 	}
 	if (has_trailing_carriage_return)
@@ -595,7 +602,8 @@ static void emit_line_checked(const char *reset,
 		/* Emit just the prefix, then the rest. */
 		emit_line_0(ecbdata->opt, set, reset, sign, "", 0);
 		ws_check_emit(line, len, ecbdata->ws_rule,
-			      ecbdata->opt->file, set, reset, ws);
+			      ecbdata->opt->file, set, reset, ws,
+			      ecbdata->opt->expand_tabs);
 	}
 }
 
@@ -2190,7 +2198,7 @@ static void checkdiff_consume(void *priv, char *line, unsigned long len)
 		free(err);
 		emit_line(data->o, set, reset, line, 1);
 		ws_check_emit(line + 1, len - 1, data->ws_rule,
-			      data->o->file, set, reset, ws);
+			      data->o->file, set, reset, ws, 0);
 	} else if (line[0] == ' ') {
 		data->lineno++;
 	} else if (line[0] == '@') {
@@ -4043,6 +4051,15 @@ int diff_opt_parse(struct diff_options *options,
 			options->abbrev = MINIMUM_ABBREV;
 		else if (40 < options->abbrev)
 			options->abbrev = 40;
+	}
+	else if (!strcmp(arg, "--no-diff-expand-tabs"))
+		options->expand_tabs = 0;
+	else if (!strcmp(arg, "--diff-expand-tabs"))
+		options->expand_tabs = DEFAULT_EXPAND_TAB_WIDTH;
+	else if (skip_prefix(arg, "--diff-expand-tabs=", &arg)) {
+		options->expand_tabs = strtoul(arg, NULL, 10);
+		if (options->expand_tabs < 0)
+			options->expand_tabs = 0;
 	}
 	else if ((argcount = parse_long_opt("src-prefix", av, &optarg))) {
 		options->a_prefix = optarg;

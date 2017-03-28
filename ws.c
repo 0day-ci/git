@@ -139,10 +139,24 @@ char *whitespace_error_string(unsigned ws)
 	return strbuf_detach(&err, NULL);
 }
 
+/* Emit the line to the stream, expanding tabs if necessary */
+static void ws_emit(int expand_tabs, const char *line, int len, FILE *stream)
+{
+	if (expand_tabs) {
+		struct strbuf sb = STRBUF_INIT;
+		strbuf_add_tabexpand(&sb, expand_tabs, line, len);
+		fwrite(sb.buf, sb.len, 1, stream);
+		strbuf_release(&sb);
+	} else {
+		fwrite(line, len, 1, stream);
+	}
+}
+
 /* If stream is non-NULL, emits the line after checking. */
 static unsigned ws_check_emit_1(const char *line, int len, unsigned ws_rule,
 				FILE *stream, const char *set,
-				const char *reset, const char *ws)
+				const char *reset, const char *ws,
+				int expand_tabs)
 {
 	unsigned result = 0;
 	int written = 0;
@@ -187,20 +201,20 @@ static unsigned ws_check_emit_1(const char *line, int len, unsigned ws_rule,
 			result |= WS_SPACE_BEFORE_TAB;
 			if (stream) {
 				fputs(ws, stream);
-				fwrite(line + written, i - written, 1, stream);
+				ws_emit(expand_tabs, line + written, i - written, stream);
 				fputs(reset, stream);
-				fwrite(line + i, 1, 1, stream);
+				ws_emit(expand_tabs, line + i, 1, stream);
 			}
 		} else if (ws_rule & WS_TAB_IN_INDENT) {
 			result |= WS_TAB_IN_INDENT;
 			if (stream) {
-				fwrite(line + written, i - written, 1, stream);
+				ws_emit(expand_tabs, line + written, i - written, stream);
 				fputs(ws, stream);
-				fwrite(line + i, 1, 1, stream);
+				ws_emit(expand_tabs, line + i, 1, stream);
 				fputs(reset, stream);
 			}
 		} else if (stream) {
-			fwrite(line + written, i - written + 1, 1, stream);
+			ws_emit(expand_tabs, line + written, i - written + 1, stream);
 		}
 		written = i + 1;
 	}
@@ -210,7 +224,7 @@ static unsigned ws_check_emit_1(const char *line, int len, unsigned ws_rule,
 		result |= WS_INDENT_WITH_NON_TAB;
 		if (stream) {
 			fputs(ws, stream);
-			fwrite(line + written, i - written, 1, stream);
+			ws_emit(expand_tabs, line + written, i - written, stream);
 			fputs(reset, stream);
 		}
 		written = i;
@@ -225,16 +239,16 @@ static unsigned ws_check_emit_1(const char *line, int len, unsigned ws_rule,
 		/* Emit non-highlighted (middle) segment. */
 		if (trailing_whitespace - written > 0) {
 			fputs(set, stream);
-			fwrite(line + written,
-			    trailing_whitespace - written, 1, stream);
+			ws_emit(expand_tabs, line + written,
+			    trailing_whitespace - written, stream);
 			fputs(reset, stream);
 		}
 
 		/* Highlight errors in trailing whitespace. */
 		if (trailing_whitespace != len) {
 			fputs(ws, stream);
-			fwrite(line + trailing_whitespace,
-			    len - trailing_whitespace, 1, stream);
+			ws_emit(expand_tabs, line + trailing_whitespace,
+			    len - trailing_whitespace, stream);
 			fputs(reset, stream);
 		}
 		if (trailing_carriage_return)
@@ -247,14 +261,14 @@ static unsigned ws_check_emit_1(const char *line, int len, unsigned ws_rule,
 
 void ws_check_emit(const char *line, int len, unsigned ws_rule,
 		   FILE *stream, const char *set,
-		   const char *reset, const char *ws)
+		   const char *reset, const char *ws, int expand_tabs)
 {
-	(void)ws_check_emit_1(line, len, ws_rule, stream, set, reset, ws);
+	(void)ws_check_emit_1(line, len, ws_rule, stream, set, reset, ws, expand_tabs);
 }
 
 unsigned ws_check(const char *line, int len, unsigned ws_rule)
 {
-	return ws_check_emit_1(line, len, ws_rule, NULL, NULL, NULL, NULL);
+	return ws_check_emit_1(line, len, ws_rule, NULL, NULL, NULL, NULL, 0);
 }
 
 int ws_blank_line(const char *line, int len, unsigned ws_rule)
