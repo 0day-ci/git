@@ -1,6 +1,7 @@
 /test-chmtime
 /test-ctype
 /test-config
+/test-core-checksum-index
 /test-date
 /test-delta
 /test-dump-cache-tree
