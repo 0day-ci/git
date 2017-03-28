@@ -7,6 +7,8 @@
 #include "strbuf.h"
 #include "string-list.h"
 #include "argv-array.h"
+#include "iterator.h"
+#include "dir-iterator.h"
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
@@ -86,26 +88,21 @@ static void remove_pack_on_signal(int signo)
  */
 static void get_non_kept_pack_filenames(struct string_list *fname_list)
 {
-	DIR *dir;
-	struct dirent *e;
+	struct dir_iterator *diter = dir_iterator_begin(packdir);
 	char *fname;
 
-	if (!(dir = opendir(packdir)))
-		return;
-
-	while ((e = readdir(dir)) != NULL) {
+	while (dir_iterator_advance(diter) == ITER_OK) {
 		size_t len;
-		if (!strip_suffix(e->d_name, ".pack", &len))
+		if (!strip_suffix(diter->relative_path, ".pack", &len))
 			continue;
 
-		fname = xmemdupz(e->d_name, len);
+		fname = xmemdupz(diter->relative_path, len);
 
 		if (!file_exists(mkpath("%s/%s.keep", packdir, fname)))
 			string_list_append_nodup(fname_list, fname);
 		else
 			free(fname);
 	}
-	closedir(dir);
 }
 
 static void remove_redundant_pack(const char *dir_name, const char *base_name)
