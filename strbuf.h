@@ -238,6 +238,12 @@ extern void strbuf_splice(struct strbuf *, size_t pos, size_t len,
  */
 extern void strbuf_add_commented_lines(struct strbuf *out, const char *buf, size_t size);
 
+/**
+ * Add a NUL-terminated string to the buffer. Tabs will be expanded using the
+ * provided tabwidth.
+ */
+extern void strbuf_add_tabexpand(struct strbuf *sb, int tabwidth,
+				 const char *buf, size_t size);
 
 /**
  * Add data of given length to the buffer.

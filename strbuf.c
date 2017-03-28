@@ -275,6 +275,56 @@ void strbuf_commented_addf(struct strbuf *sb, const char *fmt, ...)
 	strbuf_release(&buf);
 }
 
+static int find_utf8_width(const char *start, const char *end)
+{
+	int width = 0;
+	size_t remain = end - start;
+
+	while (remain) {
+		int n = utf8_width(&start, &remain);
+		if (n < 0 || !start)
+			return -1;
+		width += n;
+	}
+	return width;
+}
+
+void strbuf_add_tabexpand(struct strbuf *sb, int tabwidth,
+			  const char *buf, size_t size)
+{
+	const char *tab;
+
+	while ((tab = memchr(buf, '\t', size)) != NULL) {
+		int width = find_utf8_width(buf, tab);
+
+		/*
+		 * If it wasn't well-formed utf8, or it
+		 * had characters with badly defined
+		 * width (control characters etc), just
+		 * give up on trying to align things.
+		 */
+		if (width < 0)
+			break;
+
+		/* Output the data .. */
+		strbuf_add(sb, buf, tab - buf);
+
+		/* .. and the de-tabified tab */
+		strbuf_addchars(sb, ' ', tabwidth - (width % tabwidth));
+
+		/* Skip over the printed part .. */
+		size -= tab + 1 - buf;
+		buf = tab + 1;
+	}
+
+	/*
+	 * Print out everything after the last tab without
+	 * worrying about width - there's nothing more to
+	 * align.
+	 */
+	strbuf_add(sb, buf, size);
+}
+
 void strbuf_vaddf(struct strbuf *sb, const char *fmt, va_list ap)
 {
 	int len;
