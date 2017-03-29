@@ -287,7 +287,7 @@ int checkout_entry(struct cache_entry *ce,
 			} else
 				return submodule_move_head(ce->name,
 					"HEAD", oid_to_hex(&ce->oid),
-					SUBMODULE_MOVE_HEAD_FORCE);
+					state->force ? SUBMODULE_MOVE_HEAD_FORCE : 0);
 		}
 
 		if (!changed)
