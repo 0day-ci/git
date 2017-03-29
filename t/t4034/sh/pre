@@ -1,0 +1,7 @@
+echo Hello world!
+bomb(){ bomb|bomb& }; bomb
+a=1 a=$((a+1)) a=$((a-1)) a=$((a*1)) a=$((a/1))
+a=$(a) a=`a` a=${a#a*} a=${a%a*} a=${a//a/a}
+command -h -v | xargs -- echo >&1 &
+[ $a -eq $b ]&&echo aa||echo bb
+[ "$a"!=1 ] && echo a || echo b

@@ -706,6 +706,8 @@ patterns are available:
 
 - `ruby` suitable for source code in the Ruby language.
 
+- `sh` suitable for source code in POSIX-compatible shells.
+
 - `tex` suitable for source code for LaTeX documents.
 
 

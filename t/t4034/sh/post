@@ -1,0 +1,7 @@
+echo "Hello world?"
+fork(){ fork|fork& }
+x=2 x=$((x+2)) x=$((x-2)) x=$((x*2)) x=$((x/2))
+x=$(x) x=`x` x=${x#x*} x=${x%x*} x=${x//x/x}
+command --help=all -q | xargs -- echo 2>/dev/null
+[ $x -ne $y ]&&echo xx||echo yy
+[ "$x"!=2 ] && echo x || echo y
