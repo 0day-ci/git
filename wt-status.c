@@ -43,12 +43,13 @@ static const char *color(int slot, struct wt_status *s)
 	return c;
 }
 
-static void status_vprintf(struct wt_status *s, int at_bol, const char *color,
+static int status_vprintf(struct wt_status *s, int at_bol, const char *color,
 		const char *fmt, va_list ap, const char *trail)
 {
 	struct strbuf sb = STRBUF_INIT;
 	struct strbuf linebuf = STRBUF_INIT;
 	const char *line, *eol;
+	int ret = 0;
 
 	strbuf_vaddf(&sb, fmt, ap);
 	if (!sb.len) {
@@ -59,9 +60,9 @@ static void status_vprintf(struct wt_status *s, int at_bol, const char *color,
 		}
 		color_print_strbuf(s->fp, color, &sb);
 		if (trail)
-			fprintf(s->fp, "%s", trail);
+			ret += fprintf(s->fp, "%s", trail);
 		strbuf_release(&sb);
-		return;
+		return ret;
 	}
 	for (line = sb.buf; *line; line = eol + 1) {
 		eol = strchr(line, '\n');
@@ -78,15 +79,16 @@ static void status_vprintf(struct wt_status *s, int at_bol, const char *color,
 			strbuf_addstr(&linebuf, line);
 		color_print_strbuf(s->fp, color, &linebuf);
 		if (eol)
-			fprintf(s->fp, "\n");
+			ret += fprintf(s->fp, "\n");
 		else
 			break;
 		at_bol = 1;
 	}
 	if (trail)
-		fprintf(s->fp, "%s", trail);
+		ret += fprintf(s->fp, "%s", trail);
 	strbuf_release(&linebuf);
 	strbuf_release(&sb);
+	return ret;
 }
 
 void status_printf_ln(struct wt_status *s, const char *color,
@@ -834,6 +836,20 @@ static void wt_longstatus_print_submodule_summary(struct wt_status *s, int uncom
 	strbuf_release(&summary);
 }
 
+static struct wt_status *global_wt_status_hack;
+static int column_status_printf(const char *fmt, ...)
+{
+	va_list ap;
+	struct wt_status *s = global_wt_status_hack;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = status_vprintf(s, 0, "", fmt, ap, NULL);
+	va_end(ap);
+
+	return ret;
+}
+
 static void wt_longstatus_print_other(struct wt_status *s,
 				      struct string_list *l,
 				      const char *what,
@@ -856,6 +872,7 @@ static void wt_longstatus_print_other(struct wt_status *s,
 		path = quote_path(it->string, s->prefix, &buf);
 		if (column_active(s->colopts)) {
 			string_list_append(&output, path);
+			global_wt_status_hack = s;
 			continue;
 		}
 		status_printf(s, color(WT_STATUS_HEADER, s), "\t");
@@ -876,6 +893,8 @@ static void wt_longstatus_print_other(struct wt_status *s,
 	copts.indent = buf.buf;
 	if (want_color(s->use_color))
 		copts.nl = GIT_COLOR_RESET "\n";
+
+	copts._printf = column_status_printf;
 	print_columns(&output, s->colopts, &copts);
 	string_list_clear(&output, 0);
 	strbuf_release(&buf);
