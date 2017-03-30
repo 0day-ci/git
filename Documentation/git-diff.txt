@@ -97,6 +97,14 @@ OPTIONS
 :git-diff: 1
 include::diff-options.txt[]
 
+-1 --base::
+-2 --ours::
+-3 --theirs::
+-0::
+	Diff against the "base" version, "our branch" or "their
+	branch" respectively. The option -0 can be given to omit diff
+	output for unmerged entries and just show "Unmerged".
+
 <path>...::
 	The <paths> parameters, when given, are used to limit
 	the diff to the named paths (you can give directory
