@@ -834,6 +834,15 @@ int git_parse_ulong(const char *value, unsigned long *ret)
 	return 1;
 }
 
+static size_t git_parse_size_t(const char *value, unsigned long *ret)
+{
+	size_t tmp;
+	if (!git_parse_signed(value, &tmp, maximum_unsigned_value_of_type(size_t)))
+		return 0;
+	*ret = tmp;
+	return 1;
+}
+
 NORETURN
 static void die_bad_number(const char *name, const char *value)
 {
@@ -888,6 +897,14 @@ unsigned long git_config_ulong(const char *name, const char *value)
 {
 	unsigned long ret;
 	if (!git_parse_ulong(value, &ret))
+		die_bad_number(name, value);
+	return ret;
+}
+
+size_t git_config_size_t(const char *name, const char *value)
+{
+	unsigned long ret;
+	if (!git_parse_size_t(value, &ret))
 		die_bad_number(name, value);
 	return ret;
 }
