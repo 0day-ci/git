@@ -109,12 +109,12 @@ static void shrink_columns(struct column_data *data)
 
 /* Display without layout when not enabled */
 static void display_plain(const struct string_list *list,
-			  const char *indent, const char *nl)
+			  const struct column_options *opts)
 {
 	int i;
 
 	for (i = 0; i < list->nr; i++)
-		printf("%s%s%s", indent, list->items[i].string, nl);
+		printf("%s%s%s", opts->indent, list->items[i].string, opts->nl);
 }
 
 /* Print a cell to stdout with all necessary leading/traling space */
@@ -201,12 +201,14 @@ void print_columns(const struct string_list *list, unsigned int colopts,
 	nopts.padding = opts ? opts->padding : 1;
 	nopts.width = opts && opts->width ? opts->width : term_columns() - 1;
 	if (!column_active(colopts)) {
-		display_plain(list, "", "\n");
+		nopts.indent = "";
+		nopts.nl = "\n";
+		display_plain(list, &nopts);
 		return;
 	}
 	switch (COL_LAYOUT(colopts)) {
 	case COL_PLAIN:
-		display_plain(list, nopts.indent, nopts.nl);
+		display_plain(list, &nopts);
 		break;
 	case COL_ROW:
 	case COL_COLUMN:
