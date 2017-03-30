@@ -2984,7 +2984,7 @@ This variable can be overridden with the -u|--untracked-files option
 of linkgit:git-status[1] and linkgit:git-commit[1].
 
 status.submoduleSummary::
-	Defaults to false.
+	Defaults to true.
 	If this is set to a non zero number or true (identical to -1 or an
 	unlimited number), the submodule summary will be enabled and a
 	summary of commits for modified submodules will be shown (see

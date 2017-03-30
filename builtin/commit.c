@@ -1388,6 +1388,7 @@ int cmd_status(int argc, const char **argv, const char *prefix)
 
 	s.ignore_submodule_arg = ignore_submodule_arg;
 	s.status_format = status_format;
+	s.submodule_summary = -1;
 	s.verbose = verbose;
 
 	wt_status_collect(&s);
@@ -1650,6 +1651,7 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 	status_init_config(&s, git_commit_config);
 	status_format = STATUS_FORMAT_NONE; /* Ignore status.short */
 	s.colopts = 0;
+	s.submodule_summary = -1;
 
 	if (get_sha1("HEAD", oid.hash))
 		current_head = NULL;
