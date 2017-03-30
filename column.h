@@ -24,6 +24,9 @@ struct column_options {
 	int padding;
 	const char *indent;
 	const char *nl;
+
+	/* when non-NULL, use this printing function, fallback to printf */
+	int (*_printf)(const char *__format, ...);
 };
 
 struct option;

@@ -114,7 +114,9 @@ static void display_plain(const struct string_list *list,
 	int i;
 
 	for (i = 0; i < list->nr; i++)
-		printf("%s%s%s", opts->indent, list->items[i].string, opts->nl);
+		opts->_printf("%s%s%s", opts->indent,
+					list->items[i].string,
+					opts->nl);
 }
 
 /* Print a cell to stdout with all necessary leading/traling space */
@@ -143,10 +145,10 @@ static int display_cell(struct column_data *data, int initial_width,
 	else
 		newline = x == data->cols - 1 || i == data->list->nr - 1;
 
-	printf("%s%s%s",
-	       x == 0 ? data->opts.indent : "",
-	       data->list->items[i].string,
-	       newline ? data->opts.nl : empty_cell + len);
+	data->opts._printf("%s%s%s",
+			   x == 0 ? data->opts.indent : "",
+			   data->list->items[i].string,
+			   newline ? data->opts.nl : empty_cell + len);
 	return 0;
 }
 
@@ -200,6 +202,7 @@ void print_columns(const struct string_list *list, unsigned int colopts,
 	nopts.nl = opts && opts->nl ? opts->nl : "\n";
 	nopts.padding = opts ? opts->padding : 1;
 	nopts.width = opts && opts->width ? opts->width : term_columns() - 1;
+	nopts._printf = opts && opts->_printf ? opts->_printf : printf;
 	if (!column_active(colopts)) {
 		nopts.indent = "";
 		nopts.nl = "\n";
