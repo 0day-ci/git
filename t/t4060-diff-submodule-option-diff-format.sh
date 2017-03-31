@@ -746,4 +746,20 @@ test_expect_success 'diff --submodule=diff with .git file' '
 	test_cmp expected actual
 '
 
+test_expect_success 'setup nested submodule' '
+	git submodule add -f ./sm2 &&
+	git commit -a -m "add sm2" &&
+	git -C sm2 submodule add ../sm2 &&
+	git -C sm2 commit -a -m "nested sub"
+'
+
+test_expect_success 'move nested submodule HEAD' '
+	git -C sm2/sm2 commit --allow-empty -m "new HEAD"
+'
+
+test_expect_success 'diff --submodule=diff with moved nested submodule HEAD' '
+	git -C sm2 diff --submodule=diff >actual 2>err &&
+	test_must_be_empty err
+'
+
 test_done
