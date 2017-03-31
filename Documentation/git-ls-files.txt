@@ -57,7 +57,8 @@ OPTIONS
 
 -s::
 --stage::
-	Show staged contents' object name, mode bits and stage number in the output.
+	Show staged contents' mode bits, hash, stage number as well as the
+	object name in the output.
 
 --directory::
 	If a whole directory is classified as "other", show just its
