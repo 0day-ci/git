@@ -35,6 +35,8 @@ manual page gives you an overview of the command-line command syntax.
 A formatted and hyperlinked copy of the latest Git documentation
 can be viewed at `https://git.github.io/htmldocs/git.html`.
 
+A more entertaining section of news can be obtained via `git-news`.
+
 ifdef::stalenotes[]
 [NOTE]
 ============
