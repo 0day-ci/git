@@ -7,6 +7,8 @@
 #include "strbuf.h"
 #include "string-list.h"
 #include "argv-array.h"
+#include "iterator.h"
+#include "dir-iterator.h"
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
@@ -49,12 +51,7 @@ static void remove_temporary_files(void)
 {
 	struct strbuf buf = STRBUF_INIT;
 	size_t dirlen, prefixlen;
-	DIR *dir;
-	struct dirent *e;
-
-	dir = opendir(packdir);
-	if (!dir)
-		return;
+	struct dir_iterator *diter = dir_iterator_begin(packdir);
 
 	/* Point at the slash at the end of ".../objects/pack/" */
 	dirlen = strlen(packdir) + 1;
@@ -62,14 +59,13 @@ static void remove_temporary_files(void)
 	/* Hold the length of  ".tmp-%d-pack-" */
 	prefixlen = buf.len - dirlen;
 
-	while ((e = readdir(dir))) {
-		if (strncmp(e->d_name, buf.buf + dirlen, prefixlen))
+	while (dir_iterator_advance(diter) == ITER_OK) {
+		if (strncmp(diter->relative_path, buf.buf + dirlen, prefixlen))
 			continue;
 		strbuf_setlen(&buf, dirlen);
-		strbuf_addstr(&buf, e->d_name);
+		strbuf_addstr(&buf, diter->relative_path);
 		unlink(buf.buf);
 	}
-	closedir(dir);
 	strbuf_release(&buf);
 }
 
