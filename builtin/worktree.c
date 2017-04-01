@@ -10,6 +10,8 @@
 #include "refs.h"
 #include "utf8.h"
 #include "worktree.h"
+#include "iterator.h"
+#include "dir-iterator.h"
 
 static const char * const worktree_usage[] = {
 	N_("git worktree add [<options>] <path> [<branch>]"),
@@ -91,30 +93,25 @@ static void prune_worktrees(void)
 {
 	struct strbuf reason = STRBUF_INIT;
 	struct strbuf path = STRBUF_INIT;
-	DIR *dir = opendir(git_path("worktrees"));
-	struct dirent *d;
+	struct dir_iterator *diter = dir_iterator_begin(git_path("worktrees"));
 	int ret;
-	if (!dir)
-		return;
-	while ((d = readdir(dir)) != NULL) {
-		if (is_dot_or_dotdot(d->d_name))
-			continue;
+
+	while (dir_iterator_advance(diter) == ITER_OK) {
 		strbuf_reset(&reason);
-		if (!prune_worktree(d->d_name, &reason))
+		if (!prune_worktree(diter->relative_path, &reason))
 			continue;
 		if (show_only || verbose)
 			printf("%s\n", reason.buf);
 		if (show_only)
 			continue;
 		strbuf_reset(&path);
-		strbuf_addstr(&path, git_path("worktrees/%s", d->d_name));
+		strbuf_addstr(&path, git_path("worktrees/%s", diter->relative_path));
 		ret = remove_dir_recursively(&path, 0);
 		if (ret < 0 && errno == ENOTDIR)
 			ret = unlink(path.buf);
 		if (ret)
 			error_errno(_("failed to remove '%s'"), path.buf);
 	}
-	closedir(dir);
 	if (!show_only)
 		rmdir(git_path("worktrees"));
 	strbuf_release(&reason);
