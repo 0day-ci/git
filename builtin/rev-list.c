@@ -211,7 +211,7 @@ static void print_var_int(const char *var, int val)
 
 static int show_bisect_vars(struct rev_list_info *info, int reaches, int all)
 {
-	int cnt, flags = info->flags;
+	unsigned int cnt, flags = info->flags;
 	char hex[GIT_SHA1_HEXSZ + 1] = "";
 	struct commit_list *tried;
 	struct rev_info *revs = info->revs;
