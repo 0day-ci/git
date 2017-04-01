@@ -16,7 +16,7 @@ extern struct commit_list *filter_skipped(struct commit_list *list,
 
 struct rev_list_info {
 	struct rev_info *revs;
-	int flags;
+	unsigned int flags;
 	int show_timestamp;
 	int hdr_termination;
 	const char *header_prefix;
