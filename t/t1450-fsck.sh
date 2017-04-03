@@ -689,4 +689,31 @@ test_expect_success 'bogus head does not fallback to all heads' '
 	! grep $blob out
 '
 
+test_expect_success 'validate force_core_checksum_index=1' '
+	git fsck --cache
+'
+
+test_expect_success PERL 'detect index file corrupt in fsck' '
+	cp .git/index .git/index.backup &&
+	echo zzzzzzzz >zzzzzzzz &&
+	git add zzzzzzzz &&
+	perl -pi -e "s/zzzzzzzz/yyyyyyyy/" .git/index &&
+	test_must_fail git fsck --cache &&
+	rm .git/index &&
+	mv .git/index.backup .git/index &&
+	rm zzzzzzzz
+'
+
+test_expect_success PERL 'verify status ignores corrupt checksum' '
+	cp .git/index .git/index.backup &&
+	echo zzzzzzzz >zzzzzzzz &&
+	git add zzzzzzzz &&
+	perl -pi -e "s/zzzzzzzz/yyyyyyyy/" .git/index &&
+	git -c core.checksumindex=0 status &&
+	# Status may fix the checksum
+	rm .git/index &&
+	mv .git/index.backup .git/index &&
+	rm zzzzzzzz
+'
+
 test_done
