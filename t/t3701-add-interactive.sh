@@ -436,6 +436,26 @@ test_expect_success 'add -p handles globs' '
 	test_cmp expect actual
 '
 
+test_expect_success 'add -p handles relative paths' '
+	git reset --hard &&
+
+	echo base >root.c &&
+	git add "*.c" &&
+	git commit -m base &&
+
+	echo change >root.c &&
+	mkdir -p subdir &&
+	git -C subdir add -p "../root.c" <<-\EOF &&
+	y
+	EOF
+
+	cat >expect <<-\EOF &&
+	root.c
+	EOF
+	git diff --cached --name-only >actual &&
+	test_cmp expect actual
+'
+
 test_expect_success 'add -p does not expand argument lists' '
 	git reset --hard &&
 

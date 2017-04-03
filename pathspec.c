@@ -504,12 +504,12 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	 * Prefix the pathspec (keep all magic) and assign to
 	 * original. Useful for passing to another command.
 	 */
-	if ((flags & PATHSPEC_PREFIX_ORIGIN) &&
-	    prefixlen && !get_literal_global()) {
+	if (flags & PATHSPEC_PREFIX_ORIGIN) {
 		struct strbuf sb = STRBUF_INIT;
 
 		/* Preserve the actual prefix length of each pattern */
-		prefix_magic(&sb, prefixlen, element_magic);
+		if (prefixlen && !get_literal_global())
+			prefix_magic(&sb, prefixlen, element_magic);
 
 		strbuf_addstr(&sb, match);
 		item->original = strbuf_detach(&sb, NULL);
