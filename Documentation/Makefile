@@ -23,6 +23,7 @@ MAN5_TXT += gitrepository-layout.txt
 MAN5_TXT += gitweb.conf.txt
 
 MAN7_TXT += gitcli.txt
+MAN7_TXT += gitperformance.txt
 MAN7_TXT += gitcore-tutorial.txt
 MAN7_TXT += gitcredentials.txt
 MAN7_TXT += gitcvs-migration.txt
