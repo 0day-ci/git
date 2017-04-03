@@ -1371,6 +1371,8 @@ struct ondisk_cache_entry_extended {
 			    ondisk_cache_entry_extended_size(ce_namelen(ce)) : \
 			    ondisk_cache_entry_size(ce_namelen(ce)))
 
+int force_core_checksum_index;
+
 static int verify_hdr(struct cache_header *hdr, unsigned long size)
 {
 	git_SHA_CTX c;
@@ -1384,13 +1386,17 @@ static int verify_hdr(struct cache_header *hdr, unsigned long size)
 	if (hdr_version < INDEX_FORMAT_LB || INDEX_FORMAT_UB < hdr_version)
 		return error("bad index version %d", hdr_version);
 
-	/*
-	 * Since we run very early in command startup, git_config()
-	 * may not have been called yet and the various "core_*"
-	 * global variables haven't been set.  So look it up
-	 * explicitly.
-	 */
-	git_config_get_bool("core.checksumindex", &do_checksum);
+	if (force_core_checksum_index)
+		do_checksum = 1;
+	else {
+		/*
+		 * Since we run very early in command startup, git_config()
+		 * may not have been called yet and the various "core_*"
+		 * global variables haven't been set.  So look it up
+		 * explicitly.
+		 */
+		git_config_get_bool("core.checksumindex", &do_checksum);
+	}
 	if (!do_checksum)
 		return 0;
 

@@ -705,6 +705,13 @@ extern void update_index_if_able(struct index_state *, struct lock_file *);
 extern int hold_locked_index(struct lock_file *, int);
 extern void set_alternate_index_output(const char *);
 
+/*
+ * Override "core.checksumindex" config settings.  Allows commands
+ * like "fsck" to force it without altering on-disk settings in case
+ * routines call die() before it can be reset.
+ */
+extern int force_core_checksum_index;
+
 /* Environment bits from configuration mechanism */
 extern int trust_executable_bit;
 extern int trust_ctime;
