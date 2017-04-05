@@ -649,10 +649,12 @@ static int curl_trace(CURL *handle, curl_infotype type, char *data, size_t size,
 		text = "=> Send data";
 		curl_dump_data(text, (unsigned char *)data, size);
 		break;
+#if LIBCURL_VERSION_NUM >= 0x070c01
 	case CURLINFO_SSL_DATA_OUT:
 		text = "=> Send SSL data";
 		curl_dump_data(text, (unsigned char *)data, size);
 		break;
+#endif
 	case CURLINFO_HEADER_IN:
 		text = "<= Recv header";
 		curl_dump_header(text, (unsigned char *)data, size, NO_FILTER);
@@ -661,10 +663,12 @@ static int curl_trace(CURL *handle, curl_infotype type, char *data, size_t size,
 		text = "<= Recv data";
 		curl_dump_data(text, (unsigned char *)data, size);
 		break;
+#if LIBCURL_VERSION_NUM >= 0x070c01
 	case CURLINFO_SSL_DATA_IN:
 		text = "<= Recv SSL data";
 		curl_dump_data(text, (unsigned char *)data, size);
 		break;
+#endif
 	}
 	return 0;
 }
