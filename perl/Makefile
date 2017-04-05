@@ -31,6 +31,11 @@ perllib = $(INSTALLDIRS)
 endif
 perlinstdir := $(shell sh -c "$(PERL_PATH_SQ) -V:install$(perllib)lib | cut -d\' -f2")
 instdir_SQ = $(subst ','\'',$(perlinstdir))
+ifdef mandir
+mandir_SQ = $(subst ',''\'',$(mandir))
+else
+mandir_SQ = /usr/share/man
+endif
 
 modules += Git
 modules += Git/I18N
@@ -74,9 +79,17 @@ $(makfile): ../GIT-CFLAGS Makefile
 		else \
 			subdir=/$${i%/*}; \
 		fi; \
+		if test -z $$subdir; \
+		then \
+			manpage=$$i; \
+		else \
+			manpage=$$(echo $$i|sed 's#/#::#g'); \
+		fi; \
 		echo '	$(RM) "$$(DESTDIR)$(instdir_SQ)/'$$i'.pm"' >> $@; \
 		echo '	mkdir -p "$$(DESTDIR)$(instdir_SQ)'$$subdir'"' >> $@; \
 		echo '	cp '$$i'.pm "$$(DESTDIR)$(instdir_SQ)/'$$i'.pm"' >> $@; \
+		echo '	mkdir -p "$$(DESTDIR)$(mandir_SQ)/man3"' >> $@; \
+		echo '	pod2man '$$i'.pm "$$(DESTDIR)$(mandir_SQ)/man3/'$$manpage'.3pm"' >> $@; \
 	done
 	echo '	$(RM) "$$(DESTDIR)$(instdir_SQ)/Error.pm"' >> $@
 	'$(PERL_PATH_SQ)' -MError -e 'exit($$Error::VERSION < 0.15009)' || \
