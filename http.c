@@ -214,8 +214,12 @@ static void finish_active_slot(struct active_request_slot *slot)
 		slot->results->auth_avail = 0;
 #endif
 
+#if LIBCURL_VERSION_NUM >= 0x070a07
 		curl_easy_getinfo(slot->curl, CURLINFO_HTTP_CONNECTCODE,
 			&slot->results->http_connectcode);
+#else
+		slot->results->http_connectcode = 0;
+#endif
 	}
 
 	/* Run callback if appropriate */
