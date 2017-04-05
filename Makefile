@@ -393,6 +393,8 @@ all::
 #
 # to say "export LESS=FRX (and LV=-c) if the environment variable
 # LESS (and LV) is not set, respectively".
+#
+# Define OLD_GNUPG if you need support for gnupg < 1.4.
 
 GIT-VERSION-FILE: FORCE
 	@$(SHELL_PATH) ./GIT-VERSION-GEN
@@ -1544,6 +1546,10 @@ endif
 
 ifndef PAGER_ENV
 PAGER_ENV = LESS=FRX LV=-c
+endif
+
+ifdef OLD_GNUPG
+	BASIC_CFLAGS += -DOLD_GNUPG
 endif
 
 QUIET_SUBDIR0  = +$(MAKE) -C # space to separate -C and subdir

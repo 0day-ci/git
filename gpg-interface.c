@@ -224,7 +224,9 @@ int verify_signed_buffer(const char *payload, size_t payload_size,
 	argv_array_pushl(&gpg.args,
 			 gpg_program,
 			 "--status-fd=1",
+#ifndef OLD_GNUPG
 			 "--keyid-format=long",
+#endif
 			 "--verify", temp.filename.buf, "-",
 			 NULL);
 
