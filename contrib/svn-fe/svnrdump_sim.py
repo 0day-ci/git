@@ -8,9 +8,9 @@ to the highest revision that should be available.
 import sys
 import os
 
-if sys.hexversion < 0x02040000:
+if sys.hexversion < 0x02020000:
     # The limiter is the ValueError() calls. This may be too conservative
-    sys.stderr.write("svnrdump-sim.py: requires Python 2.4 or later.\n")
+    sys.stderr.write("svnrdump-sim.py: requires Python 2.2 or later.\n")
     sys.exit(1)
 
 
