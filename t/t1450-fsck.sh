@@ -689,4 +689,15 @@ test_expect_success 'bogus head does not fallback to all heads' '
 	! grep $blob out
 '
 
+test_expect_success PERL 'detect corrupt index file in fsck' '
+	cp .git/index .git/index.backup &&
+	echo zzzzzzzz >zzzzzzzz &&
+	git add zzzzzzzz &&
+	perl -pi -e "s/zzzzzzzz/yyyyyyyy/" .git/index &&
+	test_must_fail git fsck --cache &&
+	rm .git/index &&
+	mv .git/index.backup .git/index &&
+	rm zzzzzzzz
+'
+
 test_done
