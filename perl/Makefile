@@ -25,7 +25,12 @@ clean:
 $(makfile): PM.stamp
 
 ifdef NO_PERL_MAKEMAKER
-instdir_SQ = $(subst ','\'',$(prefix)/lib)
+perllib = site
+ifdef INSTALLDIRS
+perllib = $(INSTALLDIRS)
+endif
+perlinstdir := $(shell sh -c "$(PERL_PATH_SQ) -V:install$(perllib)lib | cut -d\' -f2")
+instdir_SQ = $(subst ','\'',$(perlinstdir))
 
 modules += Git
 modules += Git/I18N
