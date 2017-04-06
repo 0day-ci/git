@@ -411,8 +411,6 @@ __git_ps1 ()
 				r="|REBASE"
 			elif [ -f "$g/rebase-apply/applying" ]; then
 				r="|AM"
-			else
-				r="|AM/REBASE"
 			fi
 		elif [ -f "$g/MERGE_HEAD" ]; then
 			r="|MERGING"
