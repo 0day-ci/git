@@ -627,10 +627,15 @@ static int traverse_trees_recursive(int n, unsigned long dirmask,
 	newinfo.df_conflicts |= df_conflicts;
 
 	for (i = 0; i < n; i++, dirmask >>= 1) {
-		const unsigned char *sha1 = NULL;
-		if (dirmask & 1)
-			sha1 = names[i].oid->hash;
-		buf[i] = fill_tree_descriptor(t+i, sha1);
+		if (i > 0 && (dirmask & 1) && names[i].oid && names[i-1].oid &&
+			!hashcmp(names[i].oid->hash, names[i-1].oid->hash)) {
+			buf[i] = copy_tree_descriptor(&t[i], &t[i-1]);
+		} else {
+			const unsigned char *sha1 = NULL;
+			if (dirmask & 1)
+				sha1 = names[i].oid->hash;
+			buf[i] = fill_tree_descriptor(t+i, sha1);
+		}
 	}
 
 	bottom = switch_cache_bottom(&newinfo);

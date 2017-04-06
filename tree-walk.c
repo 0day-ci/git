@@ -92,6 +92,14 @@ void *fill_tree_descriptor(struct tree_desc *desc, const unsigned char *sha1)
 	return buf;
 }
 
+void *copy_tree_descriptor(struct tree_desc *dest, const struct tree_desc *src)
+{
+	void *buf = xmalloc(src->size);
+	memcpy(buf, src->buffer, src->size);
+	init_tree_desc(dest, buf, src->size);
+	return buf;
+}
+
 static void entry_clear(struct name_entry *a)
 {
 	memset(a, 0, sizeof(*a));
