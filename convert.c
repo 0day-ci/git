@@ -568,6 +568,7 @@ static void kill_multi_file_filter(struct hashmap *hashmap, struct cmd2process *
 	entry->process.clean_on_exit = 0;
 	kill(entry->process.pid, SIGTERM);
 	finish_command(&entry->process);
+	free(entry->process.argv);
 
 	hashmap_remove(hashmap, entry, NULL);
 	free(entry);
@@ -582,6 +583,7 @@ static void stop_multi_file_filter(struct child_process *process)
 	sigchain_pop(SIGPIPE);
 	/* Finish command will wait until the shutdown is complete. */
 	finish_command(process);
+	free(process->argv);
 }
 
 static struct cmd2process *start_multi_file_filter(struct hashmap *hashmap, const char *cmd)
@@ -589,7 +591,6 @@ static struct cmd2process *start_multi_file_filter(struct hashmap *hashmap, cons
 	int err;
 	struct cmd2process *entry;
 	struct child_process *process;
-	const char *argv[] = { cmd, NULL };
 	struct string_list cap_list = STRING_LIST_INIT_NODUP;
 	char *cap_buf;
 	const char *cap_name;
@@ -600,7 +601,8 @@ static struct cmd2process *start_multi_file_filter(struct hashmap *hashmap, cons
 	process = &entry->process;
 
 	child_process_init(process);
-	process->argv = argv;
+	process->argv = xcalloc(2, sizeof(const char *));
+	process->argv[0] = cmd;
 	process->use_shell = 1;
 	process->in = -1;
 	process->out = -1;
