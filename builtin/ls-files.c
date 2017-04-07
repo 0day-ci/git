@@ -391,8 +391,7 @@ static void prune_cache(const char *prefix, size_t prefixlen)
 		}
 		last = next;
 	}
-	memmove(active_cache, active_cache + pos,
-		(last - pos) * sizeof(struct cache_entry *));
+	MOVE_ARRAY(active_cache, active_cache + pos, last - pos);
 	active_nr = last - pos;
 }
 

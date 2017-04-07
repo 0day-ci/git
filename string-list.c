@@ -46,9 +46,8 @@ static int add_entry(int insert_at, struct string_list *list, const char *string
 		REALLOC_ARRAY(list->items, list->alloc);
 	}
 	if (index < list->nr)
-		memmove(list->items + index + 1, list->items + index,
-				(list->nr - index)
-				* sizeof(struct string_list_item));
+		MOVE_ARRAY(list->items + index + 1, list->items + index,
+			   list->nr - index);
 	list->items[index].string = list->strdup_strings ?
 		xstrdup(string) : (char *)string;
 	list->items[index].util = NULL;

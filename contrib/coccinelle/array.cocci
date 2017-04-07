@@ -27,6 +27,43 @@ expression n;
 
 @@
 type T;
+T *dst;
+T *src;
+expression n;
+@@
+(
+- memmove(
++ MOVE_ARRAY(
+(
+  dst
+|
+  dst + ...
+|
+  &dst[...]
+)
+- , src, (n) * sizeof(*dst)
++ , src, n
+  );
+|
+- memmove(dst,
++ MOVE_ARRAY(dst,
+(
+  src
+|
+  src + ...
+|
+  &src[...]
+)
+- , (n) * sizeof(*src)
++ , n
+  );
+|
+- memmove(dst, src, (n) * sizeof(T));
++ MOVE_ARRAY(dst, src, n);
+)
+
+@@
+type T;
 T *ptr;
 expression n;
 @@
