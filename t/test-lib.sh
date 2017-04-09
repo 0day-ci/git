@@ -914,6 +914,10 @@ fi
 
 # Test repository
 TRASH_DIRECTORY="trash directory.$(basename "$0" .sh)"
+if test -z "$test_fails_on_unusual_directory_names" -a "$(perl -e 'print 1+1' 2>/dev/null)" = "2"
+then
+   TRASH_DIRECTORY="$TRASH_DIRECTORY.$(perl -e 'print join q[], grep { /[^[:alnum:]]/ and !m<[./]> } map chr, 0x01..0x7f')"
+fi
 test -n "$root" && TRASH_DIRECTORY="$root/$TRASH_DIRECTORY"
 case "$TRASH_DIRECTORY" in
 /*) ;; # absolute path is good

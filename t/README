@@ -345,6 +345,18 @@ assignment to variable 'test_description', like this:
 	This test registers the following structure in the cache
 	and tries to run git-ls-files with option --frotz.'
 
+By default the tests will be run from a directory with a highly
+unusual filename that includes control characters, a newline, various
+punctuation etc., this is done to smoke out any bugs related to path
+handling. If for whatever reason the tests can't deal with such
+unusual path names, set:
+
+    test_fails_on_unusual_directory_names=1
+
+Before sourcing 'test-lib.sh' as described below. This option is
+mainly intended to grandfather in existing broken tests & code, and
+should usually not be used in new code, instead your tests or code
+probably need fixing.
 
 Source 'test-lib.sh'
 --------------------
