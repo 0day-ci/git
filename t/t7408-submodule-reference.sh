@@ -3,6 +3,7 @@
 # Copyright (c) 2009, Red Hat Inc, Author: Michael S. Tsirkin (mst@redhat.com)
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test clone --reference'
 . ./test-lib.sh
 

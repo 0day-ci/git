@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Lars Hjemli
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Basic porcelain support for submodules
 
 This test tries to verify basic sanity of the init, update and status

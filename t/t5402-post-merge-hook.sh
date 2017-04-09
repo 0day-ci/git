@@ -3,6 +3,7 @@
 # Copyright (c) 2006 Josh England
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test the post-merge hook.'
 . ./test-lib.sh
 

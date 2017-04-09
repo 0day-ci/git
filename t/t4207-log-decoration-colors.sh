@@ -3,6 +3,7 @@
 # Copyright (c) 2010 Nazri Ramliy
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test for "git log --decorate" colors'
 
 . ./test-lib.sh

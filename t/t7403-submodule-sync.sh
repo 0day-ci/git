@@ -3,6 +3,7 @@
 # Copyright (c) 2008 David Aguilar
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git submodule sync
 
 These tests exercise the "git submodule sync" subcommand.

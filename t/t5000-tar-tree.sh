@@ -3,6 +3,7 @@
 # Copyright (C) 2005 Rene Scharfe
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git archive and git get-tar-commit-id test
 
 This test covers the topics of file contents, commit date handling and

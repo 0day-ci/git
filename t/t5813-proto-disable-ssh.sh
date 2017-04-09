@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='test disabling of git-over-ssh in clone/fetch'
 . ./test-lib.sh
 . "$TEST_DIRECTORY/lib-proto-disable.sh"

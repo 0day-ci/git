@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright (c) 2006, Junio C Hamano.
 
+test_fails_on_unusual_directory_names=1
 test_description='Per branch config variables affects "git fetch".
 
 '

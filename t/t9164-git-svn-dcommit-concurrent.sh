@@ -3,6 +3,7 @@
 # Copyright (c) 2012 Robert Luberda
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='concurrent git svn dcommit'
 . ./lib-git-svn.sh
 

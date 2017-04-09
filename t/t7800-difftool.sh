@@ -3,6 +3,7 @@
 # Copyright (c) 2009, 2010, 2012, 2013 David Aguilar
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git-difftool
 
 Testing basic diff tool invocation

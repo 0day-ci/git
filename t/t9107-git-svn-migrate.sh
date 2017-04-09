@@ -1,5 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2006 Eric Wong
+test_fails_on_unusual_directory_names=1
 test_description='git svn metadata migrations from previous versions'
 . ./lib-git-svn.sh
 

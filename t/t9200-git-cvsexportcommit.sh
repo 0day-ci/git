@@ -2,6 +2,7 @@
 #
 # Copyright (c) Robin Rosenberg
 #
+test_fails_on_unusual_directory_names=1
 test_description='Test export of commits to CVS'
 
 . ./test-lib.sh

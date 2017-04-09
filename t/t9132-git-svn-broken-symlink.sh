@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='test that git handles an svn repository with empty symlinks'
 
 . ./lib-git-svn.sh

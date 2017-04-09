@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='ext::cmd remote "connect" helper'
 . ./test-lib.sh
 

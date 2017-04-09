@@ -3,6 +3,7 @@
 # Copyright (c) 2006 Carl D. Worth
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test of the various options to git rm.'
 
 . ./test-lib.sh

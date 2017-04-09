@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Eric Wong
 # Based on a script by Joakim Tjernlund <joakim.tjernlund@transmode.se>
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn dcommit handles merges'
 
 . ./lib-git-svn.sh

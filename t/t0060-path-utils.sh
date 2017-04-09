@@ -3,6 +3,7 @@
 # Copyright (c) 2008 David Reiss
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test various path utilities'
 
 . ./test-lib.sh

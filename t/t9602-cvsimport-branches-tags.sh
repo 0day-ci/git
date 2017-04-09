@@ -3,6 +3,7 @@
 # A description of the repository used for this test can be found in
 # t9602/README.
 
+test_fails_on_unusual_directory_names=1
 test_description='git cvsimport handling of branches and tags'
 . ./lib-cvs.sh
 

@@ -1,4 +1,5 @@
 #!/bin/sh
+test_fails_on_unusual_directory_names=1
 test_description='git svn globbing refspecs with prefixed globs'
 . ./lib-git-svn.sh
 

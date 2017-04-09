@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2007 Christian Couder
 #
+test_fails_on_unusual_directory_names=1
 test_description='Tests git bisect functionality'
 
 exec </dev/null

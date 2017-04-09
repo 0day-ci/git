@@ -3,6 +3,7 @@
 # Copyright (c) 2010 Thomas Rast
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test the post-rewrite hook.'
 . ./test-lib.sh
 

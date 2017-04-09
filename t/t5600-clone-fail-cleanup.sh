@@ -3,6 +3,7 @@
 # Copyright (C) 2006 Carl D. Worth <cworth@cworth.org>
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test git clone to cleanup after failure
 
 This test covers the fact that if git clone fails, it should remove

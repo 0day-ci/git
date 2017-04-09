@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Clemens Buchacher <drizzd@aon.at>
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test WebDAV http-push
 
 This test runs various sanity checks on http-push.'

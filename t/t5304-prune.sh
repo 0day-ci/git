@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Johannes E. Schindelin
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='prune'
 . ./test-lib.sh
 

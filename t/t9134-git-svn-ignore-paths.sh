@@ -4,6 +4,7 @@
 # Copyright (c) 2009 Eric Wong
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn property tests'
 . ./lib-git-svn.sh
 

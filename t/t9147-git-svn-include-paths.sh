@@ -3,6 +3,7 @@
 # Copyright (c) 2013 Paul Walmsley - based on t9134 by Vitaly Shukela
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn property tests'
 . ./lib-git-svn.sh
 

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='Test shallow cloning of repos with submodules'
 
 . ./test-lib.sh

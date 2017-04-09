@@ -3,6 +3,7 @@
 # Copyright (c) 2016 Jacob Keller, based on t4041 by Jens Lehmann
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test for submodule diff on non-checked out submodule
 
 This test tries to verify that add_submodule_odb works when the submodule was

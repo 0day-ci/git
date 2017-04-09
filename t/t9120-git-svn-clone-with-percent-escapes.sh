@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Kevin Ballard
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn clone with percent escapes'
 . ./lib-git-svn.sh
 

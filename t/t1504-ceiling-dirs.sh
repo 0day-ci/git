@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='test GIT_CEILING_DIRECTORIES'
 . ./test-lib.sh
 

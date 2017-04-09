@@ -4,6 +4,7 @@
 # Copyright (c) 2011 Alexey Shumkin (+ non-UTF-8 commit encoding tests)
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Support for verbose submodule differences in git diff
 
 This test tries to verify the sanity of the --submodule option of git diff.

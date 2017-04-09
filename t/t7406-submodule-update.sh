@@ -3,6 +3,7 @@
 # Copyright (c) 2009 Red Hat, Inc.
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test updating submodules
 
 This test verifies that "git submodule update" detaches the HEAD of the

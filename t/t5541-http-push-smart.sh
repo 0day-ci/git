@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Clemens Buchacher <drizzd@aon.at>
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test smart pushing over http via http-backend'
 . ./test-lib.sh
 

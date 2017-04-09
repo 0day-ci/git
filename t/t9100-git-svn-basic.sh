@@ -3,6 +3,7 @@
 # Copyright (c) 2006 Eric Wong
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn basic tests'
 GIT_SVN_LC_ALL=${LC_ALL:-$LANG}
 

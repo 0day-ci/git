@@ -3,6 +3,7 @@
 # Copyright (c) 2012 Peter Baumann
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn reset clears memoized caches'
 . ./lib-git-svn.sh
 

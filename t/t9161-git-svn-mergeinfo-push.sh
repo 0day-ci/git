@@ -4,6 +4,7 @@
 # Portions copyright (c) 2011 Bryan Jacobs
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git-svn svn mergeinfo propagation'
 
 . ./lib-git-svn.sh

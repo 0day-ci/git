@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright (c) 2010, Jens Lehmann
 
+test_fails_on_unusual_directory_names=1
 test_description='Recursive "git fetch" for submodules'
 
 . ./test-lib.sh

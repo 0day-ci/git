@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Johannes E. Schindelin
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git rev-list involving submodules that this repo has'
 
 . ./test-lib.sh

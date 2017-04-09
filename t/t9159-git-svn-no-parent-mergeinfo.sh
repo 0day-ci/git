@@ -1,4 +1,5 @@
 #!/bin/sh
+test_fails_on_unusual_directory_names=1
 test_description='git svn handling of root commits in merge ranges'
 . ./lib-git-svn.sh
 

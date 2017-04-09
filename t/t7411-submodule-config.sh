@@ -3,6 +3,7 @@
 # Copyright (c) 2014 Heiko Voigt
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test submodules config cache infrastructure
 
 This test verifies that parsing .gitmodules configurations directly

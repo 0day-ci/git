@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='Test grep recurse-submodules feature
 
 This test verifies the recurse-submodules feature correctly greps across

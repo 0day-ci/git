@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='pushing to a repository using push options'
 
 . ./test-lib.sh

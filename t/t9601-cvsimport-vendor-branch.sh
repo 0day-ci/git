@@ -31,6 +31,7 @@
 #       Like imported-twice.txt, but with a vendor branch whose branch
 #       tag has been removed.
 
+test_fails_on_unusual_directory_names=1
 test_description='git cvsimport handling of vendor branches'
 . ./lib-cvs.sh
 

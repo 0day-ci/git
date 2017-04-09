@@ -3,6 +3,7 @@
 # Copyright (C) 2006 Martin Waitz <tali@admingilde.org>
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test transitive info/alternate entries'
 . ./test-lib.sh
 

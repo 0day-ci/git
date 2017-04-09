@@ -3,6 +3,7 @@
 # Copyright (c) 2005 Junio C Hamano
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='See why rewinding head breaks send-pack
 
 '

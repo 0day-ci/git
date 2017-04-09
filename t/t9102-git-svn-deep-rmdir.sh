@@ -1,4 +1,5 @@
 #!/bin/sh
+test_fails_on_unusual_directory_names=1
 test_description='git svn rmdir'
 . ./lib-git-svn.sh
 

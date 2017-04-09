@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Eric Wong
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn useSvmProps test'
 
 . ./lib-git-svn.sh

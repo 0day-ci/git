@@ -3,6 +3,7 @@
 # Copyright (c) 2009 Mark Rada
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='gitweb as standalone script (parsing script output).
 
 This test runs gitweb (git web interface) as a CGI script from the

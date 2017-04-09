@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='GIT_EDITOR, core.editor, and stuff'
 
 . ./test-lib.sh

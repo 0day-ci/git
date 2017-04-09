@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='fetch/push involving ref namespaces'
 . ./test-lib.sh
 

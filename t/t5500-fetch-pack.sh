@@ -3,6 +3,7 @@
 # Copyright (c) 2005 Johannes Schindelin
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Testing multi_ack pack fetching'
 
 . ./test-lib.sh

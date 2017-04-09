@@ -3,6 +3,7 @@
 # Copyright (c) 2005 Junio C Hamano
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test the very basics part #1.
 
 The rest of the test suite does not check the basic operation of git
@@ -56,6 +57,7 @@ _run_sub_test_lib_test_common () {
 		cat >"$name.sh" <<-EOF &&
 		#!$SHELL_PATH
 
+		test_fails_on_unusual_directory_names=1
 		test_description='$descr (run in sub test-lib)
 
 		This is run in a sub test-lib so that we do not get incorrect

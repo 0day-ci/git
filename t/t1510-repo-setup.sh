@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description="Tests of cwd/prefix/worktree/gitdir setup in all cases
 
 A few rules for repo setup:

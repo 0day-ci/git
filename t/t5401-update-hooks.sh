@@ -3,6 +3,7 @@
 # Copyright (c) 2006 Shawn O. Pearce
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test the update hook infrastructure.'
 . ./test-lib.sh
 

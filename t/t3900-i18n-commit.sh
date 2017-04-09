@@ -3,6 +3,7 @@
 # Copyright (c) 2006 Junio C Hamano
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='commit and log output encodings'
 
 . ./test-lib.sh

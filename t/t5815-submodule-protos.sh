@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='test protocol whitelisting with submodules'
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/lib-proto-disable.sh

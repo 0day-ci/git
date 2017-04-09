@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Shawn Pearce
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test git fast-import utility'
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/diff-lib.sh ;# test-lib chdir's into trash

@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2007 Eric Wong
+test_fails_on_unusual_directory_names=1
 test_description='git svn dcommit clobber series'
 . ./lib-git-svn.sh
 

@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Deskin Miller
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn partial-rebuild tests'
 . ./lib-git-svn.sh
 

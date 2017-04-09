@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='basic git merge-index / git-merge-one-file tests'
 . ./test-lib.sh
 

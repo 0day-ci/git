@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='Test submodule--helper is-active
 
 This test verifies that `git submodue--helper is-active` correclty identifies

@@ -3,6 +3,7 @@
 # Copyright (c) 2012 Felipe Contreras
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='test bash completion'
 
 . ./lib-bash.sh

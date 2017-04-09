@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='credential-store tests'
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/lib-credential.sh

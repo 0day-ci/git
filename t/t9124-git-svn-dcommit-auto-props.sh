@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2008 Brad King
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn dcommit honors auto-props'
 
 . ./lib-git-svn.sh

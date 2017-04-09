@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn fetch deleted tag 2'
 
 . ./lib-git-svn.sh

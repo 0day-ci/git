@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='git status --porcelain=v2
 
 This test exercises porcelain V2 output for git status.'

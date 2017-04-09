@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Lea Wiemann
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='perl interface (Git.pm)'
 . ./test-lib.sh
 

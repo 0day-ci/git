@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright (c) 2011, Google Inc.
 
+test_fails_on_unusual_directory_names=1
 test_description='adding and checking out large blobs'
 
 . ./test-lib.sh

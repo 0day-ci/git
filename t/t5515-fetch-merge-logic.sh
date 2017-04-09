@@ -4,6 +4,7 @@
 #
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Merge logic in fetch'
 
 . ./test-lib.sh

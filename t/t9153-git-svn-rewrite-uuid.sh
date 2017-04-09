@@ -3,6 +3,7 @@
 # Copyright (c) 2010 Jay Soffian
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn --rewrite-uuid test'
 
 . ./lib-git-svn.sh

@@ -2,6 +2,7 @@
 #
 # Copyright(C) 2008 Stephen Habermann & Andreas Ericsson
 #
+test_fails_on_unusual_directory_names=1
 test_description='git rebase -p should preserve merges
 
 Run "git rebase -p" and check that merges are properly carried along

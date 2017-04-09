@@ -4,6 +4,7 @@
 # Copyright (c) 2016 Jeff King
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='per-repo forced setting of email address'
 
 . ./test-lib.sh

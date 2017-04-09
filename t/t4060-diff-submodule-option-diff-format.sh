@@ -5,6 +5,7 @@
 # Copyright (c) 2016 Jacob Keller (copy + convert to --submodule=diff)
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Support for diff format verbose submodule difference in git diff
 
 This test tries to verify the sanity of --submodule=diff option of git diff.

@@ -3,6 +3,7 @@
 # Copyright (c) 2010 Sverre Rabbelier
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test remote-helper import and export commands'
 
 . ./test-lib.sh

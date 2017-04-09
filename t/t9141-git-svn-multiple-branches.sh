@@ -3,6 +3,7 @@
 # Copyright (c) 2009 Marc Branchaud
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn multiple branch and tag paths in the svn repo'
 . ./lib-git-svn.sh
 

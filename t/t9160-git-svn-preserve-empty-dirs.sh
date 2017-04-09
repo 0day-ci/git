@@ -3,6 +3,7 @@
 # Copyright (c) 2011 Ray Chen
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn test (option --preserve-empty-dirs)
 
 This test uses git to clone a Subversion repository that contains empty

@@ -3,6 +3,7 @@
 # Copyright (c) 2013 Tobias Schulte
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn branch for subproject clones'
 . ./lib-git-svn.sh
 

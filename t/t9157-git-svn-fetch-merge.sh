@@ -3,6 +3,7 @@
 # Copyright (c) 2010 Steven Walter
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn merge detection'
 . ./lib-git-svn.sh
 

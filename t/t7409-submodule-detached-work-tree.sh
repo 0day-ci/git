@@ -3,6 +3,7 @@
 # Copyright (c) 2012 Daniel Graña
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test submodules on detached working tree
 
 This test verifies that "git submodule" initialization, update and addition works

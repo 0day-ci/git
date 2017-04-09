@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright (c) 2008 Marcus Griep
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn multi-glob branch names'
 . ./lib-git-svn.sh
 

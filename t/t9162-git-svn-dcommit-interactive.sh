@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2011 Frédéric Heitzmann
 
+test_fails_on_unusual_directory_names=1
 test_description='git svn dcommit --interactive series'
 . ./lib-git-svn.sh
 

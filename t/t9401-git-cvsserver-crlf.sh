@@ -4,6 +4,7 @@
 # Parts adapted from other tests.
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git-cvsserver -kb modes
 
 tests -kb mode for binary files when accessing a git

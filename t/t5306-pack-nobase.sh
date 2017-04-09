@@ -3,6 +3,7 @@
 # Copyright (c) 2008 Google Inc.
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git-pack-object with missing base
 
 '

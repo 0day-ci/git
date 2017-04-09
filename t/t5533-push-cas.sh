@@ -1,5 +1,6 @@
 #!/bin/sh
 
+test_fails_on_unusual_directory_names=1
 test_description='compare & swap push force/delete safety'
 
 . ./test-lib.sh

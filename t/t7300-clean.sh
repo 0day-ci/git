@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Michael Spang
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git clean basic tests'
 
 . ./test-lib.sh

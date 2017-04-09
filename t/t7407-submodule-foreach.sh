@@ -3,6 +3,7 @@
 # Copyright (c) 2009 Johan Herland
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='Test "git submodule foreach"
 
 This test verifies that "git submodule foreach" correctly visits all submodules

@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Frank Lichtenheld
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='git-cvsserver access
 
 tests read access to a git repository with the

@@ -3,6 +3,7 @@
 # Copyright (c) 2007 Jakub Narebski
 #
 
+test_fails_on_unusual_directory_names=1
 test_description='gitweb as standalone script (basic tests).
 
 This test runs gitweb (git web interface) as CGI script from
