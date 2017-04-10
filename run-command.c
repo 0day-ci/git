@@ -168,10 +168,15 @@ static int exists_in_PATH(const char *file)
 	return r != NULL;
 }
 
-int sane_execvp(const char *file, char * const argv[])
+int sane_execvpe(const char *file, char * const argv[], char *const envp[])
 {
-	if (!execvp(file, argv))
-		return 0; /* cannot happen ;-) */
+	if (envp) {
+		if (!execvpe(file, argv, envp))
+			return 0; /* cannot happen ;-) */
+	} else {
+		if (!execvp(file, argv))
+			return 0; /* cannot happen ;-) */
+	}
 
 	/*
 	 * When a command can't be found because one of the directories
@@ -226,7 +231,7 @@ static int execv_shell_cmd(const char **argv)
 	struct argv_array nargv = ARGV_ARRAY_INIT;
 	prepare_shell_cmd(&nargv, argv);
 	trace_argv_printf(nargv.argv, "trace: exec:");
-	sane_execvp(nargv.argv[0], (char **)nargv.argv);
+	sane_execvpe(nargv.argv[0], (char **)nargv.argv, NULL);
 	argv_array_clear(&nargv);
 	return -1;
 }
@@ -442,7 +447,7 @@ fail_pipe:
 		else if (cmd->use_shell)
 			execv_shell_cmd(cmd->argv);
 		else
-			sane_execvp(cmd->argv[0], (char *const*) cmd->argv);
+			sane_execvpe(cmd->argv[0], (char *const*) cmd->argv, NULL);
 		if (errno == ENOENT) {
 			if (!cmd->silent_exec_failure)
 				error("cannot run %s: %s", cmd->argv[0],

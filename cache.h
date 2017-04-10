@@ -2185,8 +2185,7 @@ int checkout_fast_forward(const unsigned char *from,
 			  const unsigned char *to,
 			  int overwrite_ignore);
 
-
-int sane_execvp(const char *file, char *const argv[]);
+int sane_execvpe(const char *file, char *const argv[], char *const envp[]);
 
 /*
  * A struct to encapsulate the concept of whether a file has changed
