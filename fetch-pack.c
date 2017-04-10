@@ -251,7 +251,7 @@ static void consume_shallow_list(struct fetch_pack_args *args, int fd)
 	}
 }
 
-static enum ack_type get_ack(int fd, unsigned char *result_sha1)
+static enum ack_type get_ack(int fd, unsigned char *result_sha1, struct ref **ref, struct sha1_array *shallow)
 {
 	int len;
 	char *line = packet_read_line(fd, &len);
@@ -261,6 +261,23 @@ static enum ack_type get_ack(int fd, unsigned char *result_sha1)
 		die(_("git fetch-pack: expected ACK/NAK, got EOF"));
 	if (!strcmp(line, "NAK"))
 		return NAK;
+	if (ref && skip_prefix(line, "wanted ", &arg)) {
+		struct object_id oid;
+		if (!get_sha1_hex(arg, oid.hash) && arg[40] == ' ' && arg[41]) {
+			struct ref *new_ref = alloc_ref(arg + 41);
+			oidcpy(&new_ref->old_oid, &oid);
+			new_ref->next = *ref;
+			*ref = new_ref;
+			return get_ack(fd, result_sha1, ref, shallow);
+		}
+	}
+	if (shallow && skip_prefix(line, "shallow ", &arg)) {
+		struct object_id oid;
+		if (!get_sha1_hex(arg, oid.hash)) {
+			sha1_array_append(shallow, oid.hash);
+			return get_ack(fd, result_sha1, ref, shallow);
+		}
+	}
 	if (skip_prefix(line, "ACK ", &arg)) {
 		if (!get_sha1_hex(arg, result_sha1)) {
 			arg += 40;
@@ -370,7 +387,7 @@ static char *get_wants(const struct fetch_pack_args *args, struct ref *refs)
 
 static int find_common(struct fetch_pack_args *args,
 		       int fd[2], unsigned char *result_sha1,
-		       char *wants)
+		       char *wants, struct ref **ref, struct sha1_array *shallow)
 {
 	int count = 0, flushes = 0, flush_at = INITIAL_FLUSH, retval;
 	const unsigned char *sha1;
@@ -475,7 +492,7 @@ static int find_common(struct fetch_pack_args *args,
 
 			consume_shallow_list(args, fd[0]);
 			do {
-				ack = get_ack(fd[0], result_sha1);
+				ack = get_ack(fd[0], result_sha1, NULL, NULL);
 				if (ack)
 					print_verbose(args, _("got %s %d %s"), "ack",
 						      ack, sha1_to_hex(result_sha1));
@@ -544,7 +561,7 @@ done:
 	if (!got_ready || !no_done)
 		consume_shallow_list(args, fd[0]);
 	while (flushes || multi_ack) {
-		int ack = get_ack(fd[0], result_sha1);
+		int ack = get_ack(fd[0], result_sha1, ref, shallow);
 		if (ack) {
 			print_verbose(args, _("got %s (%d) %s"), "ack",
 				      ack, sha1_to_hex(result_sha1));
@@ -878,22 +895,22 @@ static struct ref *do_fetch_pack(struct fetch_pack_args *args,
 				 struct shallow_info *si,
 				 char **pack_lockfile)
 {
-	struct ref *ref = copy_ref_list(orig_ref);
+	struct ref *ref;
 	unsigned char sha1[20];
 	const char *agent_feature;
 	int agent_len;
+	int find_common_result;
 
-	sort_ref_list(&ref, ref_compare_name);
-	QSORT(sought, nr_sought, cmp_ref_by_name);
-
-	if ((args->depth > 0 || is_repository_shallow()) && !server_supports("shallow"))
-		die(_("Server does not support shallow clients"));
+	if (!args->new_way) {
+		if ((args->depth > 0 || is_repository_shallow()) && !server_supports("shallow"))
+			die(_("Server does not support shallow clients"));
+	}
 	if (args->depth > 0 || args->deepen_since || args->deepen_not)
 		args->deepen = 1;
-	if (server_supports("multi_ack_detailed")) {
+	if (server_supports("multi_ack_detailed") || args->new_way) {
 		print_verbose(args, _("Server supports multi_ack_detailed"));
 		multi_ack = 2;
-		if (server_supports("no-done")) {
+		if (server_supports("no-done") || args->new_way) {
 			print_verbose(args, _("Server supports no-done"));
 			if (args->stateless_rpc)
 				no_done = 1;
@@ -936,22 +953,42 @@ static struct ref *do_fetch_pack(struct fetch_pack_args *args,
 			print_verbose(args, _("Server version is %.*s"),
 				      agent_len, agent_feature);
 	}
-	if (server_supports("deepen-since"))
+	if (server_supports("deepen-since") || args->new_way)
 		deepen_since_ok = 1;
 	else if (args->deepen_since)
 		die(_("Server does not support --shallow-since"));
-	if (server_supports("deepen-not"))
+	if (server_supports("deepen-not") || args->new_way)
 		deepen_not_ok = 1;
 	else if (args->deepen_not)
 		die(_("Server does not support --shallow-exclude"));
 	if (!server_supports("deepen-relative") && args->deepen_relative)
 		die(_("Server does not support --deepen"));
 
-	if (everything_local(args, &ref, sought, nr_sought)) {
-		packet_flush(fd[1]);
-		goto all_done;
+	if (args->new_way) {
+		struct strbuf wants = STRBUF_INIT;
+		int i;
+		struct sha1_array shallow = SHA1_ARRAY_INIT;
+
+		ref = NULL;
+		multi_ack = 2;
+		use_sideband = 2;
+
+		packet_buf_write(&wants, "fetch-refs\n");
+		for (i = 0; i < nr_sought; i++)
+			packet_buf_write(&wants, "want %s\n", sought[i]->name);
+		find_common_result = find_common(args, fd, sha1, strbuf_detach(&wants, NULL), &ref, &shallow);
+		prepare_shallow_info(si, &shallow);
+	} else {
+		ref = copy_ref_list(orig_ref);
+		sort_ref_list(&ref, ref_compare_name);
+		QSORT(sought, nr_sought, cmp_ref_by_name);
+		if (everything_local(args, &ref, sought, nr_sought)) {
+			packet_flush(fd[1]);
+			goto all_done;
+		}
+		find_common_result = find_common(args, fd, sha1, get_wants(args, ref), NULL, NULL);
 	}
-	if (find_common(args, fd, sha1, get_wants(args, ref)) < 0)
+	if (find_common_result < 0)
 		if (!args->keep_pack)
 			/* When cloning, it is not unusual to have
 			 * no common commit.
@@ -1128,7 +1165,7 @@ struct ref *fetch_pack(struct fetch_pack_args *args,
 	if (nr_sought)
 		nr_sought = remove_duplicates_in_refs(sought, nr_sought);
 
-	if (!ref) {
+	if (!args->new_way && !ref) {
 		packet_flush(fd[1]);
 		die(_("no matching remote head"));
 	}

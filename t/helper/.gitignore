@@ -30,5 +30,6 @@
 /test-submodule-config
 /test-subprocess
 /test-svn-fe
+/test-un-pkt
 /test-urlmatch-normalization
 /test-wildmatch
