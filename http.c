@@ -861,7 +861,12 @@ static CURL *get_curl_handle(void)
 			strbuf_release(&url);
 		}
 
-		curl_easy_setopt(result, CURLOPT_PROXY, proxy_auth.host);
+		/*
+		 * Avoid setting CURLOPT_PROXY to NULL if empty http.proxy
+		 * option configured.
+		 */
+		if (proxy_auth.host)
+			curl_easy_setopt(result, CURLOPT_PROXY, proxy_auth.host);
 #if LIBCURL_VERSION_NUM >= 0x071304
 		var_override(&curl_no_proxy, getenv("NO_PROXY"));
 		var_override(&curl_no_proxy, getenv("no_proxy"));
