@@ -753,6 +753,7 @@ done:
 	sigchain_pop(SIGPIPE);
 
 	if (err || errno == EPIPE) {
+		err = err ? err : errno;
 		if (!strcmp(filter_status.buf, "error")) {
 			/* The filter signaled a problem with the file. */
 		} else if (!strcmp(filter_status.buf, "abort")) {
