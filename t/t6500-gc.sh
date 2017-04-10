@@ -67,7 +67,27 @@ test_expect_success 'auto gc with too many loose objects does not attempt to cre
 	test_line_count = 2 new # There is one new pack and its .idx
 '
 
-test_expect_success 'background auto gc does not run if gc.log is present and recent but does if it is old' '
+test_expect_success 'background auto gc runs if an old gc.log is present' '
+	# The detached auto gc process can run long enough in the
+	# background to racily interfere with the gc execution in the
+	# subsequent test, hence the dedicated repository.
+	test_create_repo other &&
+	(
+		cd other &&
+		test_commit foo &&
+		git repack &&
+		test_commit bar &&
+		git repack &&
+		git config gc.autopacklimit 1 &&
+		git config gc.autodetach true &&
+		git config gc.logexpiry 2.days &&
+		echo fleem >.git/gc.log &&
+		test-chmtime =-345600 .git/gc.log &&	# 4 days
+		git gc --auto
+	)
+'
+
+test_expect_success 'background auto gc does not run if gc.log is present' '
 	test_commit foo &&
 	test_commit bar &&
 	git repack &&
@@ -77,10 +97,12 @@ test_expect_success 'background auto gc does not run if gc.log is present and re
 	test_must_fail git gc --auto 2>err &&
 	test_i18ngrep "^error:" err &&
 	test_config gc.logexpiry 5.days &&
-	test-chmtime =-345600 .git/gc.log &&
-	test_must_fail git gc --auto &&
-	test_config gc.logexpiry 2.days &&
-	git gc --auto
+	test-chmtime =-345600 .git/gc.log &&	# 4 days
+	test_must_fail git gc --auto
 '
+
+# DO NOT leave a detached auto gc process running near the end of the
+# test script: it can run long enough in the background to racily
+# interfere with the cleanup in 'test_done'.
 
 test_done
