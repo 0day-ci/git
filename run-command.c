@@ -226,18 +226,6 @@ static const char **prepare_shell_cmd(struct argv_array *out, const char **argv)
 }
 
 #ifndef GIT_WINDOWS_NATIVE
-static int execv_shell_cmd(const char **argv)
-{
-	struct argv_array nargv = ARGV_ARRAY_INIT;
-	prepare_shell_cmd(&nargv, argv);
-	trace_argv_printf(nargv.argv, "trace: exec:");
-	sane_execvpe(nargv.argv[0], (char **)nargv.argv, NULL);
-	argv_array_clear(&nargv);
-	return -1;
-}
-#endif
-
-#ifndef GIT_WINDOWS_NATIVE
 static int child_notifier = -1;
 
 static void notify_parent(void)
@@ -377,8 +365,19 @@ fail_pipe:
 #ifndef GIT_WINDOWS_NATIVE
 {
 	int notify_pipe[2];
+	struct argv_array argv = ARGV_ARRAY_INIT;
+
 	if (pipe(notify_pipe))
 		notify_pipe[0] = notify_pipe[1] = -1;
+
+	if (cmd->git_cmd) {
+		argv_array_push(&argv, "git");
+		argv_array_pushv(&argv, cmd->argv);
+	} else if (cmd->use_shell) {
+		prepare_shell_cmd(&argv, cmd->argv);
+	} else {
+		argv_array_pushv(&argv, cmd->argv);
+	}
 
 	cmd->pid = fork();
 	failed_errno = errno;
@@ -442,12 +441,9 @@ fail_pipe:
 					unsetenv(*cmd->env);
 			}
 		}
-		if (cmd->git_cmd)
-			execv_git_cmd(cmd->argv);
-		else if (cmd->use_shell)
-			execv_shell_cmd(cmd->argv);
-		else
-			sane_execvpe(cmd->argv[0], (char *const*) cmd->argv, NULL);
+
+		sane_execvpe(argv.argv[0], (char *const*) argv.argv, NULL);
+
 		if (errno == ENOENT) {
 			if (!cmd->silent_exec_failure)
 				error("cannot run %s: %s", cmd->argv[0],
@@ -480,6 +476,8 @@ fail_pipe:
 		cmd->pid = -1;
 	}
 	close(notify_pipe[0]);
+
+	argv_array_clear(&argv);
 }
 #else
 {
