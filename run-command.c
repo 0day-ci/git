@@ -291,6 +291,75 @@ static int wait_or_whine(pid_t pid, const char *argv0, int in_signal)
 	return code;
 }
 
+static int env_isequal(const char *e1, const char *e2)
+{
+	for (;;) {
+		char c1 = *e1++;
+		char c2 = *e2++;
+		c1 = (c1 == '=') ? '\0' : tolower(c1);
+		c2 = (c2 == '=') ? '\0' : tolower(c2);
+
+		if (c1 != c2)
+			return 0;
+		if (c1 == '\0')
+			return 1;
+	}
+}
+
+static int searchenv(char **env, const char *name)
+{
+	int pos = 0;
+
+	for (; env[pos]; pos++)
+		if (env_isequal(env[pos], name))
+			break;
+
+	return pos;
+}
+
+static int do_putenv(char **env, int env_nr, const char *name)
+{
+	int pos = searchenv(env, name);
+
+	if (strchr(name, '=')) {
+		/* ('key=value'), insert of replace entry */
+		if (pos >= env_nr)
+			env_nr++;
+		env[pos] = (char *) name;
+	} else if (pos < env_nr) {
+		/* otherwise ('key') remove existing entry */
+		env_nr--;
+		memmove(&env[pos], &env[pos + 1],
+			(env_nr - pos) * sizeof(char *));
+		env[env_nr] = NULL;
+	}
+
+	return env_nr;
+}
+
+static char **prep_childenv(const char *const *deltaenv)
+{
+	char **childenv;
+	int childenv_nr = 0, childenv_alloc = 0;
+	int i;
+
+	for (i = 0; environ[i]; i++)
+		childenv_nr++;
+	for (i = 0; deltaenv && deltaenv[i]; i++)
+		childenv_alloc++;
+	/* Add one for the NULL termination */
+	childenv_alloc += childenv_nr + 1;
+
+	childenv = xcalloc(childenv_alloc, sizeof(char *));
+	memcpy(childenv, environ, childenv_nr * sizeof(char *));
+
+	/* merge in deltaenv */
+	for (i = 0; deltaenv && deltaenv[i]; i++)
+		childenv_nr = do_putenv(childenv, childenv_nr, deltaenv[i]);
+
+	return childenv;
+}
+
 int start_command(struct child_process *cmd)
 {
 	int need_in, need_out, need_err;
@@ -365,11 +434,14 @@ fail_pipe:
 #ifndef GIT_WINDOWS_NATIVE
 {
 	int notify_pipe[2];
+	char **childenv;
 	FILE *child_err = NULL;
 	struct argv_array argv = ARGV_ARRAY_INIT;
 
 	if (pipe(notify_pipe))
 		notify_pipe[0] = notify_pipe[1] = -1;
+
+	childenv = prep_childenv(cmd->env);
 
 	if (cmd->no_stderr || need_err) {
 		int child_err_fd = dup(2);
@@ -437,16 +509,9 @@ fail_pipe:
 		if (cmd->dir && chdir(cmd->dir))
 			die_errno("exec '%s': cd to '%s' failed", cmd->argv[0],
 			    cmd->dir);
-		if (cmd->env) {
-			for (; *cmd->env; cmd->env++) {
-				if (strchr(*cmd->env, '='))
-					putenv((char *)*cmd->env);
-				else
-					unsetenv(*cmd->env);
-			}
-		}
 
-		sane_execvpe(argv.argv[0], (char *const*) argv.argv, NULL);
+		sane_execvpe(argv.argv[0], (char *const*) argv.argv,
+			     (char *const*) childenv);
 
 		if (errno == ENOENT) {
 			if (!cmd->silent_exec_failure)
@@ -483,6 +548,7 @@ fail_pipe:
 
 	if (child_err)
 		fclose(child_err);
+	free(childenv);
 	argv_array_clear(&argv);
 }
 #else
