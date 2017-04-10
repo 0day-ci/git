@@ -365,10 +365,17 @@ fail_pipe:
 #ifndef GIT_WINDOWS_NATIVE
 {
 	int notify_pipe[2];
+	FILE *child_err = NULL;
 	struct argv_array argv = ARGV_ARRAY_INIT;
 
 	if (pipe(notify_pipe))
 		notify_pipe[0] = notify_pipe[1] = -1;
+
+	if (cmd->no_stderr || need_err) {
+		int child_err_fd = dup(2);
+		set_cloexec(child_err_fd);
+		child_err = fdopen(child_err_fd, "w");
+	}
 
 	if (cmd->git_cmd) {
 		argv_array_push(&argv, "git");
@@ -387,11 +394,8 @@ fail_pipe:
 		 * before redirecting the process's stderr so that all die()
 		 * in subsequent call paths use the parent's stderr.
 		 */
-		if (cmd->no_stderr || need_err) {
-			int child_err = dup(2);
-			set_cloexec(child_err);
-			set_error_handle(fdopen(child_err, "w"));
-		}
+		if (child_err)
+			set_error_handle(child_err);
 
 		close(notify_pipe[0]);
 		set_cloexec(notify_pipe[1]);
@@ -477,6 +481,8 @@ fail_pipe:
 	}
 	close(notify_pipe[0]);
 
+	if (child_err)
+		fclose(child_err);
 	argv_array_clear(&argv);
 }
 #else
