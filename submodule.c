@@ -1331,8 +1331,17 @@ int submodule_move_head(const char *path,
 	int ret = 0;
 	struct child_process cp = CHILD_PROCESS_INIT;
 	const struct submodule *sub;
+	int *errorcode, error_code;
 
 	if (!is_submodule_initialized(path))
+		return 0;
+
+	if (flags & SUBMODULE_MOVE_HEAD_FORCE)
+		errorcode = &error_code;
+	else
+		errorcode = NULL;
+
+	if (old && !is_submodule_populated_gently(path, errorcode))
 		return 0;
 
 	sub = submodule_from_path(null_sha1, path);
@@ -1360,6 +1369,14 @@ int submodule_move_head(const char *path,
 
 			/* make sure the index is clean as well */
 			submodule_reset_index(path);
+		}
+
+		if (old && (flags & SUBMODULE_MOVE_HEAD_FORCE)) {
+			struct strbuf sb = STRBUF_INIT;
+			strbuf_addf(&sb, "%s/modules/%s",
+				    get_git_common_dir(), sub->name);
+			connect_work_tree_and_git_dir(path, sb.buf);
+			strbuf_release(&sb);
 		}
 	}
 
