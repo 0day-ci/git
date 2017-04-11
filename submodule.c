@@ -24,6 +24,12 @@ static int initialized_fetch_ref_tips;
 static struct sha1_array ref_tips_before_fetch;
 static struct sha1_array ref_tips_after_fetch;
 
+static enum {
+	SUBMODULE_CONFIG_NOT_READ = 0,
+	SUBMODULE_CONFIG_NO_CONFIG,
+	SUBMODULE_CONFIG_EXISTS,
+} submodule_config_reading;
+
 /*
  * The following flag is set if the .gitmodules file is unmerged. We then
  * disable recursion for all submodules where .git/config doesn't have a
@@ -80,6 +86,62 @@ int update_path_in_gitmodules(const char *oldpath, const char *newpath)
 		return -1;
 	}
 	strbuf_release(&entry);
+	return 0;
+}
+
+static int submodule_config(const char *var, const char *value, void *cb)
+{
+	if (!strcmp(var, "submodule.fetchjobs")) {
+		submodule_config_reading = SUBMODULE_CONFIG_EXISTS;
+		parallel_jobs = git_config_int(var, value);
+		if (parallel_jobs < 0)
+			die(_("negative values not allowed for submodule.fetchJobs"));
+		return 0;
+	} else if (starts_with(var, "submodule.")) {
+		submodule_config_reading = SUBMODULE_CONFIG_EXISTS;
+		return parse_submodule_config_option(var, value);
+	} else if (!strcmp(var, "fetch.recursesubmodules")) {
+		submodule_config_reading = SUBMODULE_CONFIG_EXISTS;
+		config_fetch_recurse_submodules = parse_fetch_recurse_submodules_arg(var, value);
+		return 0;
+	}
+	return 0;
+}
+
+void load_submodule_config(void)
+{
+	submodule_config_reading = SUBMODULE_CONFIG_NO_CONFIG;
+	git_config(submodule_config, NULL);
+}
+
+int has_submodules(unsigned what_to_check)
+{
+	if (what_to_check & SUBMODULE_CHECK_ANY_CONFIG) {
+		if (submodule_config_reading == SUBMODULE_CONFIG_NOT_READ)
+			load_submodule_config();
+		if (submodule_config_reading == SUBMODULE_CONFIG_EXISTS)
+			return 1;
+	}
+
+	if ((what_to_check & SUBMODULE_CHECK_ABSORBED_GIT_DIRS) &&
+	    file_exists(git_path("modules")))
+		return 1;
+
+	if ((what_to_check & SUBMODULE_CHECK_GITMODULES_IN_WT) &&
+	    (!is_bare_repository() && file_exists(".gitmodules")))
+		return 1;
+
+	if (what_to_check & SUBMODULE_CHECK_GITLINKS_IN_TREE) {
+		int i;
+
+		if (read_cache() < 0)
+			die(_("index file corrupt"));
+
+		for (i = 0; i < active_nr; i++)
+			if (S_ISGITLINK(active_cache[i]->ce_mode))
+				return 1;
+	}
+
 	return 0;
 }
 
@@ -150,22 +212,6 @@ void set_diffopt_flags_from_submodule_config(struct diff_options *diffopt,
 		else if (gitmodules_is_unmerged)
 			DIFF_OPT_SET(diffopt, IGNORE_SUBMODULES);
 	}
-}
-
-int submodule_config(const char *var, const char *value, void *cb)
-{
-	if (!strcmp(var, "submodule.fetchjobs")) {
-		parallel_jobs = git_config_int(var, value);
-		if (parallel_jobs < 0)
-			die(_("negative values not allowed for submodule.fetchJobs"));
-		return 0;
-	} else if (starts_with(var, "submodule."))
-		return parse_submodule_config_option(var, value);
-	else if (!strcmp(var, "fetch.recursesubmodules")) {
-		config_fetch_recurse_submodules = parse_fetch_recurse_submodules_arg(var, value);
-		return 0;
-	}
-	return 0;
 }
 
 void gitmodules_config(void)

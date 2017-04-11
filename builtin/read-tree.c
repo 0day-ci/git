@@ -177,7 +177,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 
 	if (recurse_submodules != RECURSE_SUBMODULES_DEFAULT) {
 		gitmodules_config();
-		git_config(submodule_config, NULL);
+		load_submodule_config();
 		set_config_update_recurse_submodules(RECURSE_SUBMODULES_ON);
 	}
 

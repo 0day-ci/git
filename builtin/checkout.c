@@ -1216,7 +1216,7 @@ int cmd_checkout(int argc, const char **argv, const char *prefix)
 	}
 
 	if (recurse_submodules != RECURSE_SUBMODULES_OFF) {
-		git_config(submodule_config, NULL);
+		load_submodule_config();
 		if (recurse_submodules != RECURSE_SUBMODULES_DEFAULT)
 			set_config_update_recurse_submodules(recurse_submodules);
 	}

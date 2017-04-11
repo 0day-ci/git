@@ -1,6 +1,12 @@
 #ifndef SUBMODULE_H
 #define SUBMODULE_H
 
+#define SUBMODULE_CHECK_ANY_CONFIG		(1<<0)
+#define SUBMODULE_CHECK_ABSORBED_GIT_DIRS	(1<<1)
+#define SUBMODULE_CHECK_GITMODULES_IN_WT	(1<<2)
+#define SUBMODULE_CHECK_GITLINKS_IN_TREE 	(1<<3)
+int has_submodules(unsigned what_to_check);
+
 struct diff_options;
 struct argv_array;
 struct sha1_array;
@@ -37,7 +43,7 @@ extern int remove_path_from_gitmodules(const char *path);
 extern void stage_updated_gitmodules(void);
 extern void set_diffopt_flags_from_submodule_config(struct diff_options *,
 		const char *path);
-extern int submodule_config(const char *var, const char *value, void *cb);
+extern void load_submodule_config(void);
 extern void gitmodules_config(void);
 extern void gitmodules_config_sha1(const unsigned char *commit_sha1);
 extern int is_submodule_initialized(const char *path);
