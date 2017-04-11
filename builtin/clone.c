@@ -24,6 +24,7 @@
 #include "remote.h"
 #include "run-command.h"
 #include "connected.h"
+#include "submodule.h"
 
 /*
  * Overall FIXMEs:
@@ -993,11 +994,14 @@ int cmd_clone(int argc, const char **argv, const char *prefix)
 			string_list_append(&option_config,
 					   strbuf_detach(&sb, NULL));
 		}
+	}
 
+	if (option_recurse_submodules.nr ||
+	    has_submodules(SUBMODULE_CHECK_GITMODULES_IN_WT)) {
 		if (option_required_reference.nr &&
 		    option_optional_reference.nr)
-			die(_("clone --recursive is not compatible with "
-			      "both --reference and --reference-if-able"));
+			die(_("submodules are incompatible with both "
+			    "--reference and --reference-if-able"));
 		else if (option_required_reference.nr) {
 			string_list_append(&option_config,
 				"submodule.alternateLocation=superproject");
