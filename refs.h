@@ -86,7 +86,7 @@ int peel_ref(const char *refname, unsigned char *sha1);
  * successful, return 0 and set sha1 to the name of the object;
  * otherwise, return a non-zero value.
  */
-int resolve_gitlink_ref(const char *submodule, const char *refname,
+int resolve_gitlink_ref(const char *submodule_path, const char *refname,
 			unsigned char *sha1);
 
 /*
@@ -204,16 +204,16 @@ int for_each_glob_ref(each_ref_fn fn, const char *pattern, void *cb_data);
 int for_each_glob_ref_in(each_ref_fn fn, const char *pattern,
 			 const char *prefix, void *cb_data);
 
-int head_ref_submodule(const char *submodule, each_ref_fn fn, void *cb_data);
-int for_each_ref_submodule(const char *submodule,
+int head_ref_submodule(const char *submodule_path, each_ref_fn fn, void *cb_data);
+int for_each_ref_submodule(const char *submodule_path,
 			   each_ref_fn fn, void *cb_data);
-int for_each_ref_in_submodule(const char *submodule, const char *prefix,
+int for_each_ref_in_submodule(const char *submodule_path, const char *prefix,
 		each_ref_fn fn, void *cb_data);
-int for_each_tag_ref_submodule(const char *submodule,
+int for_each_tag_ref_submodule(const char *submodule_path,
 			       each_ref_fn fn, void *cb_data);
-int for_each_branch_ref_submodule(const char *submodule,
+int for_each_branch_ref_submodule(const char *submodule_path,
 				  each_ref_fn fn, void *cb_data);
-int for_each_remote_ref_submodule(const char *submodule,
+int for_each_remote_ref_submodule(const char *submodule_path,
 				  each_ref_fn fn, void *cb_data);
 
 int head_ref_namespaced(each_ref_fn fn, void *cb_data);
