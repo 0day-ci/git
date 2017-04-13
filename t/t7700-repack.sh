@@ -196,5 +196,13 @@ test_expect_success 'objects made unreachable by grafts only are kept' '
 	git cat-file -t $H1
 	'
 
+test_expect_success 'repack respects gc.pid' '
+	test_tick &&
+	test_when_finished "rm -f .git/gc.pid" &&
+	echo -n "1234 hostname" >.git/gc.pid &&
+	test_must_fail git repack -a -d 2>err &&
+	test_i18ngrep "already running on machine .hostname. pid 1234" err
+	'
+
 test_done
 

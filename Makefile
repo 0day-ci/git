@@ -816,6 +816,7 @@ LIB_OBJS += refs/files-backend.o
 LIB_OBJS += refs/iterator.o
 LIB_OBJS += ref-filter.o
 LIB_OBJS += remote.o
+LIB_OBJS += repack.o
 LIB_OBJS += replace_object.o
 LIB_OBJS += rerere.o
 LIB_OBJS += resolve-undo.o

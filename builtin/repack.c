@@ -7,6 +7,7 @@
 #include "strbuf.h"
 #include "string-list.h"
 #include "argv-array.h"
+#include "repack.h"
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
@@ -160,6 +161,7 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	int no_update_server_info = 0;
 	int quiet = 0;
 	int local = 0;
+	int no_lock = 0;
 
 	struct option builtin_repack_options[] = {
 		OPT_BIT('a', NULL, &pack_everything,
@@ -194,6 +196,8 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 				N_("maximum size of each packfile")),
 		OPT_BOOL(0, "pack-kept-objects", &pack_kept_objects,
 				N_("repack objects in packs marked with .keep")),
+		OPT_BOOL(0, "no-lock", &no_lock,
+				N_("Do not lock the repository, and do not respect any existing lock.  Mostly useful for operation within git gc.")),
 		OPT_END()
 	};
 
@@ -214,6 +218,15 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 
 	if (write_bitmaps && !(pack_everything & ALL_INTO_ONE))
 		die(_(incremental_bitmap_conflict_error));
+
+	if (!no_lock) {
+		pid_t pid;
+		const char *name = lock_repo_for_pack_manipulation(0, &pid);
+		if (name) {
+			die(_("pack operation (gc or repack) is already running on machine '%s' pid %"PRIuMAX" (use --no-lock if not)"),
+			    name, (uintmax_t)pid);
+		}
+	}
 
 	packdir = mkpathdup("%s/pack", get_object_directory());
 	packtmp = mkpathdup("%s/.tmp-%d-pack", packdir, (int)getpid());
