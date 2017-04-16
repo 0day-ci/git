@@ -305,6 +305,10 @@ __git_ps1 ()
 	local ps1pc_start='\u@\h:\w '
 	local ps1pc_end='\$ '
 	local printf_format=' (%s)'
+	# Prevent any non-zero exit statuses from killing an interactive shell in the
+	# case that a user types `set -e`
+	local -- - # Shadow shell options in $- (restored upon return)
+	set +e
 
 	case "$#" in
 		2|3)	pcmode=yes
