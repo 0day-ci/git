@@ -445,8 +445,7 @@ test_expect_success !PTHREADS,!GETTEXT_POISON 'pack-objects --threads=N or pack.
 	git -c pack.threads=2 pack-objects --stdout --all </dev/null >/dev/null 2>err &&
 	cat err &&
 	grep ^warning: err >warnings &&
-	test_line_count = 2 warnings &&
-	grep "no threads support, ignoring --threads" err &&
+	test_line_count = 1 warnings &&
 	grep "no threads support, ignoring pack\.threads" err &&
 	git -c pack.threads=2 pack-objects --threads=4 --stdout --all </dev/null >/dev/null 2>err &&
 	grep ^warning: err >warnings &&
