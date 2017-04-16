@@ -207,13 +207,20 @@ static int prepare_include_condition_pattern(struct strbuf *pat)
 	return prefix;
 }
 
-static int include_by_gitdir(const char *cond, size_t cond_len, int icase)
+static int include_by_gitdir(const struct config_options *opts,
+			     const char *cond, size_t cond_len, int icase)
 {
 	struct strbuf text = STRBUF_INIT;
 	struct strbuf pattern = STRBUF_INIT;
 	int ret = 0, prefix;
 
-	strbuf_add_absolute_path(&text, get_git_dir());
+	if (!opts->early_config)
+		strbuf_add_absolute_path(&text, get_git_dir());
+	else if (opts->git_dir)
+		strbuf_add_absolute_path(&text, opts->git_dir);
+	else
+		goto done;
+
 	strbuf_add(&pattern, cond, cond_len);
 	prefix = prepare_include_condition_pattern(&pattern);
 
@@ -242,13 +249,14 @@ done:
 	return ret;
 }
 
-static int include_condition_is_true(const char *cond, size_t cond_len)
+static int include_condition_is_true(const struct config_options *opts,
+				     const char *cond, size_t cond_len)
 {
 
 	if (skip_prefix_mem(cond, cond_len, "gitdir:", &cond, &cond_len))
-		return include_by_gitdir(cond, cond_len, 0);
+		return include_by_gitdir(opts, cond, cond_len, 0);
 	else if (skip_prefix_mem(cond, cond_len, "gitdir/i:", &cond, &cond_len))
-		return include_by_gitdir(cond, cond_len, 1);
+		return include_by_gitdir(opts, cond, cond_len, 1);
 
 	/* unknown conditionals are always false */
 	return 0;
@@ -273,7 +281,7 @@ int git_config_include(const char *var, const char *value, void *data)
 		ret = handle_path_include(value, inc);
 
 	if (!parse_config_key(var, "includeif", &cond, &cond_len, &key) &&
-	    (cond && include_condition_is_true(cond, cond_len)) &&
+	    (cond && include_condition_is_true(inc->opts, cond, cond_len)) &&
 	    !strcmp(key, "path"))
 		ret = handle_path_include(value, inc);
 
@@ -1603,10 +1611,13 @@ void read_early_config(config_fn_t cb, void *data)
 {
 	struct config_options opts = {0};
 	struct strbuf buf = STRBUF_INIT;
+	char *to_free = NULL;
 
 	opts.respect_includes = 1;
-	git_config_with_options(cb, data, NULL, &opts);
+	opts.early_config = 1;
 
+	if (have_git_dir())
+		opts.git_dir = get_git_dir();
 	/*
 	 * When setup_git_directory() was not yet asked to discover the
 	 * GIT_DIR, we ask discover_git_directory() to figure out whether there
@@ -1615,15 +1626,21 @@ void read_early_config(config_fn_t cb, void *data)
 	 * notably, the current working directory is still the same after the
 	 * call).
 	 */
-	if (!have_git_dir() && discover_git_directory(&buf)) {
+	else if (discover_git_directory(&buf))
+		opts.git_dir = to_free = strbuf_detach(&buf, NULL);
+
+	git_config_with_options(cb, data, NULL, &opts);
+
+	if (opts.git_dir) {
 		struct git_config_source repo_config;
 
 		memset(&repo_config, 0, sizeof(repo_config));
-		strbuf_addstr(&buf, "/config");
+		strbuf_addf(&buf, "%s/config", opts.git_dir);
 		repo_config.file = buf.buf;
 		git_config_with_options(cb, data, &repo_config, &opts);
 	}
 	strbuf_release(&buf);
+	free(to_free);
 }
 
 static void git_config_check_init(void);

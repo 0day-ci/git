@@ -1884,6 +1884,8 @@ enum config_origin_type {
 
 struct config_options {
 	unsigned int respect_includes : 1;
+	unsigned int early_config : 1;
+	const char *git_dir; /* only valid when early_config is true */
 };
 
 typedef int (*config_fn_t)(const char *, const char *, void *);
