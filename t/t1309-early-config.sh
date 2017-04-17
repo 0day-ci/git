@@ -47,6 +47,23 @@ test_expect_success 'ceiling #2' '
 	test xdg = "$(cat output)"
 '
 
+test_expect_success 'read config file in right order' '
+	echo "[test]source = home" >>.gitconfig &&
+	git init foo &&
+	(
+		cd foo &&
+		echo "[test]source = repo" >>.git/config &&
+		CMDL_CFG=test.source=cmdline test-config \
+			read_early_config test.source >actual &&
+		cat >expected <<-\EOF &&
+		home
+		repo
+		cmdline
+		EOF
+		test_cmp expected actual
+	)
+'
+
 test_with_config () {
 	rm -rf throwaway &&
 	git init throwaway &&
