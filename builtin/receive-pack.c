@@ -1698,7 +1698,7 @@ static const char *unpack(int err_fd, struct shallow_info *si)
 		if (status)
 			return "unpack-objects abnormal exit";
 	} else {
-		char hostname[256];
+		char hostname[HOST_NAME_MAX + 1];
 
 		argv_array_pushl(&child.args, "index-pack", "--stdin", NULL);
 		push_header_arg(&child.args, &hdr);
