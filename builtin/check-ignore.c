@@ -24,7 +24,7 @@ static const struct option check_ignore_options[] = {
 		 N_("terminate input and output records by a NUL character")),
 	OPT_BOOL('n', "non-matching", &show_non_matching,
 		 N_("show non-matching input paths")),
-	OPT_BOOL(0, "no-index", &no_index,
+	OPT_BOOL_NONEG(0, "no-index", &no_index,
 		 N_("ignore index when checking")),
 	OPT_END()
 };

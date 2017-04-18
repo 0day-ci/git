@@ -153,7 +153,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 		OPT_BOOL('i', NULL, &opts.index_only,
 			 N_("don't check the working tree after merging")),
 		OPT__DRY_RUN(&opts.dry_run, N_("don't update the index or the work tree")),
-		OPT_BOOL(0, "no-sparse-checkout", &opts.skip_sparse_checkout,
+		OPT_BOOL_NONEG(0, "no-sparse-checkout", &opts.skip_sparse_checkout,
 			 N_("skip applying sparse checkout filter")),
 		OPT_BOOL(0, "debug-unpack", &opts.debug_unpack,
 			 N_("debug unpack-trees")),

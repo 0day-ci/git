@@ -994,7 +994,7 @@ int cmd_fast_export(int argc, const char **argv, const char *prefix)
 			 N_("Output full tree for each commit")),
 		OPT_BOOL(0, "use-done-feature", &use_done_feature,
 			     N_("Use the done feature to terminate the stream")),
-		OPT_BOOL(0, "no-data", &no_data, N_("Skip output of blob data")),
+		OPT_BOOL_NONEG(0, "no-data", &no_data, N_("Skip output of blob data")),
 		OPT_STRING_LIST(0, "refspec", &refspecs_list, N_("refspec"),
 			     N_("Apply refspec to exported refs")),
 		OPT_BOOL(0, "anonymize", &anonymize, N_("anonymize output")),

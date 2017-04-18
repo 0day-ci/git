@@ -12,6 +12,7 @@ usage: test-parse-options <options>
 
     --yes                 get a boolean
     -D, --no-doubt        begins with 'no-'
+    --no-neg              begins with 'no-', can't be negated
     -B, --no-fear         be brave
     -b, --boolean         increment by one
     -4, --or4             bitwise-or boolean with ...0100
@@ -80,6 +81,7 @@ check_unknown_i18n() {
 
 test_expect_success 'OPT_BOOL() #1' 'check boolean: 1 --yes'
 test_expect_success 'OPT_BOOL() #2' 'check boolean: 1 --no-doubt'
+test_expect_success 'OPT_BOOL() #2' 'check boolean: 1 --no-neg'
 test_expect_success 'OPT_BOOL() #3' 'check boolean: 1 -D'
 test_expect_success 'OPT_BOOL() #4' 'check boolean: 1 --no-fear'
 test_expect_success 'OPT_BOOL() #5' 'check boolean: 1 -B'
@@ -89,6 +91,7 @@ test_expect_success 'OPT_BOOL() is idempotent #2' 'check boolean: 1 -DB'
 
 test_expect_success 'OPT_BOOL() negation #1' 'check boolean: 0 -D --no-yes'
 test_expect_success 'OPT_BOOL() negation #2' 'check boolean: 0 -D --no-no-doubt'
+test_expect_success 'OPT_BOOL() negation #3' 'test_must_fail test-parse-options --no-no-neg'
 
 test_expect_success 'OPT_BOOL() no negation #1' 'check_unknown_i18n --fear'
 test_expect_success 'OPT_BOOL() no negation #2' 'check_unknown_i18n --no-no-fear'

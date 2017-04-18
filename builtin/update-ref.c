@@ -361,7 +361,7 @@ int cmd_update_ref(int argc, const char **argv, const char *prefix)
 	struct option options[] = {
 		OPT_STRING( 'm', NULL, &msg, N_("reason"), N_("reason of the update")),
 		OPT_BOOL('d', NULL, &delete, N_("delete the reference")),
-		OPT_BOOL( 0 , "no-deref", &no_deref,
+		OPT_BOOL_NONEG( 0 , "no-deref", &no_deref,
 					N_("update <refname> not the one it points to")),
 		OPT_BOOL('z', NULL, &end_null, N_("stdin has NUL-terminated arguments")),
 		OPT_BOOL( 0 , "stdin", &read_stdin, N_("read updates from stdin")),

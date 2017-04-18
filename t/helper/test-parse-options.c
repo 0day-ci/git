@@ -105,6 +105,7 @@ int cmd_main(int argc, const char **argv)
 	struct option options[] = {
 		OPT_BOOL(0, "yes", &boolean, "get a boolean"),
 		OPT_BOOL('D', "no-doubt", &boolean, "begins with 'no-'"),
+		OPT_BOOL_NONEG(0, "no-neg", &boolean, "begins with 'no-', can't be negated"),
 		{ OPTION_SET_INT, 'B', "no-fear", &boolean, NULL,
 		  "be brave", PARSE_OPT_NOARG | PARSE_OPT_NONEG, NULL, 1 },
 		OPT_COUNTUP('b', "boolean", &boolean, "increment by one"),

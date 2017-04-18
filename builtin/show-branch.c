@@ -638,7 +638,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			    N_("show <n> more commits after the common ancestor"),
 			    PARSE_OPT_OPTARG, NULL, (intptr_t)1 },
 		OPT_SET_INT(0, "list", &extra, N_("synonym to more=-1"), -1),
-		OPT_BOOL(0, "no-name", &no_name, N_("suppress naming strings")),
+		OPT_BOOL_NONEG(0, "no-name", &no_name, N_("suppress naming strings")),
 		OPT_BOOL(0, "current", &with_current_branch,
 			 N_("include the current branch")),
 		OPT_BOOL(0, "sha1-name", &sha1_name,
