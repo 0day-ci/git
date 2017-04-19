@@ -851,6 +851,8 @@ our %actions = (
 	"summary" => \&git_summary,
 	"tag" => \&git_tag,
 	"tags" => \&git_tags,
+	"tags_rss" => \&git_tags_rss,
+	"tags_atom" => \&git_tags_atom,
 	"tree" => \&git_tree,
 	"snapshot" => \&git_snapshot,
 	"object" => \&git_object,
@@ -2599,7 +2601,7 @@ sub get_feed_info {
 	return unless (defined $project);
 	# some views should link to OPML, or to generic project feed,
 	# or don't have specific feed yet (so they should use generic)
-	return if (!$action || $action =~ /^(?:tags|heads|forks|tag|search)$/x);
+	return if (!$action || $action =~ /^(?:heads|forks|search)$/x);
 
 	my $branch = undef;
 	# branches refs uses 'refs/' + $get_branch_refs()[x] + '/' prefix
@@ -2614,8 +2616,10 @@ sub get_feed_info {
 		}
 	}
 	# find log type for feed description (title)
-	my $type = 'log';
-	if (defined $file_name) {
+	my $type = "log";
+	if ($action eq 'tag' || $action eq 'tags') {
+		$type = "tags";
+	} elsif (defined $file_name) {
 		$type  = "history of $file_name";
 		$type .= "/" if ($action eq 'tree');
 		$type .= " on '$branch'" if (defined $branch);
@@ -4007,6 +4011,7 @@ sub print_feed_meta {
 			$href_params{'-title'} = 'log';
 		}
 
+		my $tag_view = $href_params{-title} eq 'tags';
 		foreach my $format (qw(RSS Atom)) {
 			my $type = lc($format);
 			my %link_attr = (
@@ -4016,7 +4021,7 @@ sub print_feed_meta {
 			);
 
 			$href_params{'extra_options'} = undef;
-			$href_params{'action'} = $type;
+			$href_params{'action'} = ($tag_view ? 'tags_' : '') . $type;
 			$link_attr{'-href'} = href(%href_params);
 			print "<link ".
 			      "rel=\"$link_attr{'-rel'}\" ".
@@ -4025,15 +4030,17 @@ sub print_feed_meta {
 			      "type=\"$link_attr{'-type'}\" ".
 			      "/>\n";
 
-			$href_params{'extra_options'} = '--no-merges';
-			$link_attr{'-href'} = href(%href_params);
-			$link_attr{'-title'} .= ' (no merges)';
-			print "<link ".
-			      "rel=\"$link_attr{'-rel'}\" ".
-			      "title=\"$link_attr{'-title'}\" ".
-			      "href=\"$link_attr{'-href'}\" ".
-			      "type=\"$link_attr{'-type'}\" ".
-			      "/>\n";
+			unless ($tag_view) {
+				$href_params{'extra_options'} = '--no-merges';
+				$link_attr{'-href'} = href(%href_params);
+				$link_attr{'-title'} .= ' (no merges)';
+				print "<link ".
+				      "rel=\"$link_attr{'-rel'}\" ".
+				      "title=\"$link_attr{'-title'}\" ".
+				      "href=\"$link_attr{'-href'}\" ".
+				      "type=\"$link_attr{'-type'}\" ".
+				      "/>\n";
+			}
 		}
 
 	} else {
@@ -4217,8 +4224,9 @@ sub git_footer_html {
 		}
 		$href_params{'-title'} ||= 'log';
 
+		my $tag_view = $href_params{-title} eq 'tags';
 		foreach my $format (qw(RSS Atom)) {
-			$href_params{'action'} = lc($format);
+			$href_params{'action'} = ($tag_view ? 'tags_' : '') . lc($format);
 			print $cgi->a({-href => href(%href_params),
 			              -title => "$href_params{'-title'} $format feed",
 			              -class => $feed_class}, $format)."\n";
@@ -8409,8 +8417,16 @@ sub git_rss {
 	git_feed('rss');
 }
 
+sub git_tags_rss {
+	git_feed('rss', 'tags')
+}
+
 sub git_atom {
 	git_feed('atom');
+}
+
+sub git_tags_atom {
+	git_feed('atom', 'tags')
 }
 
 sub git_opml {
@@ -8457,6 +8473,9 @@ XML
 		my $rss  = href('project' => $proj{'path'}, 'action' => 'rss', -full => 1);
 		my $html = href('project' => $proj{'path'}, 'action' => 'summary', -full => 1);
 		print "<outline type=\"rss\" text=\"$path\" title=\"$path\" xmlUrl=\"$rss\" htmlUrl=\"$html\"/>\n";
+		# and now the tags rss feed
+		$rss  = href('project' => $proj{'path'}, 'action' => 'tags_rss', -full => 1);
+		print "<outline type=\"rss\" text=\"$path tags\" title=\"$path tags\" xmlUrl=\"$rss\" htmlUrl=\"$html\"/>\n";
 	}
 	print <<XML;
 </outline>
