@@ -88,7 +88,6 @@ test_expect_success 'OPT_BOOL() is idempotent #1' 'check boolean: 1 --yes --yes'
 test_expect_success 'OPT_BOOL() is idempotent #2' 'check boolean: 1 -DB'
 
 test_expect_success 'OPT_BOOL() negation #1' 'check boolean: 0 -D --no-yes'
-test_expect_success 'OPT_BOOL() negation #2' 'check boolean: 0 -D --no-no-doubt'
 
 test_expect_success 'OPT_BOOL() no negation #1' 'check_unknown_i18n --fear'
 test_expect_success 'OPT_BOOL() no negation #2' 'check_unknown_i18n --no-no-fear'
@@ -390,6 +389,10 @@ test_expect_success '--no-verbose sets verbose to 0' '
 
 test_expect_success '--no-verbose resets multiple verbose to 0' '
 	test-parse-options --expect="verbose: 0" -v -v -v --no-verbose
+'
+
+test_expect_success 'double negation not accepted' '
+	test_must_fail test-parse-options --expect="boolean: 0" --no-no-doubt
 '
 
 test_done
