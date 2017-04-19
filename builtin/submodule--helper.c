@@ -487,6 +487,158 @@ static int module_name(int argc, const char **argv, const char *prefix)
 	return 0;
 }
 
+static void foreach_submodule(int argc, const char **argv, const char *path,
+			      const unsigned char *sha1, const char *prefix,
+			      int quiet, int recursive)
+{
+	const char *toplevel = xgetcwd();
+	const struct submodule *sub;
+	struct strbuf sb = STRBUF_INIT;
+	struct strbuf sub_sha1 = STRBUF_INIT;
+	struct strbuf cmd = STRBUF_INIT;
+	char *displaypath;
+	int i;
+
+	/* Only loads from .gitmodules, no overlay with .git/config */
+	gitmodules_config();
+
+	if (prefix && get_super_prefix()) {
+		die("BUG: cannot have prefix and superprefix");
+	} else if (prefix) {
+		displaypath = xstrdup(relative_path(prefix, path,  &sb));
+	} else if (get_super_prefix()) {
+		strbuf_addf(&sb, "%s/%s", get_super_prefix(), path);
+		displaypath = strbuf_detach(&sb, NULL);
+	} else {
+		displaypath = xstrdup(path);
+	}
+
+	sub = submodule_from_path(null_sha1, path);
+
+	if (!sub)
+		die(_("No url found for submodule path '%s' in .gitmodules"),
+		      displaypath);
+	strbuf_add_unique_abbrev(&sub_sha1, sha1 , 40);
+
+	if (!chdir(path)) {
+		if (!access_or_warn(".git", R_OK, 0)) {
+			if (!quiet)
+				printf(_("Entering '%s'\n"), displaypath);
+
+			if (argc == 1) {
+				struct argv_array argcp1 = ARGV_ARRAY_INIT;
+
+				strbuf_addstr(&cmd, "name=");
+				strbuf_addstr(&cmd, sub->name);
+				strbuf_addstr(&cmd, "; ");
+				strbuf_addstr(&cmd, "toplevel=");
+				strbuf_addstr(&cmd, toplevel);
+				strbuf_addstr(&cmd, "; ");
+				strbuf_addstr(&cmd, "sha1=");
+				strbuf_addstr(&cmd, sub_sha1.buf);
+				strbuf_addstr(&cmd, "; ");
+				strbuf_addstr(&cmd, "path=");
+				strbuf_addstr(&cmd, sub->path);
+				strbuf_addstr(&cmd, "; ");
+				strbuf_addstr(&cmd, argv[0]);
+
+				argv_array_push(&argcp1, cmd.buf);
+				run_command_v_opt(argcp1.argv, RUN_USING_SHELL);
+			} else {
+				run_command_v_opt(argv, RUN_USING_SHELL);
+			}
+
+			if (recursive) {
+				struct argv_array argcp = ARGV_ARRAY_INIT;
+
+				argv_array_push(&argcp, "git");
+				argv_array_push(&argcp, "--super-prefix");
+				argv_array_push(&argcp, displaypath);
+				argv_array_push(&argcp, "submodule--helper");
+
+				if (quiet)
+					argv_array_push(&argcp, "--quiet");
+				argv_array_push(&argcp, "foreach");
+				argv_array_push(&argcp, "--recursive");
+
+				for (i = 0; i < argc; i++)
+					argv_array_push(&argcp, argv[i]);
+
+				run_command_v_opt(argcp.argv, RUN_USING_SHELL);
+			}
+
+			if (chdir(toplevel))
+				die_errno(_("cannot chdir to %s"), toplevel);
+		}
+	} else {
+		die_errno(_("cannot chdir to %s"), path);
+	}
+
+	strbuf_release(&cmd);
+	strbuf_release(&sub_sha1);
+	strbuf_release(&sb);
+	free(displaypath);
+	return;
+}
+
+static int module_foreach(int argc, const char **argv, const char *prefix)
+{
+	struct module_list list = MODULE_LIST_INIT;
+	int quiet = 0;
+	int recursive = 0;
+	int i;
+
+	struct option module_foreach_options[] = {
+		OPT__QUIET(&quiet, N_("Suppress output of Entering each submodule command")),
+		OPT_BOOL(0, "recursive", &recursive,
+			 N_("Traverse submodules ercursively and apply the command for all nested submodules")),
+		OPT_END()
+	};
+
+	const char *const git_submodule_helper_usage[] = {
+		N_("git submodule--helper foreach [--recursive] <command>"),
+		NULL
+	};
+
+	argc = parse_options(argc, argv, prefix, module_foreach_options,
+			     git_submodule_helper_usage, 0);
+
+	if (read_cache() < 0)
+		die(_("index file corrupt"));
+
+	for (i = 0; i < active_nr; i++) {
+		const struct cache_entry *ce = active_cache[i];
+
+		if (!S_ISGITLINK(ce->ce_mode))
+				continue;
+
+		ALLOC_GROW(list.entries, list.nr + 1, list.alloc);
+		list.entries[list.nr++] = ce;
+		while (i + 1 < active_nr &&
+			!strcmp(ce->name, active_cache[i + 1]->name))
+			 /*
+			  * Skip entries with the same name in different stages
+			  * to make sure an entry is returned only once.
+			  */
+			i++;
+	}
+
+	for (i = 0; i < list.nr; i++) {
+		if (prefix) {
+			const char *out = NULL;
+			if (skip_prefix(prefix, list.entries[i]->name, &out)) {
+				if (out && out[0] == '/' && !out + 1) 
+					return 0;
+			}
+		}
+
+		foreach_submodule(argc, argv, list.entries[i]->name,
+				  list.entries[i]->oid.hash, prefix,
+				  quiet, recursive);
+	}
+	return 0;
+}
+
 static int clone_submodule(const char *path, const char *gitdir, const char *url,
 			   const char *depth, struct string_list *reference,
 			   int quiet, int progress)
@@ -1168,6 +1320,7 @@ static struct cmd_struct commands[] = {
 	{"relative-path", resolve_relative_path, 0},
 	{"resolve-relative-url", resolve_relative_url, 0},
 	{"resolve-relative-url-test", resolve_relative_url_test, 0},
+	{"foreach", module_foreach, SUPPORT_SUPER_PREFIX},
 	{"init", module_init, SUPPORT_SUPER_PREFIX},
 	{"remote-branch", resolve_remote_submodule_branch, 0},
 	{"absorb-git-dirs", absorb_git_dirs, SUPPORT_SUPER_PREFIX},
