@@ -3807,6 +3807,7 @@ sub git_get_tags_list {
 
 		if ($type eq "tag" || $type eq "commit") {
 			$ref_item{'epoch'} = $epoch;
+			$ref_item{'tz'} = $tz;
 			if ($epoch) {
 				$ref_item{'age'} = age_string(time - $ref_item{'epoch'});
 			} else {
@@ -8132,6 +8133,10 @@ sub git_shortlog {
 
 sub git_feed {
 	my $format = shift || 'atom';
+
+	# feed context: log, tags
+	my $ctx = shift || 'log';
+
 	my $have_blame = gitweb_check_feature('blame');
 
 	# Atom: http://www.atomenabled.org/developers/syndication/
@@ -8140,9 +8145,19 @@ sub git_feed {
 		die_error(400, "Unknown web feed format");
 	}
 
+	if ($ctx ne 'log' && $ctx ne 'tags') {
+		die_error(400, "Unknown web feed context");
+	}
+	my $tags = $ctx eq 'tags' ? 1 : 0;
+
 	# log/feed of current (HEAD) branch, log of given branch, history of file/directory
 	my $head = $hash || 'HEAD';
-	my @commitlist = parse_commits($head, 150, 0, $file_name);
+	my @commitlist;
+	if ($tags) {
+		@commitlist = git_get_tags_list(15);
+	} else {
+		@commitlist = parse_commits($head, 150, 0, $file_name);
+	}
 
 	my %latest_commit;
 	my %latest_date;
@@ -8154,9 +8169,12 @@ sub git_feed {
 	}
 	if (defined($commitlist[0])) {
 		%latest_commit = %{$commitlist[0]};
-		my $latest_epoch = $latest_commit{'committer_epoch'};
+		my $latest_epoch = $tags ? $latest_commit{'epoch'} :
+					   $latest_commit{'committer_epoch'};
 		exit_if_unmodified_since($latest_epoch);
-		%latest_date = parse_date($latest_epoch, $latest_commit{'committer_tz'});
+		%latest_date = parse_date($latest_epoch,
+			$tags ? $latest_commit{'tz'} :
+				$latest_commit{'committer_tz'});
 	}
 	print $cgi->header(
 		-type => $content_type,
@@ -8171,7 +8189,9 @@ sub git_feed {
 	# header variables
 	my $title = "$site_name - $project/$action";
 	my $feed_type = 'log';
-	if (defined $hash) {
+	if ($tags) {
+		$feed_type = 'tags';
+	} elsif (defined $hash) {
 		$title .= " - '$hash'";
 		$feed_type = 'branch log';
 		if (defined $file_name) {
@@ -8189,6 +8209,7 @@ sub git_feed {
 		$descr = esc_html($descr);
 	} else {
 		$descr = "$project " .
+			 ($tags ? 'tags ' : '') .
 		         ($format eq 'rss' ? 'RSS' : 'Atom') .
 		         " feed";
 	}
@@ -8197,7 +8218,9 @@ sub git_feed {
 
 	#header
 	my $alt_url;
-	if (defined $file_name) {
+	if ($tags) {
+		$alt_url = href(-full=>1, action=>"tags");
+	} elsif (defined $file_name) {
 		$alt_url = href(-full=>1, action=>"history", hash=>$hash, file_name=>$file_name);
 	} elsif (defined $hash) {
 		$alt_url = href(-full=>1, action=>"log", hash=>$hash);
@@ -8261,9 +8284,15 @@ XML
 	}
 
 	# contents
+	my $co_action = $tags ? 'tag' : 'commitdiff';
 	for (my $i = 0; $i <= $#commitlist; $i++) {
+		my %clco; # commit info from commitlist, only used for tags
 		my %co = %{$commitlist[$i]};
 		my $commit = $co{'id'};
+		if ($tags) {
+			%clco = %co;
+			%co = parse_tag($commit);
+		}
 		# we read 150, we always show 30 and the ones more recent than 48 hours
 		if (($i >= 20) && ((time - $co{'author_epoch'}) > 48*60*60)) {
 			last;
@@ -8271,44 +8300,52 @@ XML
 		my %cd = parse_date($co{'author_epoch'}, $co{'author_tz'});
 
 		# get list of changed files
-		open my $fd, "-|", git_cmd(), "diff-tree", '-r', @diff_opts,
-			$co{'parent'} || "--root",
-			$co{'id'}, "--", (defined $file_name ? $file_name : ())
-			or next;
-		my @difftree = map { chomp; $_ } <$fd>;
-		close $fd
-			or next;
+		my @difftree;
+		unless ($tags) {
+			open my $fd, "-|", git_cmd(), "diff-tree", '-r', @diff_opts,
+				$co{'parent'} || "--root",
+				$co{'id'}, "--", (defined $file_name ? $file_name : ())
+				or next;
+			@difftree = map { chomp; $_ } <$fd>;
+			close $fd
+				or next;
+		}
+
+		my $co_hash = $tags ? $clco{'name'} : $commit;
+		my $co_url = href(-full=>1, action=>$co_action, hash=>$co_hash);
+		my $co_title = esc_html($tags ? $clco{'subject'} : $co{'title'});
 
 		# print element (entry, item)
-		my $co_url = href(-full=>1, action=>"commitdiff", hash=>$commit);
 		if ($format eq 'rss') {
 			print "<item>\n" .
-			      "<title>" . esc_html($co{'title'}) . "</title>\n" .
+			      "<title>" . $co_title . "</title>\n" .
 			      "<author>" . esc_html($co{'author'}) . "</author>\n" .
 			      "<pubDate>$cd{'rfc2822'}</pubDate>\n" .
 			      "<guid isPermaLink=\"true\">$co_url</guid>\n" .
 			      "<link>$co_url</link>\n" .
-			      "<description>" . esc_html($co{'title'}) . "</description>\n" .
+			      "<description>" . $co_title . "</description>\n" .
 			      "<content:encoded>" .
 			      "<![CDATA[\n";
 		} elsif ($format eq 'atom') {
 			print "<entry>\n" .
-			      "<title type=\"html\">" . esc_html($co{'title'}) . "</title>\n" .
+			      "<title type=\"html\">" . $co_title . "</title>\n" .
 			      "<updated>$cd{'iso-8601'}</updated>\n" .
 			      "<author>\n" .
 			      "  <name>" . esc_html($co{'author_name'}) . "</name>\n";
 			if ($co{'author_email'}) {
 				print "  <email>" . esc_html($co{'author_email'}) . "</email>\n";
 			}
-			print "</author>\n" .
+			print "</author>\n";
+			unless ($tags) {
 			      # use committer for contributor
-			      "<contributor>\n" .
+			      print "<contributor>\n" .
 			      "  <name>" . esc_html($co{'committer_name'}) . "</name>\n";
-			if ($co{'committer_email'}) {
+			}
+			if (!$tags && $co{'committer_email'}) {
 				print "  <email>" . esc_html($co{'committer_email'}) . "</email>\n";
 			}
-			print "</contributor>\n" .
-			      "<published>$cd{'iso-8601'}</published>\n" .
+			print "</contributor>\n" unless $tags;
+			print "<published>$cd{'iso-8601'}</published>\n" .
 			      "<link rel=\"alternate\" type=\"text/html\" href=\"$co_url\" />\n" .
 			      "<id>$co_url</id>\n" .
 			      "<content type=\"xhtml\" xml:base=\"" . esc_url($my_url) . "\">\n" .
