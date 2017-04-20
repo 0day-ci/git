@@ -2141,13 +2141,9 @@ class P4Submit(Command, P4UserMap):
         elif len(commits) == len(applied):
             print ("All commits {0}!".format(shelved_applied))
 
-            sync = P4Sync()
-            if self.branch:
-                sync.branch = self.branch
-            sync.run([])
-
             rebase = P4Rebase()
-            rebase.rebase()
+            rebase.branch = self.branch
+            rebase.run([])
 
         else:
             if len(applied) == 0:
@@ -2323,7 +2319,7 @@ class P4Sync(Command, P4UserMap):
         self.silent = False
         self.createdBranches = set()
         self.committedChanges = set()
-        self.branch = ""
+        self.branch = None
         self.detectBranches = False
         self.detectLabels = False
         self.importLabels = False
@@ -3261,7 +3257,7 @@ class P4Sync(Command, P4UserMap):
                 system("git fetch origin")
 
         branch_arg_given = bool(self.branch)
-        if len(self.branch) == 0:
+        if not branch_arg_given:
             self.branch = self.refPrefix + "master"
             if gitBranchExists("refs/heads/p4") and self.importIntoRemotes:
                 system("git update-ref %s refs/heads/p4" % self.branch)
@@ -3547,14 +3543,17 @@ class P4Rebase(Command):
     def __init__(self):
         Command.__init__(self)
         self.options = [
+                optparse.make_option("--branch", dest="branch"),
                 optparse.make_option("--import-labels", dest="importLabels", action="store_true"),
         ]
+        self.branch = None
         self.importLabels = False
         self.description = ("Fetches the latest revision from perforce and "
                             + "rebases the current work (branch) against it")
 
     def run(self, args):
         sync = P4Sync()
+        sync.branch = self.branch
         sync.importLabels = self.importLabels
         sync.run([])
 

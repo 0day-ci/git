@@ -328,6 +328,10 @@ Rebase options
 ~~~~~~~~~~~~~~
 These options can be used to modify 'git p4 rebase' behavior.
 
+--branch <branch>::
+	Sync this named branch instead of the default p4/master.  See the
+	"Sync options" section above for more information.
+
 --import-labels::
 	Import p4 labels.
 
