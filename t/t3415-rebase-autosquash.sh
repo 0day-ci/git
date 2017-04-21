@@ -234,23 +234,23 @@ test_auto_fixup_fixup () {
 	fi
 }
 
-test_expect_success 'fixup! fixup!' '
+test_expect_success !GETTEXT_POISON 'fixup! fixup!' '
 	test_auto_fixup_fixup fixup fixup
 '
 
-test_expect_success 'fixup! squash!' '
+test_expect_success !GETTEXT_POISON 'fixup! squash!' '
 	test_auto_fixup_fixup fixup squash
 '
 
-test_expect_success 'squash! squash!' '
+test_expect_success !GETTEXT_POISON 'squash! squash!' '
 	test_auto_fixup_fixup squash squash
 '
 
-test_expect_success 'squash! fixup!' '
+test_expect_success !GETTEXT_POISON 'squash! fixup!' '
 	test_auto_fixup_fixup squash fixup
 '
 
-test_expect_success 'autosquash with custom inst format' '
+test_expect_success !GETTEXT_POISON 'autosquash with custom inst format' '
 	git reset --hard base &&
 	git config --add rebase.instructionFormat "[%an @ %ar] %s"  &&
 	echo 2 >file1 &&
