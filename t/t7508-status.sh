@@ -610,7 +610,8 @@ test_expect_success 'status --porcelain ignores relative paths setting' '
 test_expect_success 'setup unique colors' '
 
 	git config status.color.untracked blue &&
-	git config status.color.branch green
+	git config status.color.branch green &&
+	git config status.color.localBranch yellow
 
 '
 
@@ -675,7 +676,7 @@ test_expect_success 'status -s with color.status' '
 '
 
 cat >expect <<\EOF
-## <GREEN>master<RESET>
+## <YELLOW>master<RESET>
  <RED>M<RESET> dir1/modified
 <GREEN>A<RESET>  dir2/added
 <BLUE>??<RESET> dir1/untracked
