@@ -222,6 +222,9 @@ rebase.missingCommitsCheck::
 rebase.instructionFormat::
 	Custom commit list format to use during an `--interactive` rebase.
 
+rebase.abbrevCmd::
+	If set to true, abbreviate command name in interactive mode.
+
 OPTIONS
 -------
 --onto <newbase>::

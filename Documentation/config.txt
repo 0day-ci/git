@@ -2614,6 +2614,9 @@ rebase.instructionFormat::
 	the instruction list during an interactive rebase.  The format will automatically
 	have the long commit hash prepended to the format.
 
+rebase.abbrevCmd::
+	If set to true, abbreviate command name in interactive mode.
+
 receive.advertiseAtomic::
 	By default, git-receive-pack will advertise the atomic push
 	capability to its clients. If you don't want to advertise this
