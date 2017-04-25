@@ -12,5 +12,6 @@ extern int execv_git_cmd(const char **argv); /* NULL terminated */
 LAST_ARG_MUST_BE_NULL
 extern int execl_git_cmd(const char *cmd, ...);
 extern char *system_path(const char *path);
+extern int is_executable(const char *name);
 
 #endif /* GIT_EXEC_CMD_H */
