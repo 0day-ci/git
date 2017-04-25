@@ -1395,7 +1395,7 @@ __git_diff_common_options="--stat --numstat --shortstat --summary
 			--quiet --ext-diff --no-ext-diff
 			--no-prefix --src-prefix= --dst-prefix=
 			--inter-hunk-context=
-			--patience --histogram --minimal
+			--patience --histogram --indent-heuristic --minimal
 			--raw --word-diff --word-diff-regex=
 			--dirstat --dirstat= --dirstat-by-file
 			--dirstat-by-file= --cumulative
@@ -1482,6 +1482,7 @@ __git_format_patch_options="
 	--not --all --cover-letter --no-prefix --src-prefix= --dst-prefix=
 	--inline --suffix= --ignore-if-in-upstream --subject-prefix=
 	--output-directory --reroll-count --to= --quiet --notes
+	--indent-heuristic
 "
 
 _git_format_patch ()
@@ -1681,6 +1682,7 @@ __git_log_common_options="
 	--min-age= --until= --before=
 	--min-parents= --max-parents=
 	--no-min-parents --no-max-parents
+	--indent-heuristic
 "
 # Options that go well for log and gitk (not shortlog)
 __git_log_gitk_options="
