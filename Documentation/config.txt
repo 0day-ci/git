@@ -2614,6 +2614,25 @@ rebase.instructionFormat::
 	the instruction list during an interactive rebase.  The format will automatically
 	have the long commit hash prepended to the format.
 
+rebase.abbrevCmd::
+	If set to true, `git rebase -i` will abbreviate the command-names in the
+	instruction list. This means that instead of looking like this,
+
+-------------------------------------------
+	pick deadbee The oneline of this commit
+	pick fa1afe1 The oneline of the next commit
+	...
+-------------------------------------------
+
+	the list would use the short version of the command resulting in
+	something like this.
+
+-------------------------------------------
+	p deadbee The oneline of this commit
+	p fa1afe1 The oneline of the next commit
+	...
+-------------------------------------------
+
 receive.advertiseAtomic::
 	By default, git-receive-pack will advertise the atomic push
 	capability to its clients. If you don't want to advertise this

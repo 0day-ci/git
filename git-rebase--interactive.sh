@@ -1210,6 +1210,10 @@ else
 	revisions=$onto...$orig_head
 	shortrevisions=$shorthead
 fi
+
+rebasecmd=pick
+test "$(git config --bool --get rebase.abbrevCmd)" = true && rebasecmd=p
+
 format=$(git config --get rebase.instructionFormat)
 # the 'rev-list .. | sed' requires %m to parse; the instruction requires %H to parse
 git rev-list $merges_option --format="%m%H ${format:-%s}" \
@@ -1228,7 +1232,7 @@ do
 
 	if test t != "$preserve_merges"
 	then
-		printf '%s\n' "${comment_out}pick $sha1 $rest" >>"$todo"
+		printf '%s\n' "${comment_out}${rebasecmd} $sha1 $rest" >>"$todo"
 	else
 		if test -z "$rebase_root"
 		then
@@ -1246,7 +1250,7 @@ do
 		if test f = "$preserve"
 		then
 			touch "$rewritten"/$sha1
-			printf '%s\n' "${comment_out}pick $sha1 $rest" >>"$todo"
+			printf '%s\n' "${comment_out}${rebasecmd} $sha1 $rest" >>"$todo"
 		fi
 	fi
 done

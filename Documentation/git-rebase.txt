@@ -222,6 +222,25 @@ rebase.missingCommitsCheck::
 rebase.instructionFormat::
 	Custom commit list format to use during an `--interactive` rebase.
 
+rebase.abbrevCmd::
+	If set to true, `git rebase -i` will abbreviate the command-names in the
+	instruction list. This means that instead of looking like this,
+
+-------------------------------------------
+	pick deadbee The oneline of this commit
+	pick fa1afe1 The oneline of the next commit
+	...
+-------------------------------------------
+
+	the list would use the short version of the command resulting in
+	something like this.
+
+-------------------------------------------
+	p deadbee The oneline of this commit
+	p fa1afe1 The oneline of the next commit
+	...
+-------------------------------------------
+
 OPTIONS
 -------
 --onto <newbase>::
