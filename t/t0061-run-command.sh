@@ -26,6 +26,29 @@ test_expect_success 'run_command can run a command' '
 	test_cmp empty err
 '
 
+test_expect_success 'run_command should not try to execute a directory' '
+	test_when_finished "rm -rf bin1 bin2 bin3" &&
+	mkdir -p bin1/greet bin2 bin3 &&
+	write_script bin2/greet <<-\EOF &&
+	cat bin2/greet
+	EOF
+	chmod -x bin2/greet &&
+	write_script bin3/greet <<-\EOF &&
+	cat bin3/greet
+	EOF
+
+	# Test that run-command does not try to execute the "greet" directory in
+	# "bin1", or the non-executable file "greet" in "bin2", but rather
+	# correcty executes the "greet" script located in bin3.
+	(
+		PATH=$PWD/bin1:$PWD/bin2:$PWD/bin3:$PATH &&
+		export PATH &&
+		test-run-command run-command greet >actual 2>err
+	) &&
+	test_cmp bin3/greet actual &&
+	test_cmp empty err
+'
+
 test_expect_success POSIXPERM 'run_command reports EACCES' '
 	cat hello-script >hello.sh &&
 	chmod -x hello.sh &&

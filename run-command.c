@@ -149,7 +149,7 @@ static char *locate_in_PATH(const char *file)
 		}
 		strbuf_addstr(&buf, file);
 
-		if (!access(buf.buf, F_OK))
+		if (is_executable(buf.buf))
 			return strbuf_detach(&buf, NULL);
 
 		if (!*end)
