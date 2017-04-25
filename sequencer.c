@@ -151,6 +151,12 @@ static const char *get_todo_path(const struct replay_opts *opts)
  * Returns 1 for conforming footer
  * Returns 2 when sob exists within conforming footer
  * Returns 3 when sob exists within conforming footer as last entry
+ *
+ * A footer that does not end in a newline is considered non-conforming.
+ *
+ * ignore_footer, if not zero, should be the return value of an invocation to
+ * ignore_non_trailer(). See the documentation of that function for more
+ * information.
  */
 static int has_conforming_footer(struct strbuf *sb, struct strbuf *sob,
 	int ignore_footer)
@@ -158,6 +164,11 @@ static int has_conforming_footer(struct strbuf *sb, struct strbuf *sob,
 	struct trailer_info info;
 	int i;
 	int found_sob = 0, found_sob_last = 0;
+
+	if (sb->len <= ignore_footer)
+		return 0;
+	if (sb->buf[sb->len - ignore_footer - 1] != '\n')
+		return 0;
 
 	trailer_info_get(&info, sb->buf);
 
