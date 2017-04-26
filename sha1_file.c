@@ -2955,6 +2955,49 @@ static int sha1_loose_object_info(const unsigned char *sha1,
 	return (status < 0) ? status : 0;
 }
 
+static char *missing_blob_command;
+static int sha1_file_config(const char *conf_key, const char *value, void *cb)
+{
+	if (!strcmp(conf_key, "core.missingblobcommand")) {
+		missing_blob_command = xstrdup(value);
+	}
+	return 0;
+}
+
+static int configured;
+static void ensure_configured(void)
+{
+	if (configured)
+		return;
+
+	git_config(sha1_file_config, NULL);
+	configured = 1;
+}
+
+static void handle_missing_blob(const unsigned char *sha1)
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	const char *argv[] = {missing_blob_command, NULL};
+	char input[GIT_MAX_HEXSZ + 1];
+
+	memcpy(input, sha1_to_hex(sha1), 40);
+	input[40] = '\n';
+
+	cp.argv = argv;
+	cp.env = local_repo_env;
+	cp.use_shell = 1;
+
+	if (pipe_command(&cp, input, sizeof(input), NULL, 0, NULL, 0)) {
+		die("failed to load blob %s", sha1_to_hex(sha1));
+	}
+
+	/*
+	 * The command above may have updated packfiles, so update our record
+	 * of them.
+	 */
+	reprepare_packed_git();
+}
+
 int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi, unsigned flags)
 {
 	struct cached_object *co;
@@ -2979,6 +3022,8 @@ int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi,
 		return 0;
 	}
 
+	if (!has_sha1_file_with_flags(sha1, 0))
+		return -1;
 	if (!find_pack_entry(real, &e)) {
 		/* Most likely it's a loose object. */
 		if (!sha1_loose_object_info(real, oi, flags)) {
@@ -3091,6 +3136,8 @@ static void *read_object(const unsigned char *sha1, enum object_type *type,
 		return xmemdupz(co->buf, co->size);
 	}
 
+	if (!has_sha1_file_with_flags(sha1, 0))
+		return NULL;
 	buf = read_packed_sha1(sha1, type, size);
 	if (buf)
 		return buf;
@@ -3480,17 +3527,31 @@ int has_sha1_pack(const unsigned char *sha1)
 int has_sha1_file_with_flags(const unsigned char *sha1, int flags)
 {
 	struct pack_entry e;
+	int already_retried = 0;
 
 	if (!startup_info->have_repository)
 		return 0;
+retry:
 	if (find_pack_entry(sha1, &e))
 		return 1;
 	if (has_loose_object(sha1))
 		return 1;
-	if (flags & HAS_SHA1_QUICK)
-		return 0;
-	reprepare_packed_git();
-	return find_pack_entry(sha1, &e);
+	if (!(flags & HAS_SHA1_QUICK)) {
+		reprepare_packed_git();
+		if (find_pack_entry(sha1, &e))
+			return 1;
+	}
+
+	if (!already_retried) {
+		ensure_configured();
+		if (missing_blob_command) {
+			already_retried = 1;
+			handle_missing_blob(sha1);
+			goto retry;
+		}
+	}
+
+	return 0;
 }
 
 int has_object_file(const struct object_id *oid)
