@@ -648,6 +648,30 @@ static int submodule_has_commits(const char *path, struct oid_array *commits)
 		return 0;
 
 	oid_array_for_each_unique(commits, check_has_commit, &has_commit);
+
+	if (has_commit) {
+		/*
+		 * Even if the submodule is checked out and the commit is
+		 * present, make sure it is reachable from a ref.
+		 */
+		struct child_process cp = CHILD_PROCESS_INIT;
+		struct strbuf out = STRBUF_INIT;
+
+		argv_array_pushl(&cp.args, "rev-list", "-n", "1", NULL);
+		oid_array_for_each_unique(commits, append_oid_to_argv, &cp.args);
+		argv_array_pushl(&cp.args, "--not", "--all", NULL);
+
+		prepare_submodule_repo_env(&cp.env_array);
+		cp.git_cmd = 1;
+		cp.no_stdin = 1;
+		cp.dir = path;
+
+		if (capture_command(&cp, &out, 1024) || out.len)
+			has_commit = 0;
+
+		strbuf_release(&out);
+	}
+
 	return has_commit;
 }
 
