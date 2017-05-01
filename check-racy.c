@@ -7,8 +7,8 @@ int main(int ac, char **av)
 
 	dirty = clean = racy = 0;
 	read_index(&the_index);
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		struct cache_entry *ce = the_index.cache[i];
 		struct stat st;
 
 		if (lstat(ce->name, &st)) {

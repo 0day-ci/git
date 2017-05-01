@@ -1268,8 +1268,8 @@ void add_index_objects_to_pending(struct rev_info *revs, unsigned flags)
 	int i;
 
 	read_index(&the_index);
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		struct cache_entry *ce = the_index.cache[i];
 		struct blob *blob;
 
 		if (S_ISGITLINK(ce->ce_mode))
@@ -1282,9 +1282,9 @@ void add_index_objects_to_pending(struct rev_info *revs, unsigned flags)
 					     ce->ce_mode, ce->name);
 	}
 
-	if (active_cache_tree) {
+	if (the_index.cache_tree) {
 		struct strbuf path = STRBUF_INIT;
-		add_cache_tree(active_cache_tree, revs, &path);
+		add_cache_tree(the_index.cache_tree, revs, &path);
 		strbuf_release(&path);
 	}
 }
@@ -1407,10 +1407,10 @@ static void prepare_show_merge(struct rev_info *revs)
 	free_commit_list(bases);
 	head->object.flags |= SYMMETRIC_LEFT;
 
-	if (!active_nr)
+	if (!the_index.cache_nr)
 		read_index(&the_index);
-	for (i = 0; i < active_nr; i++) {
-		const struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		const struct cache_entry *ce = the_index.cache[i];
 		if (!ce_stage(ce))
 			continue;
 		if (ce_path_match(ce, &revs->prune_data, NULL)) {
@@ -1419,8 +1419,8 @@ static void prepare_show_merge(struct rev_info *revs)
 			prune[prune_num-2] = ce->name;
 			prune[prune_num-1] = NULL;
 		}
-		while ((i+1 < active_nr) &&
-		       ce_same_name(ce, active_cache[i+1]))
+		while ((i+1 < the_index.cache_nr) &&
+		       ce_same_name(ce, the_index.cache[i+1]))
 			i++;
 	}
 	clear_pathspec(&revs->prune_data);

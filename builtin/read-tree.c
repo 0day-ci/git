@@ -251,7 +251,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 	if (opts.debug_unpack)
 		opts.fn = debug_merge;
 
-	cache_tree_free(&active_cache_tree);
+	cache_tree_free(&the_index.cache_tree);
 	for (i = 0; i < nr_trees; i++) {
 		struct tree *tree = trees[i];
 		parse_tree(tree);

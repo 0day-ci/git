@@ -2242,8 +2242,8 @@ static void verify_working_tree_path(struct commit *work_tree, const char *path)
 	pos = cache_name_pos(path, strlen(path));
 	if (pos >= 0)
 		; /* path is in the index */
-	else if (-1 - pos < active_nr &&
-		 !strcmp(active_cache[-1 - pos]->name, path))
+	else if (-1 - pos < the_index.cache_nr &&
+		 !strcmp(the_index.cache[-1 - pos]->name, path))
 		; /* path is in the index, unmerged */
 	else
 		die("no such path '%s' in HEAD", path);
@@ -2401,7 +2401,7 @@ static struct commit *fake_working_tree_commit(struct diff_options *opt,
 	if (!mode) {
 		int pos = cache_name_pos(path, len);
 		if (0 <= pos)
-			mode = active_cache[pos]->ce_mode;
+			mode = the_index.cache[pos]->ce_mode;
 		else
 			/* Let's not bother reading from HEAD tree */
 			mode = S_IFREG | 0644;

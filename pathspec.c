@@ -32,8 +32,8 @@ void add_pathspec_matches_against_index(const struct pathspec *pathspec,
 			num_unmatched++;
 	if (!num_unmatched)
 		return;
-	for (i = 0; i < active_nr; i++) {
-		const struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		const struct cache_entry *ce = the_index.cache[i];
 		ce_path_match(ce, pathspec, seen);
 	}
 }
@@ -391,7 +391,7 @@ static void strip_submodule_slash_cheap(struct pathspec_item *item)
 	if (item->len >= 1 && item->match[item->len - 1] == '/') {
 		int i = cache_name_pos(item->match, item->len - 1);
 
-		if (i >= 0 && S_ISGITLINK(active_cache[i]->ce_mode)) {
+		if (i >= 0 && S_ISGITLINK(the_index.cache[i]->ce_mode)) {
 			item->len--;
 			item->match[item->len] = '\0';
 		}
@@ -402,8 +402,8 @@ static void strip_submodule_slash_expensive(struct pathspec_item *item)
 {
 	int i;
 
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		struct cache_entry *ce = the_index.cache[i];
 		int ce_len = ce_namelen(ce);
 
 		if (!S_ISGITLINK(ce->ce_mode))
@@ -428,8 +428,8 @@ static void die_inside_submodule_path(struct pathspec_item *item)
 {
 	int i;
 
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		struct cache_entry *ce = the_index.cache[i];
 		int ce_len = ce_namelen(ce);
 
 		if (!S_ISGITLINK(ce->ce_mode))

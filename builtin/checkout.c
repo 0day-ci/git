@@ -109,7 +109,7 @@ static int update_some(const unsigned char *sha1, struct strbuf *base,
 	 */
 	pos = cache_name_pos(ce->name, ce->ce_namelen);
 	if (pos >= 0) {
-		struct cache_entry *old = active_cache[pos];
+		struct cache_entry *old = the_index.cache[pos];
 		if (ce->ce_mode == old->ce_mode &&
 		    !oidcmp(&ce->oid, &old->oid)) {
 			old->ce_flags |= CE_UPDATE;
@@ -135,17 +135,17 @@ static int read_tree_some(struct tree *tree, const struct pathspec *pathspec)
 
 static int skip_same_name(const struct cache_entry *ce, int pos)
 {
-	while (++pos < active_nr &&
-	       !strcmp(active_cache[pos]->name, ce->name))
+	while (++pos < the_index.cache_nr &&
+	       !strcmp(the_index.cache[pos]->name, ce->name))
 		; /* skip */
 	return pos;
 }
 
 static int check_stage(int stage, const struct cache_entry *ce, int pos)
 {
-	while (pos < active_nr &&
-	       !strcmp(active_cache[pos]->name, ce->name)) {
-		if (ce_stage(active_cache[pos]) == stage)
+	while (pos < the_index.cache_nr &&
+	       !strcmp(the_index.cache[pos]->name, ce->name)) {
+		if (ce_stage(the_index.cache[pos]) == stage)
 			return 0;
 		pos++;
 	}
@@ -160,8 +160,8 @@ static int check_stages(unsigned stages, const struct cache_entry *ce, int pos)
 	unsigned seen = 0;
 	const char *name = ce->name;
 
-	while (pos < active_nr) {
-		ce = active_cache[pos];
+	while (pos < the_index.cache_nr) {
+		ce = the_index.cache[pos];
 		if (strcmp(name, ce->name))
 			break;
 		seen |= (1 << ce_stage(ce));
@@ -176,10 +176,11 @@ static int check_stages(unsigned stages, const struct cache_entry *ce, int pos)
 static int checkout_stage(int stage, const struct cache_entry *ce, int pos,
 			  const struct checkout *state)
 {
-	while (pos < active_nr &&
-	       !strcmp(active_cache[pos]->name, ce->name)) {
-		if (ce_stage(active_cache[pos]) == stage)
-			return checkout_entry(active_cache[pos], state, NULL);
+	while (pos < the_index.cache_nr &&
+	       !strcmp(the_index.cache[pos]->name, ce->name)) {
+		if (ce_stage(the_index.cache[pos]) == stage)
+			return checkout_entry(the_index.cache[pos], state,
+					      NULL);
 		pos++;
 	}
 	if (stage == 2)
@@ -190,7 +191,7 @@ static int checkout_stage(int stage, const struct cache_entry *ce, int pos,
 
 static int checkout_merged(int pos, const struct checkout *state)
 {
-	struct cache_entry *ce = active_cache[pos];
+	struct cache_entry *ce = the_index.cache[pos];
 	const char *path = ce->name;
 	mmfile_t ancestor, ours, theirs;
 	int status;
@@ -200,7 +201,7 @@ static int checkout_merged(int pos, const struct checkout *state)
 	unsigned mode = 0;
 
 	memset(threeway, 0, sizeof(threeway));
-	while (pos < active_nr) {
+	while (pos < the_index.cache_nr) {
 		int stage;
 		stage = ce_stage(ce);
 		if (!stage || strcmp(path, ce->name))
@@ -209,7 +210,7 @@ static int checkout_merged(int pos, const struct checkout *state)
 		if (stage == 2)
 			mode = create_ce_mode(ce->ce_mode);
 		pos++;
-		ce = active_cache[pos];
+		ce = the_index.cache[pos];
 	}
 	if (is_null_oid(&threeway[1]) || is_null_oid(&threeway[2]))
 		return error(_("path '%s' does not have necessary versions"), path);
@@ -306,8 +307,8 @@ static int checkout_paths(const struct checkout_opts *opts,
 	 * Make sure all pathspecs participated in locating the paths
 	 * to be checked out.
 	 */
-	for (pos = 0; pos < active_nr; pos++) {
-		struct cache_entry *ce = active_cache[pos];
+	for (pos = 0; pos < the_index.cache_nr; pos++) {
+		struct cache_entry *ce = the_index.cache[pos];
 		ce->ce_flags &= ~CE_MATCHED;
 		if (!opts->ignore_skipworktree && ce_skip_worktree(ce))
 			continue;
@@ -349,8 +350,8 @@ static int checkout_paths(const struct checkout_opts *opts,
 		unmerge_marked_index(&the_index);
 
 	/* Any unmerged paths? */
-	for (pos = 0; pos < active_nr; pos++) {
-		const struct cache_entry *ce = active_cache[pos];
+	for (pos = 0; pos < the_index.cache_nr; pos++) {
+		const struct cache_entry *ce = the_index.cache[pos];
 		if (ce->ce_flags & CE_MATCHED) {
 			if (!ce_stage(ce))
 				continue;
@@ -374,8 +375,8 @@ static int checkout_paths(const struct checkout_opts *opts,
 	state.force = 1;
 	state.refresh_cache = 1;
 	state.istate = &the_index;
-	for (pos = 0; pos < active_nr; pos++) {
-		struct cache_entry *ce = active_cache[pos];
+	for (pos = 0; pos < the_index.cache_nr; pos++) {
+		struct cache_entry *ce = the_index.cache[pos];
 		if (ce->ce_flags & CE_MATCHED) {
 			if (!ce_stage(ce)) {
 				errs |= checkout_entry(ce, &state, NULL);
@@ -597,10 +598,10 @@ static int merge_working_tree(const struct checkout_opts *opts,
 		}
 	}
 
-	if (!active_cache_tree)
-		active_cache_tree = cache_tree();
+	if (!the_index.cache_tree)
+		the_index.cache_tree = cache_tree();
 
-	if (!cache_tree_fully_valid(active_cache_tree))
+	if (!cache_tree_fully_valid(the_index.cache_tree))
 		cache_tree_update(&the_index, WRITE_TREE_SILENT | WRITE_TREE_REPAIR);
 
 	if (write_locked_index(&the_index, lock_file, COMMIT_LOCK))

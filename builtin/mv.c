@@ -78,7 +78,7 @@ static void prepare_move_submodule(const char *src, int first,
 				   const char **submodule_gitfile)
 {
 	struct strbuf submodule_dotgit = STRBUF_INIT;
-	if (!S_ISGITLINK(active_cache[first]->ce_mode))
+	if (!S_ISGITLINK(the_index.cache[first]->ce_mode))
 		die(_("Directory %s is in index and no submodule?"), src);
 	if (!is_staging_gitmodules_ok())
 		die(_("Please stage your changes to .gitmodules or stash them to proceed"));
@@ -102,8 +102,8 @@ static int index_range_of_same_dir(const char *src, int length,
 		die(_("%.*s is in index"), len_w_slash, src_w_slash);
 
 	first = -1 - first;
-	for (last = first; last < active_nr; last++) {
-		const char *path = active_cache[last]->name;
+	for (last = first; last < the_index.cache_nr; last++) {
+		const char *path = the_index.cache[last]->name;
 		if (strncmp(path, src_w_slash, len_w_slash))
 			break;
 	}
@@ -209,7 +209,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 				dst_len = strlen(dst);
 
 				for (j = 0; j < last - first; j++) {
-					const char *path = active_cache[first + j]->name;
+					const char *path = the_index.cache[first + j]->name;
 					source[argc + j] = path;
 					destination[argc + j] =
 						prefix_path(dst, dst_len, path + length + 1);
@@ -293,7 +293,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 	if (gitmodules_modified)
 		stage_updated_gitmodules();
 
-	if (active_cache_changed &&
+	if (the_index.cache_changed &&
 	    write_locked_index(&the_index, &lock_file, COMMIT_LOCK))
 		die(_("Unable to write new index file"));
 

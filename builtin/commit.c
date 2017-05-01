@@ -257,8 +257,8 @@ static int list_paths(struct string_list *list, const char *with_tree,
 		free(max_prefix);
 	}
 
-	for (i = 0; i < active_nr; i++) {
-		const struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		const struct cache_entry *ce = the_index.cache[i];
 		struct string_list_item *item;
 
 		if (ce->ce_flags & CE_UPDATE)
@@ -418,10 +418,10 @@ static const char *prepare_index(int argc, const char **argv, const char *prefix
 	if (!only && !pathspec.nr) {
 		hold_locked_index(&index_lock, LOCK_DIE_ON_ERROR);
 		refresh_cache_or_die(refresh_flags);
-		if (active_cache_changed
-		    || !cache_tree_fully_valid(active_cache_tree))
+		if (the_index.cache_changed
+		    || !cache_tree_fully_valid(the_index.cache_tree))
 			update_main_cache_tree(WRITE_TREE_SILENT);
-		if (active_cache_changed) {
+		if (the_index.cache_changed) {
 			if (write_locked_index(&the_index, &index_lock,
 					       COMMIT_LOCK))
 				die(_("unable to write new_index file"));
@@ -888,7 +888,7 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 		struct object_id oid;
 		const char *parent = "HEAD";
 
-		if (!active_nr && read_index(&the_index) < 0)
+		if (!the_index.cache_nr && read_index(&the_index) < 0)
 			die(_("Cannot read index"));
 
 		if (amend)
@@ -897,10 +897,10 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 		if (get_sha1(parent, oid.hash)) {
 			int i, ita_nr = 0;
 
-			for (i = 0; i < active_nr; i++)
-				if (ce_intent_to_add(active_cache[i]))
+			for (i = 0; i < the_index.cache_nr; i++)
+				if (ce_intent_to_add(the_index.cache[i]))
 					ita_nr++;
-			commitable = active_nr - ita_nr > 0;
+			commitable = the_index.cache_nr - ita_nr > 0;
 		} else {
 			/*
 			 * Unless the user did explicitly request a submodule
@@ -1758,7 +1758,7 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		append_merge_tag_headers(parents, &tail);
 	}
 
-	if (commit_tree_extended(sb.buf, sb.len, active_cache_tree->sha1,
+	if (commit_tree_extended(sb.buf, sb.len, the_index.cache_tree->sha1,
 			 parents, oid.hash, author_ident.buf, sign_commit, extra)) {
 		rollback_index_files();
 		die(_("failed to write commit object"));

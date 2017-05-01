@@ -164,8 +164,8 @@ int read_tree(struct tree *tree, int stage, struct pathspec *match)
 	 * do it the original slow way, otherwise, append and then
 	 * sort at the end.
 	 */
-	for (i = 0; !fn && i < active_nr; i++) {
-		const struct cache_entry *ce = active_cache[i];
+	for (i = 0; !fn && i < the_index.cache_nr; i++) {
+		const struct cache_entry *ce = the_index.cache[i];
 		if (ce_stage(ce) == stage)
 			fn = read_one_entry;
 	}
@@ -179,8 +179,8 @@ int read_tree(struct tree *tree, int stage, struct pathspec *match)
 	/*
 	 * Sort the cache entry -- we need to nuke the cache tree, though.
 	 */
-	cache_tree_free(&active_cache_tree);
-	QSORT(active_cache, active_nr, cmp_cache_name_compare);
+	cache_tree_free(&the_index.cache_tree);
+	QSORT(the_index.cache, the_index.cache_nr, cmp_cache_name_compare);
 	return 0;
 }
 

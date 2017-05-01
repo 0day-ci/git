@@ -275,7 +275,7 @@ static int git_merge_trees(int index_only,
 	init_tree_desc_from_tree(t+2, merge);
 
 	rc = unpack_trees(3, t, &opts);
-	cache_tree_free(&active_cache_tree);
+	cache_tree_free(&the_index.cache_tree);
 	return rc;
 }
 
@@ -286,8 +286,8 @@ struct tree *write_tree_from_memory(struct merge_options *o)
 	if (unmerged_cache()) {
 		int i;
 		fprintf(stderr, "BUG: There are unmerged index entries:\n");
-		for (i = 0; i < active_nr; i++) {
-			const struct cache_entry *ce = active_cache[i];
+		for (i = 0; i < the_index.cache_nr; i++) {
+			const struct cache_entry *ce = the_index.cache[i];
 			if (ce_stage(ce))
 				fprintf(stderr, "BUG: %d %.*s\n", ce_stage(ce),
 					(int)ce_namelen(ce), ce->name);
@@ -295,16 +295,16 @@ struct tree *write_tree_from_memory(struct merge_options *o)
 		die("BUG: unmerged index entries in merge-recursive.c");
 	}
 
-	if (!active_cache_tree)
-		active_cache_tree = cache_tree();
+	if (!the_index.cache_tree)
+		the_index.cache_tree = cache_tree();
 
-	if (!cache_tree_fully_valid(active_cache_tree) &&
+	if (!cache_tree_fully_valid(the_index.cache_tree) &&
 	    cache_tree_update(&the_index, 0) < 0) {
 		err(o, _("error building trees"));
 		return NULL;
 	}
 
-	result = lookup_tree(active_cache_tree->sha1);
+	result = lookup_tree(the_index.cache_tree->sha1);
 
 	return result;
 }
@@ -370,10 +370,10 @@ static struct string_list *get_unmerged(void)
 
 	unmerged->strdup_strings = 1;
 
-	for (i = 0; i < active_nr; i++) {
+	for (i = 0; i < the_index.cache_nr; i++) {
 		struct string_list_item *item;
 		struct stage_data *e;
-		const struct cache_entry *ce = active_cache[i];
+		const struct cache_entry *ce = the_index.cache[i];
 		if (!ce_stage(ce))
 			continue;
 
@@ -683,8 +683,8 @@ static int dir_in_way(const char *path, int check_working_copy, int empty_ok)
 
 	if (pos < 0)
 		pos = -1 - pos;
-	if (pos < active_nr &&
-	    !strncmp(dirpath.buf, active_cache[pos]->name, dirpath.len)) {
+	if (pos < the_index.cache_nr &&
+	    !strncmp(dirpath.buf, the_index.cache[pos]->name, dirpath.len)) {
 		strbuf_release(&dirpath);
 		return 1;
 	}
@@ -709,9 +709,9 @@ static int was_tracked(const char *path)
 	 * had the path tracked (and resulted in a conflict).
 	 */
 	for (pos = -1 - pos;
-	     pos < active_nr && !strcmp(path, active_cache[pos]->name);
+	     pos < the_index.cache_nr && !strcmp(path, the_index.cache[pos]->name);
 	     pos++)
-		if (ce_stage(active_cache[pos]) == 2)
+		if (ce_stage(the_index.cache[pos]) == 2)
 			return 1;
 	return 0;
 }
@@ -2145,7 +2145,7 @@ int merge_recursive_generic(struct merge_options *o,
 	if (clean < 0)
 		return clean;
 
-	if (active_cache_changed &&
+	if (the_index.cache_changed &&
 	    write_locked_index(&the_index, lock, COMMIT_LOCK))
 		return err(o, _("Unable to write index."));
 

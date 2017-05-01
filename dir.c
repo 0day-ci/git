@@ -599,9 +599,9 @@ static void *read_skip_worktree_file_from_index(const char *path, size_t *size,
 	pos = cache_name_pos(path, len);
 	if (pos < 0)
 		return NULL;
-	if (!ce_skip_worktree(active_cache[pos]))
+	if (!ce_skip_worktree(the_index.cache[pos]))
 		return NULL;
-	data = read_sha1_file(active_cache[pos]->oid.hash, &type, &sz);
+	data = read_sha1_file(the_index.cache[pos]->oid.hash, &type, &sz);
 	if (!data || type != OBJ_BLOB) {
 		free(data);
 		return NULL;
@@ -609,7 +609,7 @@ static void *read_skip_worktree_file_from_index(const char *path, size_t *size,
 	*size = xsize_t(sz);
 	if (sha1_stat) {
 		memset(&sha1_stat->stat, 0, sizeof(sha1_stat->stat));
-		hashcpy(sha1_stat->sha1, active_cache[pos]->oid.hash);
+		hashcpy(sha1_stat->sha1, the_index.cache[pos]->oid.hash);
 	}
 	return data;
 }
@@ -786,11 +786,11 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 				; /* no content change, ss->sha1 still good */
 			else if (check_index &&
 				 (pos = cache_name_pos(fname, strlen(fname))) >= 0 &&
-				 !ce_stage(active_cache[pos]) &&
-				 ce_uptodate(active_cache[pos]) &&
+				 !ce_stage(the_index.cache[pos]) &&
+				 ce_uptodate(the_index.cache[pos]) &&
 				 !would_convert_to_git(fname))
 				hashcpy(sha1_stat->sha1,
-					active_cache[pos]->oid.hash);
+					the_index.cache[pos]->oid.hash);
 			else
 				hash_sha1_file(buf, size, "blob", sha1_stat->sha1);
 			fill_stat_data(&sha1_stat->stat, &st);
@@ -1293,8 +1293,8 @@ static enum exist_status directory_exists_in_index(const char *dirname, int len)
 	pos = cache_name_pos(dirname, len);
 	if (pos < 0)
 		pos = -pos-1;
-	while (pos < active_nr) {
-		const struct cache_entry *ce = active_cache[pos++];
+	while (pos < the_index.cache_nr) {
+		const struct cache_entry *ce = the_index.cache[pos++];
 		unsigned char endchar;
 
 		if (strncmp(ce->name, dirname, len))
@@ -1478,8 +1478,8 @@ static int get_index_dtype(const char *path, int len)
 	if (pos >= 0)
 		return DT_UNKNOWN;
 	pos = -pos-1;
-	while (pos < active_nr) {
-		ce = active_cache[pos++];
+	while (pos < the_index.cache_nr) {
+		ce = the_index.cache[pos++];
 		if (strncmp(ce->name, path, len))
 			break;
 		if (ce->name[len] > '/')
