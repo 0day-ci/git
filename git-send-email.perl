@@ -81,6 +81,10 @@ git send-email --dump-aliases
                                      This setting forces to use one of the listed mechanisms.
     --smtp-debug            <0|1>  * Disable, enable Net::SMTP debug.
 
+    --batch-size            <int>  * send max \$num message per connection.
+    --relogin-delay         <int>  * delay \$num seconds between two successive login, default to 1,
+                                     This option can only be used with --batch-size
+
   Automating:
     --identity              <str>  * Use the sendemail.<id> options.
     --to-cmd                <str>  * Email To: via `<str> \$patch_path`
@@ -153,6 +157,7 @@ my $have_email_valid = eval { require Email::Valid; 1 };
 my $have_mail_address = eval { require Mail::Address; 1 };
 my $smtp;
 my $auth;
+my $num_sent = 0;
 
 # Regexes for RFC 2047 productions.
 my $re_token = qr/[^][()<>@,;:\\"\/?.= \000-\037\177-\377]+/;
@@ -186,6 +191,8 @@ my $format_patch;
 my $compose_filename;
 my $force = 0;
 my $dump_aliases = 0;
+my $batch_size = 0;
+my $relogin_delay = 1;
 
 # Handle interactive edition of files.
 my $multiedit;
@@ -358,6 +365,8 @@ $rc = GetOptions(
 		    "force" => \$force,
 		    "xmailer!" => \$use_xmailer,
 		    "no-xmailer" => sub {$use_xmailer = 0},
+		    "batch-size=i" => \$batch_size,
+		    "relogin-delay=i" => \$relogin_delay,
 	 );
 
 usage() if $help;
@@ -1158,8 +1167,13 @@ sub smtp_host_string {
 # (smtp_user was not specified), and 0 otherwise.
 
 sub smtp_auth_maybe {
-	if (!defined $smtp_authuser || $auth) {
+	if (!defined $smtp_authuser || $num_sent != 0) {
 		return 1;
+	}
+
+	if ($auth && $num_sent == 0) {
+		print "Auth use saved password. \n";
+		return !!$smtp->auth($smtp_authuser, $smtp_authpass);
 	}
 
 	# Workaround AUTH PLAIN/LOGIN interaction defect
@@ -1187,6 +1201,7 @@ sub smtp_auth_maybe {
 		'password' => $smtp_authpass
 	}, sub {
 		my $cred = shift;
+		$smtp_authpass = $cred->{'password'};
 
 		if ($smtp_auth) {
 			my $sasl = Authen::SASL->new(
@@ -1440,6 +1455,15 @@ EOF
 		} else {
 			print __("Result: OK\n");
 		}
+	}
+
+	$num_sent++;
+	if ($num_sent == $batch_size) {
+		$smtp->quit;
+		$smtp = undef;
+		$num_sent = 0;
+		print "Reconnect SMTP server required. \n";
+		sleep($relogin_delay);
 	}
 
 	return 1;
