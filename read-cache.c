@@ -2506,7 +2506,7 @@ int write_locked_index(struct index_state *istate, struct lock_file *lock,
  * index_state, dropping any unmerged entries.  Returns true if
  * the index is unmerged.  Callers who want to refuse to work
  * from an unmerged state can call this and check its return value,
- * instead of calling read_cache().
+ * instead of calling read_index().
  */
 int read_index_unmerged(struct index_state *istate)
 {

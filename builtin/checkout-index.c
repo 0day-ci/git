@@ -185,7 +185,7 @@ int cmd_checkout_index(int argc, const char **argv, const char *prefix)
 	git_config(git_default_config, NULL);
 	prefix_length = prefix ? strlen(prefix) : 0;
 
-	if (read_cache() < 0) {
+	if (read_index(&the_index) < 0) {
 		die("invalid cache");
 	}
 

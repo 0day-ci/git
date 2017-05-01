@@ -1552,7 +1552,7 @@ static int get_sha1_with_context_1(const char *name,
 		strlcpy(oc->path, cp, sizeof(oc->path));
 
 		if (!active_cache)
-			read_cache();
+			read_index(&the_index);
 		pos = cache_name_pos(cp, namelen);
 		if (pos < 0)
 			pos = -pos - 1;

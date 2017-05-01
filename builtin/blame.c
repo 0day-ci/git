@@ -2313,7 +2313,7 @@ static struct commit *fake_working_tree_commit(struct diff_options *opt,
 	unsigned mode;
 	struct strbuf msg = STRBUF_INIT;
 
-	read_cache();
+	read_index(&the_index);
 	time(&now);
 	commit = alloc_commit_node();
 	commit->object.parsed = 1;
@@ -2395,7 +2395,7 @@ static struct commit *fake_working_tree_commit(struct diff_options *opt,
 	 * want to run "diff-index --cached".
 	 */
 	discard_cache();
-	read_cache();
+	read_index(&the_index);
 
 	len = strlen(path);
 	if (!mode) {

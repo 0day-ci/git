@@ -465,7 +465,7 @@ static const char *prepare_index(int argc, const char **argv, const char *prefix
 		exit(1);
 
 	discard_cache();
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("cannot read the index"));
 
 	hold_locked_index(&index_lock, LOCK_DIE_ON_ERROR);
@@ -888,7 +888,7 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 		struct object_id oid;
 		const char *parent = "HEAD";
 
-		if (!active_nr && read_cache() < 0)
+		if (!active_nr && read_index(&the_index) < 0)
 			die(_("Cannot read index"));
 
 		if (amend)

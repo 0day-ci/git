@@ -48,7 +48,7 @@ int cmd_diff_index(int argc, const char **argv, const char *prefix)
 			perror("read_cache_preload");
 			return -1;
 		}
-	} else if (read_cache() < 0) {
+	} else if (read_index(&the_index) < 0) {
 		perror("read_cache");
 		return -1;
 	}

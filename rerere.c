@@ -566,7 +566,7 @@ static int check_one_conflict(int i, int *type)
 static int find_conflict(struct string_list *conflict)
 {
 	int i;
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		return error("Could not read index");
 
 	for (i = 0; i < active_nr;) {
@@ -599,7 +599,7 @@ int rerere_remaining(struct string_list *merge_rr)
 	int i;
 	if (setup_rerere(merge_rr, RERERE_READONLY))
 		return 0;
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		return error("Could not read index");
 
 	for (i = 0; i < active_nr;) {
@@ -1104,7 +1104,7 @@ int rerere_forget(struct pathspec *pathspec)
 	struct string_list conflict = STRING_LIST_INIT_DUP;
 	struct string_list merge_rr = STRING_LIST_INIT_DUP;
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		return error("Could not read index");
 
 	fd = setup_rerere(&merge_rr, RERERE_NOAUTOUPDATE);

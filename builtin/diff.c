@@ -148,8 +148,8 @@ static int builtin_diff_index(struct rev_info *revs,
 			perror("read_cache_preload");
 			return -1;
 		}
-	} else if (read_cache() < 0) {
-		perror("read_cache");
+	} else if (read_index(&the_index) < 0) {
+		perror("read_index");
 		return -1;
 	}
 	return run_diff_index(revs, cached);
@@ -210,7 +210,7 @@ static void refresh_index_quietly(void)
 	if (fd < 0)
 		return;
 	discard_cache();
-	read_cache();
+	read_index(&the_index);
 	refresh_cache(REFRESH_QUIET|REFRESH_UNMERGED);
 	update_index_if_able(&the_index, lock_file);
 }

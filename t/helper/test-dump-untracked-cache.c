@@ -47,7 +47,7 @@ int cmd_main(int ac, const char **av)
 	ignore_untracked_cache_config = 1;
 
 	setup_git_directory();
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die("unable to read index file");
 	uc = the_index.untracked;
 	if (!uc) {

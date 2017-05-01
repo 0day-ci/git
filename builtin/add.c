@@ -205,7 +205,7 @@ static int edit_patch(int argc, const char **argv, const char *prefix)
 
 	git_config(git_diff_basic_config, NULL); /* no "diff" UI options */
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("Could not read the index"));
 
 	init_revisions(&rev, prefix);
@@ -376,7 +376,7 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		return 0;
 	}
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	/*

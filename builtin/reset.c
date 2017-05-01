@@ -231,7 +231,7 @@ static void parse_args(struct pathspec *pathspec,
 	}
 	*rev_ret = rev;
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	parse_pathspec(pathspec, 0,
