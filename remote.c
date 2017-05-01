@@ -742,6 +742,8 @@ int for_each_remote(each_remote_fn fn, void *priv)
 			r->push = parse_push_refspec(r->push_refspec_nr,
 						     r->push_refspec);
 		result = fn(r, priv);
+		free_refspecs(r->push, r->push_refspec_nr);
+		free_refspecs(r->fetch, r->fetch_refspec_nr);
 	}
 	return result;
 }
