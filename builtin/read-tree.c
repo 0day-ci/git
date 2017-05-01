@@ -195,7 +195,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 	 */
 
 	if (opts.reset || opts.merge || opts.prefix) {
-		if (read_cache_unmerged() && (opts.prefix || opts.merge))
+		if (read_index_unmerged(&the_index) && (opts.prefix || opts.merge))
 			die("You need to resolve your current index first");
 		stage = opts.merge = 1;
 	}

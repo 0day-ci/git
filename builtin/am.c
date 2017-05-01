@@ -2053,7 +2053,7 @@ static int clean_index(const struct object_id *head, const struct object_id *rem
 	if (!remote_tree)
 		return error(_("Could not parse object '%s'."), oid_to_hex(remote));
 
-	read_cache_unmerged();
+	read_index_unmerged(&the_index);
 
 	if (fast_forward_to(head_tree, head_tree, 1))
 		return -1;
