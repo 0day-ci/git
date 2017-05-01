@@ -370,7 +370,7 @@ static const char *prepare_index(int argc, const char **argv, const char *prefix
 			unsetenv(INDEX_ENVIRONMENT);
 
 		discard_cache();
-		read_cache_from(get_lock_file_path(&index_lock));
+		read_index_from(&the_index, get_lock_file_path(&index_lock));
 		if (update_main_cache_tree(WRITE_TREE_SILENT) == 0) {
 			if (reopen_lock_file(&index_lock) < 0)
 				die(_("unable to write index file"));
@@ -489,7 +489,7 @@ static const char *prepare_index(int argc, const char **argv, const char *prefix
 
 	discard_cache();
 	ret = get_lock_file_path(&false_lock);
-	read_cache_from(ret);
+	read_index_from(&the_index, ret);
 	return ret;
 }
 
@@ -949,7 +949,7 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 	 * the editor and after we invoke run_status above.
 	 */
 	discard_cache();
-	read_cache_from(index_file);
+	read_index_from(&the_index, index_file);
 	if (update_main_cache_tree(0)) {
 		error(_("Error building trees"));
 		return 0;

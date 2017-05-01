@@ -1557,7 +1557,7 @@ static int run_apply(const struct am_state *state, const char *index_file)
 	if (index_file) {
 		/* Reload index as apply_all_patches() will have modified it. */
 		discard_cache();
-		read_cache_from(index_file);
+		read_index_from(&the_index, index_file);
 	}
 
 	return 0;
@@ -1600,7 +1600,7 @@ static int fall_back_threeway(const struct am_state *state, const char *index_pa
 		return error("could not build fake ancestor");
 
 	discard_cache();
-	read_cache_from(index_path);
+	read_index_from(&the_index, index_path);
 
 	if (write_index_as_tree(orig_tree.hash, &the_index, index_path, 0, NULL))
 		return error(_("Repository lacks necessary blobs to fall back on 3-way merge."));
