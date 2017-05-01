@@ -144,8 +144,8 @@ static int builtin_diff_index(struct rev_info *revs,
 		usage(builtin_diff_usage);
 	if (!cached) {
 		setup_work_tree();
-		if (read_cache_preload(&revs->diffopt.pathspec) < 0) {
-			perror("read_cache_preload");
+		if (read_index_preload(&the_index, &revs->diffopt.pathspec) < 0) {
+			perror("read_index_preload");
 			return -1;
 		}
 	} else if (read_index(&the_index) < 0) {
@@ -246,8 +246,8 @@ static int builtin_diff_files(struct rev_info *revs, int argc, const char **argv
 		revs->combine_merges = revs->dense_combined_merges = 1;
 
 	setup_work_tree();
-	if (read_cache_preload(&revs->diffopt.pathspec) < 0) {
-		perror("read_cache_preload");
+	if (read_index_preload(&the_index, &revs->diffopt.pathspec) < 0) {
+		perror("read_index_preload");
 		return -1;
 	}
 	return run_diff_files(revs, options);

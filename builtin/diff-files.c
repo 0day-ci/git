@@ -62,8 +62,8 @@ int cmd_diff_files(int argc, const char **argv, const char *prefix)
 	    (rev.diffopt.output_format & DIFF_FORMAT_PATCH))
 		rev.combine_merges = rev.dense_combined_merges = 1;
 
-	if (read_cache_preload(&rev.diffopt.pathspec) < 0) {
-		perror("read_cache_preload");
+	if (read_index_preload(&the_index, &rev.diffopt.pathspec) < 0) {
+		perror("read_index_preload");
 		return -1;
 	}
 	result = run_diff_files(&rev, options);
