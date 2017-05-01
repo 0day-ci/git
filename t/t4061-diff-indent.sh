@@ -153,7 +153,7 @@ test_expect_success 'prepare' '
 '
 
 test_expect_success 'diff: ugly spaces' '
-	git diff old new -- spaces.txt >out &&
+	git diff --no-indent-heuristic old new -- spaces.txt >out &&
 	compare_diff spaces-expect out
 '
 
@@ -183,7 +183,7 @@ test_expect_success 'diff: --indent-heuristic with --histogram' '
 '
 
 test_expect_success 'diff: ugly functions' '
-	git diff old new -- functions.c >out &&
+	git diff --no-indent-heuristic old new -- functions.c >out &&
 	compare_diff functions-expect out
 '
 
@@ -193,7 +193,7 @@ test_expect_success 'diff: nice functions with --indent-heuristic' '
 '
 
 test_expect_success 'blame: ugly spaces' '
-	git blame old..new -- spaces.txt >out-blame &&
+	git blame --no-indent-heuristic old..new -- spaces.txt >out-blame &&
 	compare_blame spaces-expect out-blame
 '
 
