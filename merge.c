@@ -39,7 +39,7 @@ int try_merge_command(const char *strategy, size_t xopts_nr,
 	discard_cache();
 	if (read_index(&the_index) < 0)
 		die(_("failed to read the cache"));
-	resolve_undo_clear();
+	resolve_undo_clear_index(&the_index);
 
 	return ret;
 }

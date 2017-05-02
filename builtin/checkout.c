@@ -491,7 +491,7 @@ static int merge_working_tree(const struct checkout_opts *opts,
 	if (read_index_preload(&the_index, NULL) < 0)
 		return error(_("index file corrupt"));
 
-	resolve_undo_clear();
+	resolve_undo_clear_index(&the_index);
 	if (opts->force) {
 		ret = reset_tree(new->commit->tree, opts, 1, writeout_error);
 		if (ret)

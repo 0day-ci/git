@@ -371,7 +371,6 @@ extern void free_name_hash(struct index_state *istate);
 #define cache_dir_exists(name, namelen) index_dir_exists(&the_index, (name), (namelen))
 #define cache_file_exists(name, namelen, igncase) index_file_exists(&the_index, (name), (namelen), (igncase))
 #define cache_name_is_other(name, namelen) index_name_is_other(&the_index, (name), (namelen))
-#define resolve_undo_clear() resolve_undo_clear_index(&the_index)
 #endif
 
 enum object_type {

@@ -199,7 +199,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 			die("You need to resolve your current index first");
 		stage = opts.merge = 1;
 	}
-	resolve_undo_clear();
+	resolve_undo_clear_index(&the_index);
 
 	for (i = 0; i < argc; i++) {
 		const char *arg = argv[i];
