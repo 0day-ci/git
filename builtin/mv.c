@@ -287,7 +287,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 		pos = index_name_pos(&the_index, src, strlen(src));
 		assert(pos >= 0);
 		if (!show_only)
-			rename_cache_entry_at(pos, dst);
+			rename_index_entry_at(&the_index, pos, dst);
 	}
 
 	if (gitmodules_modified)
