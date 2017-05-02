@@ -295,7 +295,7 @@ static int checkout_paths(const struct checkout_opts *opts,
 	lock_file = xcalloc(1, sizeof(struct lock_file));
 
 	hold_locked_index(lock_file, LOCK_DIE_ON_ERROR);
-	if (read_cache_preload(&opts->pathspec) < 0)
+	if (read_index_preload(&the_index, &opts->pathspec) < 0)
 		return error(_("index file corrupt"));
 
 	if (opts->source_tree)
@@ -488,7 +488,7 @@ static int merge_working_tree(const struct checkout_opts *opts,
 	struct lock_file *lock_file = xcalloc(1, sizeof(struct lock_file));
 
 	hold_locked_index(lock_file, LOCK_DIE_ON_ERROR);
-	if (read_cache_preload(NULL) < 0)
+	if (read_index_preload(&the_index, NULL) < 0)
 		return error(_("index file corrupt"));
 
 	resolve_undo_clear();

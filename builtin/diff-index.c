@@ -44,8 +44,8 @@ int cmd_diff_index(int argc, const char **argv, const char *prefix)
 		usage(diff_cache_usage);
 	if (!cached) {
 		setup_work_tree();
-		if (read_cache_preload(&rev.diffopt.pathspec) < 0) {
-			perror("read_cache_preload");
+		if (read_index_preload(&the_index, &rev.diffopt.pathspec) < 0) {
+			perror("read_index_preload");
 			return -1;
 		}
 	} else if (read_index(&the_index) < 0) {

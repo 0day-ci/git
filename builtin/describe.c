@@ -531,7 +531,7 @@ int cmd_describe(int argc, const char **argv, const char *prefix)
 			static struct lock_file index_lock;
 			int fd;
 
-			read_cache_preload(NULL);
+			read_index_preload(&the_index, NULL);
 			refresh_index(&the_index, REFRESH_QUIET|REFRESH_UNMERGED,
 				      NULL, NULL, NULL);
 			fd = hold_locked_index(&index_lock, 0);
