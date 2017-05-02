@@ -40,7 +40,7 @@ static void chmod_pathspec(struct pathspec *pathspec, int force_mode)
 		if (pathspec && !ce_path_match(ce, pathspec, NULL))
 			continue;
 
-		if (chmod_cache_entry(ce, force_mode) < 0)
+		if (chmod_index_entry(&the_index, ce, force_mode) < 0)
 			fprintf(stderr, "cannot chmod '%s'", ce->name);
 	}
 }

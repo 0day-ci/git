@@ -432,7 +432,7 @@ static void chmod_path(char flip, const char *path)
 	if (pos < 0)
 		goto fail;
 	ce = the_index.cache[pos];
-	if (chmod_cache_entry(ce, flip) < 0)
+	if (chmod_index_entry(&the_index, ce, flip) < 0)
 		goto fail;
 
 	report("chmod %cx '%s'", flip, path);
