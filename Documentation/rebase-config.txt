@@ -28,3 +28,26 @@ rebase.instructionFormat::
 	A format string, as specified in linkgit:git-log[1], to be used for
 	the todo list during an interactive rebase.  The format will automatically
 	have the long commit hash prepended to the format.
+
+rebase.abbreviateCommands::
+	If set to true, `git rebase -i` will abbreviate all command-names in the
+	todo list resulting in something like this:
+-------------------------------------------
+	p ae6c43a first commit title
+	f 0694310 fixup! first commit title
+	p bf25ea8 second commit title
+	s e8fbbfd squash! second commit title
+	...
+-------------------------------------------
+	instead of:
+-------------------------------------------
+	pick ae6c43a first commit title
+	fixup 0694310 fixup! first commit title
+	pick bf25ea8 second commit title
+	squash e8fbbfd squash! second commit title
+	...
+-------------------------------------------
+	As shown above, using single-letter command-names better aligns the
+	todo list when full names have different lengths. Additionally, combined
+	with a large enough value of 'core.abbrev' (say 12), the todo list is
+	guaranteed to be fully aligned.
