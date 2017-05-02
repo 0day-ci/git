@@ -369,7 +369,7 @@ static void show_files(struct dir_struct *dir)
 			err = lstat(ce->name, &st);
 			if (show_deleted && err)
 				show_ce_entry(tag_removed, ce);
-			if (show_modified && ce_modified(ce, &st, 0))
+			if (show_modified && ie_modified(&the_index, ce, &st, 0))
 				show_ce_entry(tag_modified, ce);
 		}
 	}
