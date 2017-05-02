@@ -623,7 +623,8 @@ static int remove_file(struct merge_options *o, int clean,
 	if (update_working_directory) {
 		if (ignore_case) {
 			struct cache_entry *ce;
-			ce = cache_file_exists(path, strlen(path), ignore_case);
+			ce = index_file_exists(&the_index, path,
+					       strlen(path), ignore_case);
 			if (ce && ce_stage(ce) == 0)
 				return 0;
 		}

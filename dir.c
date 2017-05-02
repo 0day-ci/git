@@ -1235,7 +1235,7 @@ static struct dir_entry *dir_entry_new(const char *pathname, int len)
 
 static struct dir_entry *dir_add_name(struct dir_struct *dir, const char *pathname, int len)
 {
-	if (cache_file_exists(pathname, len, ignore_case))
+	if (index_file_exists(&the_index, pathname, len, ignore_case))
 		return NULL;
 
 	ALLOC_GROW(dir->entries, dir->nr+1, dir->alloc);
@@ -1269,7 +1269,7 @@ static enum exist_status directory_exists_in_index_icase(const char *dirname, in
 	if (cache_dir_exists(dirname, len))
 		return index_directory;
 
-	ce = cache_file_exists(dirname, len, ignore_case);
+	ce = index_file_exists(&the_index, dirname, len, ignore_case);
 	if (ce && S_ISGITLINK(ce->ce_mode))
 		return index_gitdir;
 
@@ -1460,7 +1460,7 @@ static int get_index_dtype(const char *path, int len)
 	int pos;
 	const struct cache_entry *ce;
 
-	ce = cache_file_exists(path, len, 0);
+	ce = index_file_exists(&the_index, path, len, 0);
 	if (ce) {
 		if (!ce_uptodate(ce))
 			return DT_UNKNOWN;
@@ -1522,7 +1522,8 @@ static enum path_treatment treat_one_path(struct dir_struct *dir,
 					  int dtype, struct dirent *de)
 {
 	int exclude;
-	int has_path_in_index = !!cache_file_exists(path->buf, path->len, ignore_case);
+	int has_path_in_index = !!index_file_exists(&the_index, path->buf,
+						    path->len, ignore_case);
 
 	if (dtype == DT_UNKNOWN)
 		dtype = get_dtype(de, path->buf, path->len);
