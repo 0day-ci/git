@@ -3,7 +3,6 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#define NO_THE_INDEX_COMPATIBILITY_MACROS
 #include "cache.h"
 #include "tempfile.h"
 #include "lockfile.h"

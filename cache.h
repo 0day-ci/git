@@ -352,10 +352,6 @@ extern void add_name_hash(struct index_state *istate, struct cache_entry *ce);
 extern void remove_name_hash(struct index_state *istate, struct cache_entry *ce);
 extern void free_name_hash(struct index_state *istate);
 
-
-#ifndef NO_THE_INDEX_COMPATIBILITY_MACROS
-#endif
-
 enum object_type {
 	OBJ_BAD = -1,
 	OBJ_NONE = 0,
