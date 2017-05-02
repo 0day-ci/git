@@ -1633,7 +1633,7 @@ static int fall_back_threeway(const struct am_state *state, const char *index_pa
 	say(state, stdout, _("Falling back to patching base and 3-way merge..."));
 
 	discard_cache();
-	read_cache();
+	read_index(&the_index);
 
 	/*
 	 * This is not so wrong. Depending on which base we picked, orig_tree

@@ -3497,7 +3497,7 @@ void diff_setup_done(struct diff_options *options)
 			 * when it fails, so we do not have to worry about
 			 * cleaning it up ourselves either.
 			 */
-			read_cache();
+			read_index(&the_index);
 	}
 	if (40 < options->abbrev)
 		options->abbrev = 40; /* full */

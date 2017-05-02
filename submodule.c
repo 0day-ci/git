@@ -177,7 +177,7 @@ void gitmodules_config(void)
 		int pos;
 		strbuf_addstr(&gitmodules_path, work_tree);
 		strbuf_addstr(&gitmodules_path, "/.gitmodules");
-		if (read_cache() < 0)
+		if (read_index(&the_index) < 0)
 			die("index file corrupt");
 		pos = cache_name_pos(".gitmodules", 11);
 		if (pos < 0) { /* .gitmodules not found or isn't merged */
@@ -1151,7 +1151,7 @@ int fetch_populated_submodules(const struct argv_array *options,
 	if (!spf.work_tree)
 		goto out;
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die("index file corrupt");
 
 	argv_array_push(&spf.args, "fetch");

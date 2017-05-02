@@ -381,7 +381,7 @@ static int fast_forward_to(const unsigned char *to, const unsigned char *from,
 	struct strbuf sb = STRBUF_INIT;
 	struct strbuf err = STRBUF_INIT;
 
-	read_cache();
+	read_index(&the_index);
 	if (checkout_fast_forward(from, to, 1))
 		return -1; /* the callee should have complained already */
 
@@ -437,7 +437,7 @@ static int do_recursive_merge(struct commit *base, struct commit *next,
 
 	hold_locked_index(&index_lock, LOCK_DIE_ON_ERROR);
 
-	read_cache();
+	read_index(&the_index);
 
 	init_merge_options(&o);
 	o.ancestor = base ? base_label : "(empty tree)";
@@ -1844,7 +1844,7 @@ static int do_exec(const char *command_line)
 	status = run_command_v_opt(child_argv, RUN_USING_SHELL);
 
 	/* force re-reading of the cache */
-	if (discard_cache() < 0 || read_cache() < 0)
+	if (discard_cache() < 0 || read_index(&the_index) < 0)
 		return error(_("could not read index"));
 
 	dirty = require_clean_work_tree("rebase", NULL, 1, 1);

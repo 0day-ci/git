@@ -578,7 +578,7 @@ int cmd_ls_files(int argc, const char **argv, const char *cmd_prefix)
 	super_prefix = get_super_prefix();
 	git_config(git_default_config, NULL);
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die("index file corrupt");
 
 	argc = parse_options(argc, argv, prefix, builtin_ls_files_options,

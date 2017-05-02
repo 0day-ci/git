@@ -240,7 +240,7 @@ static int module_list_compute(int argc, const char **argv,
 	if (pathspec->nr)
 		ps_matched = xcalloc(pathspec->nr, 1);
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	for (i = 0; i < active_nr; i++) {

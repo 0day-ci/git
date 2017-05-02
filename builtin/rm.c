@@ -267,7 +267,7 @@ int cmd_rm(int argc, const char **argv, const char *prefix)
 
 	hold_locked_index(&lock_file, LOCK_DIE_ON_ERROR);
 
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	parse_pathspec(&pathspec, 0,

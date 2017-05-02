@@ -772,7 +772,7 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 
 	if (keep_cache_objects) {
 		verify_index_checksum = 1;
-		read_cache();
+		read_index(&the_index);
 		for (i = 0; i < active_nr; i++) {
 			unsigned int mode;
 			struct blob *blob;

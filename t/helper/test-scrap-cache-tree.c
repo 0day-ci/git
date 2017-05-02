@@ -9,7 +9,7 @@ int cmd_main(int ac, const char **av)
 {
 	setup_git_directory();
 	hold_locked_index(&index_lock, LOCK_DIE_ON_ERROR);
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die("unable to read index file");
 	active_cache_tree = NULL;
 	if (write_locked_index(&the_index, &index_lock, COMMIT_LOCK))

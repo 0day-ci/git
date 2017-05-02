@@ -31,7 +31,7 @@ static void dump_run(void)
 	struct dir_entry *dir;
 	struct cache_entry *ce;
 
-	read_cache();
+	read_index(&the_index);
 	if (single) {
 		test_lazy_init_name_hash(&the_index, 0);
 	} else {
@@ -69,7 +69,7 @@ static uint64_t time_runs(int try_threaded)
 
 	for (i = 0; i < count; i++) {
 		t0 = getnanotime();
-		read_cache();
+		read_index(&the_index);
 		t1 = getnanotime();
 		nr_threads_used = test_lazy_init_name_hash(&the_index, try_threaded);
 		t2 = getnanotime();
@@ -116,7 +116,7 @@ static void analyze_run(void)
 	int i;
 	int nr;
 
-	read_cache();
+	read_index(&the_index);
 	cache_nr_limit = the_index.cache_nr;
 	discard_cache();
 
@@ -131,7 +131,7 @@ static void analyze_run(void)
 			nr = cache_nr_limit;
 
 		for (i = 0; i < count; i++) {
-			read_cache();
+			read_index(&the_index);
 			the_index.cache_nr = nr; /* cheap truncate of index */
 			t1s = getnanotime();
 			test_lazy_init_name_hash(&the_index, 0);
@@ -140,7 +140,7 @@ static void analyze_run(void)
 			the_index.cache_nr = cache_nr_limit;
 			discard_cache();
 
-			read_cache();
+			read_index(&the_index);
 			the_index.cache_nr = nr; /* cheap truncate of index */
 			t1m = getnanotime();
 			nr_threads_used = test_lazy_init_name_hash(&the_index, 1);

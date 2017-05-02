@@ -114,7 +114,7 @@ int cmd_check_attr(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, check_attr_options,
 			     check_attr_usage, PARSE_OPT_KEEP_DASHDASH);
 
-	if (read_cache() < 0) {
+	if (read_index(&the_index) < 0) {
 		die("invalid cache");
 	}
 

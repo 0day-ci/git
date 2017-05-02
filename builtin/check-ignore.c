@@ -167,8 +167,8 @@ int cmd_check_ignore(int argc, const char **argv, const char *prefix)
 	if (show_non_matching && !verbose)
 		die(_("--non-matching is only valid with --verbose"));
 
-	/* read_cache() is only necessary so we can watch out for submodules. */
-	if (!no_index && read_cache() < 0)
+	/* read_index() is only necessary so we can watch out for submodules. */
+	if (!no_index && read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	memset(&dir, 0, sizeof(dir));

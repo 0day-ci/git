@@ -676,7 +676,7 @@ static int grep_cache(struct grep_opt *opt, const struct pathspec *pathspec,
 		strbuf_addstr(&name, super_prefix);
 	}
 
-	read_cache();
+	read_index(&the_index);
 
 	for (nr = 0; nr < active_nr; nr++) {
 		const struct cache_entry *ce = active_cache[nr];

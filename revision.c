@@ -1267,7 +1267,7 @@ void add_index_objects_to_pending(struct rev_info *revs, unsigned flags)
 {
 	int i;
 
-	read_cache();
+	read_index(&the_index);
 	for (i = 0; i < active_nr; i++) {
 		struct cache_entry *ce = active_cache[i];
 		struct blob *blob;
@@ -1408,7 +1408,7 @@ static void prepare_show_merge(struct rev_info *revs)
 	head->object.flags |= SYMMETRIC_LEFT;
 
 	if (!active_nr)
-		read_cache();
+		read_index(&the_index);
 	for (i = 0; i < active_nr; i++) {
 		const struct cache_entry *ce = active_cache[i];
 		if (!ce_stage(ce))

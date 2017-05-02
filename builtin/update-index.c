@@ -1021,7 +1021,7 @@ int cmd_update_index(int argc, const char **argv, const char *prefix)
 	if (newfd < 0)
 		lock_error = errno;
 
-	entries = read_cache();
+	entries = read_index(&the_index);
 	if (entries < 0)
 		die("cache corrupted");
 

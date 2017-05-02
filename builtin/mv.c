@@ -139,7 +139,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 		usage_with_options(builtin_mv_usage, builtin_mv_options);
 
 	hold_locked_index(&lock_file, LOCK_DIE_ON_ERROR);
-	if (read_cache() < 0)
+	if (read_index(&the_index) < 0)
 		die(_("index file corrupt"));
 
 	source = internal_prefix_pathspec(prefix, argv, argc, 0);
