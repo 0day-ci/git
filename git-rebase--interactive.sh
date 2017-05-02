@@ -884,6 +884,20 @@ add_exec_commands () {
 	mv "$1.new" "$1"
 }
 
+abbreviate_commands () {
+	test "$(git config --bool rebase.abbreviateCommands)" = true || return
+
+	while read -r command rest
+	do
+		case $command in
+		x|exec) command=x ;;
+		*)      command=${command%${command#?}} ;;
+		esac
+		printf "%s\n" "$command $rest"
+	done <"$1" >"$1.new" &&
+	mv -f "$1.new" "$1"
+}
+
 # Check if the SHA-1 passed as an argument is a
 # correct one, if not then print $2 in "$todo".badsha
 # $1: the SHA-1 to test
@@ -1143,6 +1157,7 @@ edit-todo)
 	git stripspace --strip-comments <"$todo" >"$todo".new
 	mv -f "$todo".new "$todo"
 	collapse_todo_ids
+	abbreviate_commands "$todo"
 	append_todo_help
 	gettext "
 You are editing the todo file of an ongoing interactive rebase.
@@ -1281,6 +1296,7 @@ fi
 test -s "$todo" || echo noop >> "$todo"
 test -n "$autosquash" && rearrange_squash "$todo"
 test -n "$cmd" && add_exec_commands "$todo"
+abbreviate_commands "$todo"
 
 todocount=$(git stripspace --strip-comments <"$todo" | wc -l)
 todocount=${todocount##* }
