@@ -230,7 +230,7 @@ static int add_cacheinfo(struct merge_options *o,
 	if (!ce)
 		return err(o, _("addinfo_cache failed for path '%s'"), path);
 
-	ret = add_cache_entry(ce, options);
+	ret = add_index_entry(&the_index, ce, options);
 	if (refresh) {
 		struct cache_entry *nce;
 
@@ -238,7 +238,7 @@ static int add_cacheinfo(struct merge_options *o,
 		if (!nce)
 			return err(o, _("addinfo_cache failed for path '%s'"), path);
 		if (nce != ce)
-			ret = add_cache_entry(nce, options);
+			ret = add_index_entry(&the_index, nce, options);
 	}
 	return ret;
 }

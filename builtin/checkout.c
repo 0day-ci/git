@@ -118,7 +118,8 @@ static int update_some(const unsigned char *sha1, struct strbuf *base,
 		}
 	}
 
-	add_cache_entry(ce, ADD_CACHE_OK_TO_ADD | ADD_CACHE_OK_TO_REPLACE);
+	add_index_entry(&the_index, ce,
+			ADD_CACHE_OK_TO_ADD | ADD_CACHE_OK_TO_REPLACE);
 	return 0;
 }
 

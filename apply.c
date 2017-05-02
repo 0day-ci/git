@@ -4284,7 +4284,7 @@ static int build_fake_ancestor(struct apply_state *state, struct patch *list)
 				       "for newly created file %s"), path);
 		}
 	}
-	if (add_cache_entry(ce, ADD_CACHE_OK_TO_ADD) < 0) {
+	if (add_index_entry(&the_index, ce, ADD_CACHE_OK_TO_ADD) < 0) {
 		free(ce);
 		return error(_("unable to add cache entry for %s"), path);
 	}
@@ -4428,7 +4428,7 @@ static int add_conflicted_stages_file(struct apply_state *state,
 		ce->ce_flags = create_ce_flags(stage);
 		ce->ce_namelen = namelen;
 		oidcpy(&ce->oid, &patch->threeway_stage[stage - 1]);
-		if (add_cache_entry(ce, ADD_CACHE_OK_TO_ADD) < 0) {
+		if (add_index_entry(&the_index, ce, ADD_CACHE_OK_TO_ADD) < 0) {
 			free(ce);
 			return error(_("unable to add cache entry for %s"),
 				     patch->new_name);

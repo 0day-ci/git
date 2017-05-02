@@ -27,7 +27,7 @@ static int read_one_entry_opt(const unsigned char *sha1, const char *base, int b
 	memcpy(ce->name, base, baselen);
 	memcpy(ce->name + baselen, pathname, len+1);
 	hashcpy(ce->oid.hash, sha1);
-	return add_cache_entry(ce, opt);
+	return add_index_entry(&the_index, ce, opt);
 }
 
 static int read_one_entry(const unsigned char *sha1, struct strbuf *base,
