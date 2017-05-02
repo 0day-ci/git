@@ -4230,7 +4230,7 @@ static int build_fake_ancestor(struct apply_state *state, struct patch *list)
  static int remove_file(struct apply_state *state, struct patch *patch, int rmdir_empty)
  {
 	 if (state->update_index) {
-		 if (remove_file_from_cache(patch->old_name) < 0)
+		 if (remove_file_from_index(&the_index, patch->old_name) < 0)
 			 return error(_("unable to remove %s from index"), patch->old_name);
 	 }
 	 if (!state->cached) {
@@ -4418,7 +4418,7 @@ static int add_conflicted_stages_file(struct apply_state *state,
 	ce_size = cache_entry_size(namelen);
 	mode = patch->new_mode ? patch->new_mode : (S_IFREG | 0644);
 
-	remove_file_from_cache(patch->new_name);
+	remove_file_from_index(&the_index, patch->new_name);
 	for (stage = 1; stage < 4; stage++) {
 		if (is_null_oid(&patch->threeway_stage[stage - 1]))
 			continue;

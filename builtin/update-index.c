@@ -243,7 +243,7 @@ static int remove_one_path(const char *path)
 {
 	if (!allow_remove)
 		return error("%s: does not exist and --remove not passed", path);
-	if (remove_file_from_cache(path))
+	if (remove_file_from_index(&the_index, path))
 		return error("%s: cannot remove from the index", path);
 	return 0;
 }
@@ -376,7 +376,7 @@ static int process_path(const char *path)
 		 * so updating it does not make sense.
 		 * On the other hand, removing it from index should work
 		 */
-		if (allow_remove && remove_file_from_cache(path))
+		if (allow_remove && remove_file_from_index(&the_index, path))
 			return error("%s: cannot remove from the index", path);
 		return 0;
 	}
@@ -459,7 +459,7 @@ static void update_one(const char *path)
 	}
 
 	if (force_remove) {
-		if (remove_file_from_cache(path))
+		if (remove_file_from_index(&the_index, path))
 			die("git update-index: unable to remove %s", path);
 		report("remove '%s'", path);
 		return;
@@ -541,7 +541,7 @@ static void read_index_info(int nul_term_line)
 
 		if (!mode) {
 			/* mode == 0 means there is no such path -- remove */
-			if (remove_file_from_cache(path_name))
+			if (remove_file_from_index(&the_index, path_name))
 				die("git update-index: unable to remove %s",
 				    ptr);
 		}
@@ -658,7 +658,7 @@ static int unresolve_one(const char *path)
 		goto free_return;
 	}
 
-	remove_file_from_cache(path);
+	remove_file_from_index(&the_index, path);
 	if (add_index_entry(&the_index, ce_2, ADD_CACHE_OK_TO_ADD)) {
 		error("%s: cannot add our version to the index.", path);
 		ret = -1;
