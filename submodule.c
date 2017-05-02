@@ -182,16 +182,16 @@ void gitmodules_config(void)
 		pos = cache_name_pos(".gitmodules", 11);
 		if (pos < 0) { /* .gitmodules not found or isn't merged */
 			pos = -1 - pos;
-			if (active_nr > pos) {  /* there is a .gitmodules */
-				const struct cache_entry *ce = active_cache[pos];
+			if (the_index.cache_nr > pos) {  /* there is a .gitmodules */
+				const struct cache_entry *ce = the_index.cache[pos];
 				if (ce_namelen(ce) == 11 &&
 				    !memcmp(ce->name, ".gitmodules", 11))
 					gitmodules_is_unmerged = 1;
 			}
-		} else if (pos < active_nr) {
+		} else if (pos < the_index.cache_nr) {
 			struct stat st;
 			if (lstat(".gitmodules", &st) == 0 &&
-			    ce_match_stat(active_cache[pos], &st, 0) & DATA_CHANGED)
+			    ce_match_stat(the_index.cache[pos], &st, 0) & DATA_CHANGED)
 				gitmodules_is_modified = 1;
 		}
 
@@ -1038,11 +1038,11 @@ static int get_next_submodule(struct child_process *cp,
 	int ret = 0;
 	struct submodule_parallel_fetch *spf = data;
 
-	for (; spf->count < active_nr; spf->count++) {
+	for (; spf->count < the_index.cache_nr; spf->count++) {
 		struct strbuf submodule_path = STRBUF_INIT;
 		struct strbuf submodule_git_dir = STRBUF_INIT;
 		struct strbuf submodule_prefix = STRBUF_INIT;
-		const struct cache_entry *ce = active_cache[spf->count];
+		const struct cache_entry *ce = the_index.cache[spf->count];
 		const char *git_dir, *default_argv;
 		const struct submodule *submodule;
 

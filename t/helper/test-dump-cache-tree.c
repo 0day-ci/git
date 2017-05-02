@@ -64,5 +64,5 @@ int cmd_main(int ac, const char **av)
 	istate = the_index;
 	istate.cache_tree = another;
 	cache_tree_update(&istate, WRITE_TREE_DRY_RUN);
-	return dump_cache_tree(active_cache_tree, another, "");
+	return dump_cache_tree(the_index.cache_tree, another, "");
 }

@@ -523,7 +523,7 @@ static int handle_file(const char *path, unsigned char *sha1, const char *output
  */
 static int check_one_conflict(int i, int *type)
 {
-	const struct cache_entry *e = active_cache[i];
+	const struct cache_entry *e = the_index.cache[i];
 
 	if (!ce_stage(e)) {
 		*type = RESOLVED;
@@ -531,13 +531,13 @@ static int check_one_conflict(int i, int *type)
 	}
 
 	*type = PUNTED;
-	while (ce_stage(active_cache[i]) == 1)
+	while (ce_stage(the_index.cache[i]) == 1)
 		i++;
 
 	/* Only handle regular files with both stages #2 and #3 */
-	if (i + 1 < active_nr) {
-		const struct cache_entry *e2 = active_cache[i];
-		const struct cache_entry *e3 = active_cache[i + 1];
+	if (i + 1 < the_index.cache_nr) {
+		const struct cache_entry *e2 = the_index.cache[i];
+		const struct cache_entry *e3 = the_index.cache[i + 1];
 		if (ce_stage(e2) == 2 &&
 		    ce_stage(e3) == 3 &&
 		    ce_same_name(e, e3) &&
@@ -547,7 +547,7 @@ static int check_one_conflict(int i, int *type)
 	}
 
 	/* Skip the entries with the same name */
-	while (i < active_nr && ce_same_name(e, active_cache[i]))
+	while (i < the_index.cache_nr && ce_same_name(e, the_index.cache[i]))
 		i++;
 	return i;
 }
@@ -569,9 +569,9 @@ static int find_conflict(struct string_list *conflict)
 	if (read_index(&the_index) < 0)
 		return error("Could not read index");
 
-	for (i = 0; i < active_nr;) {
+	for (i = 0; i < the_index.cache_nr;) {
 		int conflict_type;
-		const struct cache_entry *e = active_cache[i];
+		const struct cache_entry *e = the_index.cache[i];
 		i = check_one_conflict(i, &conflict_type);
 		if (conflict_type == THREE_STAGED)
 			string_list_insert(conflict, (const char *)e->name);
@@ -602,9 +602,9 @@ int rerere_remaining(struct string_list *merge_rr)
 	if (read_index(&the_index) < 0)
 		return error("Could not read index");
 
-	for (i = 0; i < active_nr;) {
+	for (i = 0; i < the_index.cache_nr;) {
 		int conflict_type;
-		const struct cache_entry *e = active_cache[i];
+		const struct cache_entry *e = the_index.cache[i];
 		i = check_one_conflict(i, &conflict_type);
 		if (conflict_type == PUNTED)
 			string_list_insert(merge_rr, (const char *)e->name);
@@ -718,7 +718,7 @@ static void update_paths(struct string_list *update)
 			item->string);
 	}
 
-	if (active_cache_changed) {
+	if (the_index.cache_changed) {
 		if (write_locked_index(&the_index, &index_lock, COMMIT_LOCK))
 			die("Unable to write new index file");
 	} else
@@ -971,11 +971,11 @@ static int handle_cache(const char *path, unsigned char *sha1, const char *outpu
 		return -1;
 	pos = -pos - 1;
 
-	while (pos < active_nr) {
+	while (pos < the_index.cache_nr) {
 		enum object_type type;
 		unsigned long size;
 
-		ce = active_cache[pos++];
+		ce = the_index.cache[pos++];
 		if (ce_namelen(ce) != len || memcmp(ce->name, path, len))
 			break;
 		i = ce_stage(ce) - 1;

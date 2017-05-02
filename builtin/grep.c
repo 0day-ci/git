@@ -678,8 +678,8 @@ static int grep_cache(struct grep_opt *opt, const struct pathspec *pathspec,
 
 	read_index(&the_index);
 
-	for (nr = 0; nr < active_nr; nr++) {
-		const struct cache_entry *ce = active_cache[nr];
+	for (nr = 0; nr < the_index.cache_nr; nr++) {
+		const struct cache_entry *ce = the_index.cache[nr];
 		strbuf_setlen(&name, name_base_len);
 		strbuf_addstr(&name, ce->name);
 
@@ -711,8 +711,8 @@ static int grep_cache(struct grep_opt *opt, const struct pathspec *pathspec,
 		if (ce_stage(ce)) {
 			do {
 				nr++;
-			} while (nr < active_nr &&
-				 !strcmp(ce->name, active_cache[nr]->name));
+			} while (nr < the_index.cache_nr &&
+				 !strcmp(ce->name, the_index.cache[nr]->name));
 			nr--; /* compensate for loop control */
 		}
 		if (hit && opt->status_only)

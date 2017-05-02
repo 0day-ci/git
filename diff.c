@@ -2736,7 +2736,7 @@ static int reuse_worktree_file(const char *name, const unsigned char *sha1, int 
 	 * by diff-cache --cached, which does read the cache before
 	 * calling us.
 	 */
-	if (!active_cache)
+	if (!the_index.cache)
 		return 0;
 
 	/* We want to avoid the working directory if our caller
@@ -2762,7 +2762,7 @@ static int reuse_worktree_file(const char *name, const unsigned char *sha1, int 
 	pos = cache_name_pos(name, len);
 	if (pos < 0)
 		return 0;
-	ce = active_cache[pos];
+	ce = the_index.cache[pos];
 
 	/*
 	 * This is not the sha1 we are looking for, or
@@ -3490,10 +3490,10 @@ void diff_setup_done(struct diff_options *options)
 	if (options->detect_rename && options->rename_limit < 0)
 		options->rename_limit = diff_rename_limit_default;
 	if (options->setup & DIFF_SETUP_USE_CACHE) {
-		if (!active_cache)
+		if (!the_index.cache)
 			/* read-cache does not die even when it fails
 			 * so it is safe for us to do this here.  Also
-			 * it does not smudge active_cache or active_nr
+			 * it does not smudge cache or nr of the_index
 			 * when it fails, so we do not have to worry about
 			 * cleaning it up ourselves either.
 			 */

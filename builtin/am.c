@@ -1155,12 +1155,12 @@ static int index_has_changes(struct strbuf *sb)
 		diff_flush(&opt);
 		return DIFF_OPT_TST(&opt, HAS_CHANGES) != 0;
 	} else {
-		for (i = 0; sb && i < active_nr; i++) {
+		for (i = 0; sb && i < the_index.cache_nr; i++) {
 			if (i)
 				strbuf_addch(sb, ' ');
-			strbuf_addstr(sb, active_cache[i]->name);
+			strbuf_addstr(sb, the_index.cache[i]->name);
 		}
-		return !!active_nr;
+		return !!the_index.cache_nr;
 	}
 }
 

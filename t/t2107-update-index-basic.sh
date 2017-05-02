@@ -74,7 +74,7 @@ test_expect_success '.lock files cleaned up' '
 	cd repo &&
 	git config core.worktree ../../worktree &&
 	# --refresh triggers late setup_work_tree,
-	# active_cache_changed is zero, rollback_lock_file fails
+	# the_index.cache_changed is zero, rollback_lock_file fails
 	git update-index --refresh &&
 	! test -f .git/index.lock
 	)

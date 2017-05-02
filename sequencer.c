@@ -413,12 +413,12 @@ void append_conflicts_hint(struct strbuf *msgbuf)
 
 	strbuf_addch(msgbuf, '\n');
 	strbuf_commented_addf(msgbuf, "Conflicts:\n");
-	for (i = 0; i < active_nr;) {
-		const struct cache_entry *ce = active_cache[i++];
+	for (i = 0; i < the_index.cache_nr;) {
+		const struct cache_entry *ce = the_index.cache[i++];
 		if (ce_stage(ce)) {
 			strbuf_commented_addf(msgbuf, "\t%s\n", ce->name);
-			while (i < active_nr && !strcmp(ce->name,
-							active_cache[i]->name))
+			while (i < the_index.cache_nr && !strcmp(ce->name,
+							the_index.cache[i]->name))
 				i++;
 		}
 	}
@@ -462,7 +462,7 @@ static int do_recursive_merge(struct commit *base, struct commit *next,
 	if (clean < 0)
 		return clean;
 
-	if (active_cache_changed &&
+	if (the_index.cache_changed &&
 	    write_locked_index(&the_index, &index_lock, COMMIT_LOCK))
 		/* TRANSLATORS: %s will be "revert", "cherry-pick" or
 		 * "rebase -i".
@@ -501,14 +501,15 @@ static int is_index_unchanged(void)
 	if (parse_commit(head_commit))
 		return -1;
 
-	if (!active_cache_tree)
-		active_cache_tree = cache_tree();
+	if (!the_index.cache_tree)
+		the_index.cache_tree = cache_tree();
 
-	if (!cache_tree_fully_valid(active_cache_tree))
+	if (!cache_tree_fully_valid(the_index.cache_tree))
 		if (cache_tree_update(&the_index, 0))
 			return error(_("unable to update cache tree\n"));
 
-	return !hashcmp(active_cache_tree->sha1, head_commit->tree->object.oid.hash);
+	return !hashcmp(the_index.cache_tree->sha1,
+			head_commit->tree->object.oid.hash);
 }
 
 static int write_author_script(const char *message)

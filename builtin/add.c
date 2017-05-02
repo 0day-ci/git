@@ -34,8 +34,8 @@ static void chmod_pathspec(struct pathspec *pathspec, int force_mode)
 {
 	int i;
 
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < the_index.cache_nr; i++) {
+		struct cache_entry *ce = the_index.cache[i];
 
 		if (pathspec && !ce_path_match(ce, pathspec, NULL))
 			continue;
@@ -458,7 +458,7 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	unplug_bulk_checkin();
 
 finish:
-	if (active_cache_changed) {
+	if (the_index.cache_changed) {
 		if (write_locked_index(&the_index, &lock_file, COMMIT_LOCK))
 			die(_("Unable to write new index file"));
 	}

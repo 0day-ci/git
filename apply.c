@@ -3499,7 +3499,7 @@ static int load_current(struct apply_state *state,
 	pos = cache_name_pos(name, strlen(name));
 	if (pos < 0)
 		return error(_("%s: does not exist in index"), name);
-	ce = active_cache[pos];
+	ce = the_index.cache[pos];
 	if (lstat(name, &st)) {
 		if (errno != ENOENT)
 			return error_errno("%s", name);
@@ -3671,7 +3671,7 @@ static int check_preimage(struct apply_state *state,
 				goto is_new;
 			return error(_("%s: does not exist in index"), old_name);
 		}
-		*ce = active_cache[pos];
+		*ce = the_index.cache[pos];
 		if (stat_ret < 0) {
 			if (checkout_target(&the_index, *ce, st))
 				return -1;
@@ -4001,7 +4001,7 @@ static int get_current_oid(struct apply_state *state, const char *path,
 	pos = cache_name_pos(path, strlen(path));
 	if (pos < 0)
 		return -1;
-	oidcpy(oid, &active_cache[pos]->oid);
+	oidcpy(oid, &the_index.cache[pos]->oid);
 	return 0;
 }
 
