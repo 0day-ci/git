@@ -754,7 +754,7 @@ transform_todo_ids () {
 	while read -r command rest
 	do
 		case "$command" in
-		"$comment_char"* | exec)
+		"$comment_char"* |x|exec)
 			# Be careful for oddball commands like 'exec'
 			# that do not have a SHA-1 at the beginning of $rest.
 			;;
@@ -871,7 +871,7 @@ add_exec_commands () {
 		while read -r insn rest
 		do
 			case $insn in
-			pick)
+			p|pick)
 				test -n "$first" ||
 				printf "%s" "$cmd"
 				;;
