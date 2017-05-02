@@ -134,7 +134,8 @@ static void show_killed_files(struct dir_struct *dir)
 				/* If ent->name is prefix of an entry in the
 				 * cache, it will be killed.
 				 */
-				pos = cache_name_pos(ent->name, ent->len);
+				pos = index_name_pos(&the_index, ent->name,
+						     ent->len);
 				if (0 <= pos)
 					die("BUG: killed-file %.*s not found",
 						ent->len, ent->name);
@@ -156,7 +157,7 @@ static void show_killed_files(struct dir_struct *dir)
 					killed = 1;
 				break;
 			}
-			if (0 <= cache_name_pos(ent->name, sp - ent->name)) {
+			if (0 <= index_name_pos(&the_index, ent->name, sp - ent->name)) {
 				/* If any of the leading directories in
 				 * ent->name is registered in the cache,
 				 * ent->name will be killed.
@@ -384,7 +385,7 @@ static void prune_cache(const char *prefix, size_t prefixlen)
 
 	if (!prefix)
 		return;
-	pos = cache_name_pos(prefix, prefixlen);
+	pos = index_name_pos(&the_index, prefix, prefixlen);
 	if (pos < 0)
 		pos = -pos-1;
 	first = pos;

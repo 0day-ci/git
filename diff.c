@@ -2759,7 +2759,7 @@ static int reuse_worktree_file(const char *name, const unsigned char *sha1, int 
 		return 0;
 
 	len = strlen(name);
-	pos = cache_name_pos(name, len);
+	pos = index_name_pos(&the_index, name, len);
 	if (pos < 0)
 		return 0;
 	ce = the_index.cache[pos];

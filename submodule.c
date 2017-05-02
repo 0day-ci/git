@@ -179,7 +179,7 @@ void gitmodules_config(void)
 		strbuf_addstr(&gitmodules_path, "/.gitmodules");
 		if (read_index(&the_index) < 0)
 			die("index file corrupt");
-		pos = cache_name_pos(".gitmodules", 11);
+		pos = index_name_pos(&the_index, ".gitmodules", 11);
 		if (pos < 0) { /* .gitmodules not found or isn't merged */
 			pos = -1 - pos;
 			if (the_index.cache_nr > pos) {  /* there is a .gitmodules */

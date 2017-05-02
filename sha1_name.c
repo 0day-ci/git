@@ -1441,7 +1441,7 @@ static void diagnose_invalid_index_path(int stage,
 		prefix = "";
 
 	/* Wrong stage number? */
-	pos = cache_name_pos(filename, namelen);
+	pos = index_name_pos(&the_index, filename, namelen);
 	if (pos < 0)
 		pos = -pos - 1;
 	if (pos < the_index.cache_nr) {
@@ -1457,7 +1457,7 @@ static void diagnose_invalid_index_path(int stage,
 	/* Confusion between relative and absolute filenames? */
 	strbuf_addstr(&fullname, prefix);
 	strbuf_addstr(&fullname, filename);
-	pos = cache_name_pos(fullname.buf, fullname.len);
+	pos = index_name_pos(&the_index, fullname.buf, fullname.len);
 	if (pos < 0)
 		pos = -pos - 1;
 	if (pos < the_index.cache_nr) {
@@ -1553,7 +1553,7 @@ static int get_sha1_with_context_1(const char *name,
 
 		if (!the_index.cache)
 			read_index(&the_index);
-		pos = cache_name_pos(cp, namelen);
+		pos = index_name_pos(&the_index, cp, namelen);
 		if (pos < 0)
 			pos = -pos - 1;
 		while (pos < the_index.cache_nr) {

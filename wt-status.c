@@ -481,7 +481,7 @@ static int unmerged_mask(const char *path)
 	int pos, mask;
 	const struct cache_entry *ce;
 
-	pos = cache_name_pos(path, strlen(path));
+	pos = index_name_pos(&the_index, path, strlen(path));
 	if (0 <= pos)
 		return 0;
 
@@ -2096,7 +2096,7 @@ static void wt_porcelain_v2_print_unmerged_entry(
 	 */
 	memset(stages, 0, sizeof(stages));
 	sum = 0;
-	pos = cache_name_pos(it->string, strlen(it->string));
+	pos = index_name_pos(&the_index, it->string, strlen(it->string));
 	assert(pos < 0);
 	pos = -pos-1;
 	while (pos < the_index.cache_nr) {

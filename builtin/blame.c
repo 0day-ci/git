@@ -2239,7 +2239,7 @@ static void verify_working_tree_path(struct commit *work_tree, const char *path)
 			return;
 	}
 
-	pos = cache_name_pos(path, strlen(path));
+	pos = index_name_pos(&the_index, path, strlen(path));
 	if (pos >= 0)
 		; /* path is in the index */
 	else if (-1 - pos < the_index.cache_nr &&
@@ -2399,7 +2399,7 @@ static struct commit *fake_working_tree_commit(struct diff_options *opt,
 
 	len = strlen(path);
 	if (!mode) {
-		int pos = cache_name_pos(path, len);
+		int pos = index_name_pos(&the_index, path, len);
 		if (0 <= pos)
 			mode = the_index.cache[pos]->ce_mode;
 		else

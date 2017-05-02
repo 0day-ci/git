@@ -680,7 +680,7 @@ static int dir_in_way(const char *path, int check_working_copy, int empty_ok)
 	strbuf_addstr(&dirpath, path);
 	strbuf_addch(&dirpath, '/');
 
-	pos = cache_name_pos(dirpath.buf, dirpath.len);
+	pos = index_name_pos(&the_index, dirpath.buf, dirpath.len);
 
 	if (pos < 0)
 		pos = -1 - pos;
@@ -697,7 +697,7 @@ static int dir_in_way(const char *path, int check_working_copy, int empty_ok)
 
 static int was_tracked(const char *path)
 {
-	int pos = cache_name_pos(path, strlen(path));
+	int pos = index_name_pos(&the_index, path, strlen(path));
 
 	if (0 <= pos)
 		/* we have been tracking this path */

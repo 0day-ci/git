@@ -966,7 +966,7 @@ static int handle_cache(const char *path, unsigned char *sha1, const char *outpu
 	 * Reproduce the conflicted merge in-core
 	 */
 	len = strlen(path);
-	pos = cache_name_pos(path, len);
+	pos = index_name_pos(&the_index, path, len);
 	if (0 <= pos)
 		return -1;
 	pos = -pos - 1;

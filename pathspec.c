@@ -389,7 +389,7 @@ static const char *parse_element_magic(unsigned *magic, int *prefix_len,
 static void strip_submodule_slash_cheap(struct pathspec_item *item)
 {
 	if (item->len >= 1 && item->match[item->len - 1] == '/') {
-		int i = cache_name_pos(item->match, item->len - 1);
+		int i = index_name_pos(&the_index, item->match, item->len - 1);
 
 		if (i >= 0 && S_ISGITLINK(the_index.cache[i]->ce_mode)) {
 			item->len--;

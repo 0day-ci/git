@@ -97,7 +97,7 @@ static int index_range_of_same_dir(const char *src, int length,
 	const char *src_w_slash = add_slash(src);
 	int first, last, len_w_slash = length + 1;
 
-	first = cache_name_pos(src_w_slash, len_w_slash);
+	first = index_name_pos(&the_index, src_w_slash, len_w_slash);
 	if (first >= 0)
 		die(_("%.*s is in index"), len_w_slash, src_w_slash);
 
@@ -187,7 +187,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 				&& lstat(dst, &st) == 0)
 			bad = _("cannot move directory over file");
 		else if (src_is_dir) {
-			int first = cache_name_pos(src, length), last;
+			int first = index_name_pos(&the_index, src, length), last;
 
 			if (first >= 0)
 				prepare_move_submodule(src, first,
@@ -218,7 +218,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 				}
 				argc += last - first;
 			}
-		} else if (cache_name_pos(src, length) < 0)
+		} else if (index_name_pos(&the_index, src, length) < 0)
 			bad = _("not under version control");
 		else if (lstat(dst, &st) == 0 &&
 			 (!ignore_case || strcasecmp(src, dst))) {
@@ -284,7 +284,7 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 		if (mode == WORKING_DIRECTORY)
 			continue;
 
-		pos = cache_name_pos(src, strlen(src));
+		pos = index_name_pos(&the_index, src, strlen(src));
 		assert(pos >= 0);
 		if (!show_only)
 			rename_cache_entry_at(pos, dst);

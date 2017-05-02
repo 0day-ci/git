@@ -44,7 +44,7 @@ static int merge_entry(int pos, const char *path)
 
 static void merge_one_path(const char *path)
 {
-	int pos = cache_name_pos(path, strlen(path));
+	int pos = index_name_pos(&the_index, path, strlen(path));
 
 	/*
 	 * If it already exists in the cache as stage0, it's

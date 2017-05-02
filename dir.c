@@ -596,7 +596,7 @@ static void *read_skip_worktree_file_from_index(const char *path, size_t *size,
 	void *data;
 
 	len = strlen(path);
-	pos = cache_name_pos(path, len);
+	pos = index_name_pos(&the_index, path, len);
 	if (pos < 0)
 		return NULL;
 	if (!ce_skip_worktree(the_index.cache[pos]))
@@ -785,7 +785,7 @@ static int add_excludes(const char *fname, const char *base, int baselen,
 			    !match_stat_data_racy(&the_index, &sha1_stat->stat, &st))
 				; /* no content change, ss->sha1 still good */
 			else if (check_index &&
-				 (pos = cache_name_pos(fname, strlen(fname))) >= 0 &&
+				 (pos = index_name_pos(&the_index, fname, strlen(fname))) >= 0 &&
 				 !ce_stage(the_index.cache[pos]) &&
 				 ce_uptodate(the_index.cache[pos]) &&
 				 !would_convert_to_git(fname))
@@ -1290,7 +1290,7 @@ static enum exist_status directory_exists_in_index(const char *dirname, int len)
 	if (ignore_case)
 		return directory_exists_in_index_icase(dirname, len);
 
-	pos = cache_name_pos(dirname, len);
+	pos = index_name_pos(&the_index, dirname, len);
 	if (pos < 0)
 		pos = -pos-1;
 	while (pos < the_index.cache_nr) {
@@ -1474,7 +1474,7 @@ static int get_index_dtype(const char *path, int len)
 	}
 
 	/* Try to look it up as a directory */
-	pos = cache_name_pos(path, len);
+	pos = index_name_pos(&the_index, path, len);
 	if (pos >= 0)
 		return DT_UNKNOWN;
 	pos = -pos-1;

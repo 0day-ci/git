@@ -107,7 +107,7 @@ static int update_some(const unsigned char *sha1, struct strbuf *base,
 	 * entry in place. Whether it is UPTODATE or not, checkout_entry will
 	 * do the right thing.
 	 */
-	pos = cache_name_pos(ce->name, ce->ce_namelen);
+	pos = index_name_pos(&the_index, ce->name, ce->ce_namelen);
 	if (pos >= 0) {
 		struct cache_entry *old = the_index.cache[pos];
 		if (ce->ce_mode == old->ce_mode &&
