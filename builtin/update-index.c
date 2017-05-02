@@ -613,7 +613,7 @@ static int unresolve_one(const char *path)
 	pos = cache_name_pos(path, namelen);
 	if (0 <= pos) {
 		/* already merged */
-		pos = unmerge_cache_entry_at(pos);
+		pos = unmerge_index_entry_at(&the_index, pos);
 		if (pos < the_index.cache_nr) {
 			const struct cache_entry *ce = the_index.cache[pos];
 			if (ce_stage(ce) &&

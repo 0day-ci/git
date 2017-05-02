@@ -1116,7 +1116,7 @@ int rerere_forget(struct pathspec *pathspec)
 	 * recover the original conflicted state and then
 	 * find the conflicted paths.
 	 */
-	unmerge_cache(pathspec);
+	unmerge_index(&the_index, pathspec);
 	find_conflict(&conflict);
 	for (i = 0; i < conflict.nr; i++) {
 		struct string_list_item *it = &conflict.items[i];
