@@ -437,6 +437,8 @@ without an explicit `--interactive`.
 	commit from `pick` to `squash` (or `fixup`).  Ignores subsequent
 	"fixup! " or "squash! " after the first, in case you referred to an
 	earlier fixup/squash with `git commit --fixup/--squash`.
+	Note that their short counterparts, namely "s! ..." and "f! ..."
+	behave the same way.
 +
 This option is only valid when the `--interactive` option is used.
 +

@@ -790,7 +790,7 @@ rearrange_squash () {
 	do
 		test -z "${format}" || message=$(git log -n 1 --format="%s" ${sha1})
 		case "$message" in
-		"squash! "*|"fixup! "*)
+		"squash! "*|"s! "*|"fixup! "*|"f! "*)
 			action="${message%%!*}"
 			rest=$message
 			prefix=
@@ -798,7 +798,7 @@ rearrange_squash () {
 			while :
 			do
 				case "$rest" in
-				"squash! "*|"fixup! "*)
+				"squash! "*|"s! "*|"fixup! "*|"f! "*)
 					prefix="$prefix${rest%%!*},"
 					rest="${rest#*! }"
 					;;
