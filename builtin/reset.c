@@ -66,7 +66,7 @@ static int reset_index(const struct object_id *oid, int reset_type, int quiet)
 		opts.reset = 1;
 	}
 
-	read_cache_unmerged();
+	read_index_unmerged(&the_index);
 
 	if (reset_type == KEEP) {
 		struct object_id head_oid;

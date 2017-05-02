@@ -1170,7 +1170,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		goto done;
 	}
 
-	if (read_cache_unmerged())
+	if (read_index_unmerged(&the_index))
 		die_resolve_conflict("merge");
 
 	if (file_exists(git_path_merge_head())) {
