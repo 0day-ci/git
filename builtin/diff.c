@@ -211,7 +211,8 @@ static void refresh_index_quietly(void)
 		return;
 	discard_index(&the_index);
 	read_index(&the_index);
-	refresh_cache(REFRESH_QUIET|REFRESH_UNMERGED);
+	refresh_index(&the_index, REFRESH_QUIET | REFRESH_UNMERGED, NULL,
+		      NULL, NULL);
 	update_index_if_able(&the_index, lock_file);
 }
 

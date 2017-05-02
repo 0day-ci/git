@@ -767,7 +767,8 @@ static int refresh(struct refresh_params *o, unsigned int flag)
 {
 	setup_work_tree();
 	read_index_preload(&the_index, NULL);
-	*o->has_errors |= refresh_cache(o->flags | flag);
+	*o->has_errors |= refresh_index(&the_index, o->flags | flag, NULL,
+					NULL, NULL);
 	return 0;
 }
 

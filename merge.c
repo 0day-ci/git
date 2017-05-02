@@ -55,7 +55,7 @@ int checkout_fast_forward(const unsigned char *head,
 	struct dir_struct dir;
 	struct lock_file *lock_file = xcalloc(1, sizeof(struct lock_file));
 
-	refresh_cache(REFRESH_QUIET);
+	refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 
 	if (hold_locked_index(lock_file, LOCK_REPORT_ON_ERROR) < 0)
 		return -1;

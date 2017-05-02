@@ -324,7 +324,7 @@ static void restore_state(const struct object_id *head,
 	run_command_v_opt(args, RUN_GIT_CMD);
 
 	strbuf_release(&sb);
-	refresh_cache(REFRESH_QUIET);
+	refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 }
 
 /* This is called when no merge was necessary. */
@@ -639,7 +639,7 @@ static int try_merge_strategy(const char *strategy, struct commit_list *common,
 	const char *head_arg = "HEAD";
 
 	hold_locked_index(&lock, LOCK_DIE_ON_ERROR);
-	refresh_cache(REFRESH_QUIET);
+	refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 	if (the_index.cache_changed &&
 	    write_locked_index(&the_index, &lock, COMMIT_LOCK))
 		return error(_("Unable to write index."));
@@ -786,7 +786,7 @@ static int merge_trivial(struct commit *head, struct commit_list *remoteheads)
 	static struct lock_file lock;
 
 	hold_locked_index(&lock, LOCK_DIE_ON_ERROR);
-	refresh_cache(REFRESH_QUIET);
+	refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 	if (the_index.cache_changed &&
 	    write_locked_index(&the_index, &lock, COMMIT_LOCK))
 		return error(_("Unable to write index."));
@@ -1393,7 +1393,7 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		 * We are not doing octopus, not fast-forward, and have
 		 * only one common.
 		 */
-		refresh_cache(REFRESH_QUIET);
+		refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 		if (allow_trivial && fast_forward != FF_ONLY) {
 			/* See if it is really trivial. */
 			git_committer_info(IDENT_STRICT);

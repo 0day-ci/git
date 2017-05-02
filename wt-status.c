@@ -2270,7 +2270,7 @@ int require_clean_work_tree(const char *action, const char *hint, int ignore_sub
 	int err = 0, fd;
 
 	fd = hold_locked_index(lock_file, 0);
-	refresh_cache(REFRESH_QUIET);
+	refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 	if (0 <= fd)
 		update_index_if_able(&the_index, lock_file);
 	rollback_lock_file(lock_file);

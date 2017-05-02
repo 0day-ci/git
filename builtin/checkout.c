@@ -509,7 +509,7 @@ static int merge_working_tree(const struct checkout_opts *opts,
 
 		setup_unpack_trees_porcelain(&topts, "checkout");
 
-		refresh_cache(REFRESH_QUIET);
+		refresh_index(&the_index, REFRESH_QUIET, NULL, NULL, NULL);
 
 		if (unmerged_index(&the_index)) {
 			error(_("you need to resolve your current index first"));
