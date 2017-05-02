@@ -191,7 +191,7 @@ void gitmodules_config(void)
 		} else if (pos < the_index.cache_nr) {
 			struct stat st;
 			if (lstat(".gitmodules", &st) == 0 &&
-			    ce_match_stat(the_index.cache[pos], &st, 0) & DATA_CHANGED)
+			    ie_match_stat(&the_index, the_index.cache[pos], &st, 0) & DATA_CHANGED)
 				gitmodules_is_modified = 1;
 		}
 

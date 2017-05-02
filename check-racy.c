@@ -16,9 +16,9 @@ int main(int ac, char **av)
 			continue;
 		}
 
-		if (ce_match_stat(ce, &st, 0))
+		if (ie_match_stat(&the_index, ce, &st, 0))
 			dirty++;
-		else if (ce_match_stat(ce, &st, CE_MATCH_RACY_IS_DIRTY))
+		else if (ie_match_stat(&the_index, ce, &st, CE_MATCH_RACY_IS_DIRTY))
 			racy++;
 		else
 			clean++;
