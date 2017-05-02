@@ -1266,7 +1266,7 @@ static enum exist_status directory_exists_in_index_icase(const char *dirname, in
 {
 	struct cache_entry *ce;
 
-	if (cache_dir_exists(dirname, len))
+	if (index_dir_exists(&the_index, dirname, len))
 		return index_directory;
 
 	ce = index_file_exists(&the_index, dirname, len, ignore_case);
