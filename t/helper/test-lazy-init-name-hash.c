@@ -52,7 +52,7 @@ static void dump_run(void)
 		ce = hashmap_iter_next(&iter_cache);
 	}
 
-	discard_cache();
+	discard_index(&the_index);
 }
 
 /*
@@ -92,7 +92,7 @@ static uint64_t time_runs(int try_threaded)
 				   the_index.cache_nr);
 		fflush(stdout);
 
-		discard_cache();
+		discard_index(&the_index);
 	}
 
 	avg = sum / count;
@@ -118,7 +118,7 @@ static void analyze_run(void)
 
 	read_index(&the_index);
 	cache_nr_limit = the_index.cache_nr;
-	discard_cache();
+	discard_index(&the_index);
 
 	nr = analyze;
 	while (1) {
@@ -138,7 +138,7 @@ static void analyze_run(void)
 			t2s = getnanotime();
 			sum_single += (t2s - t1s);
 			the_index.cache_nr = cache_nr_limit;
-			discard_cache();
+			discard_index(&the_index);
 
 			read_index(&the_index);
 			the_index.cache_nr = nr; /* cheap truncate of index */
@@ -147,7 +147,7 @@ static void analyze_run(void)
 			t2m = getnanotime();
 			sum_multi += (t2m - t1m);
 			the_index.cache_nr = cache_nr_limit;
-			discard_cache();
+			discard_index(&the_index);
 
 			if (!nr_threads_used)
 				printf("    [size %8d] [single %f]   non-threaded code path used\n",

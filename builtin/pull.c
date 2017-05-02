@@ -805,7 +805,7 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 		if (opt_autostash != -1)
 			autostash = opt_autostash;
 
-		if (is_null_oid(&orig_head) && !is_cache_unborn())
+		if (is_null_oid(&orig_head) && !is_index_unborn(&the_index))
 			die(_("Updating an unborn branch with changes added to the index."));
 
 		if (!autostash)

@@ -1556,7 +1556,7 @@ static int run_apply(const struct am_state *state, const char *index_file)
 
 	if (index_file) {
 		/* Reload index as apply_all_patches() will have modified it. */
-		discard_cache();
+		discard_index(&the_index);
 		read_index_from(&the_index, index_file);
 	}
 
@@ -1599,7 +1599,7 @@ static int fall_back_threeway(const struct am_state *state, const char *index_pa
 	if (build_fake_ancestor(state, index_path))
 		return error("could not build fake ancestor");
 
-	discard_cache();
+	discard_index(&the_index);
 	read_index_from(&the_index, index_path);
 
 	if (write_index_as_tree(orig_tree.hash, &the_index, index_path, 0, NULL))
@@ -1632,7 +1632,7 @@ static int fall_back_threeway(const struct am_state *state, const char *index_pa
 
 	say(state, stdout, _("Falling back to patching base and 3-way merge..."));
 
-	discard_cache();
+	discard_index(&the_index);
 	read_index(&the_index);
 
 	/*
@@ -1938,7 +1938,7 @@ static void am_resolve(struct am_state *state)
 		die_user_resolve(state);
 	}
 
-	if (unmerged_cache()) {
+	if (unmerged_index(&the_index)) {
 		printf_ln(_("You still have unmerged paths in your index.\n"
 			"Did you forget to use 'git add'?"));
 		die_user_resolve(state);

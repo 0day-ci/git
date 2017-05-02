@@ -283,7 +283,7 @@ struct tree *write_tree_from_memory(struct merge_options *o)
 {
 	struct tree *result = NULL;
 
-	if (unmerged_cache()) {
+	if (unmerged_index(&the_index)) {
 		int i;
 		fprintf(stderr, "BUG: There are unmerged index entries:\n");
 		for (i = 0; i < the_index.cache_nr; i++) {
@@ -1942,7 +1942,7 @@ int merge_trees(struct merge_options *o,
 		return -1;
 	}
 
-	if (unmerged_cache()) {
+	if (unmerged_index(&the_index)) {
 		struct string_list *entries, *re_head, *re_merge;
 		int i;
 		string_list_clear(&o->current_file_set, 1);
@@ -2058,7 +2058,7 @@ int merge_recursive(struct merge_options *o,
 		 * overwritten it: the committed "conflicts" were
 		 * already resolved.
 		 */
-		discard_cache();
+		discard_index(&the_index);
 		saved_b1 = o->branch1;
 		saved_b2 = o->branch2;
 		o->branch1 = "Temporary merge branch 1";
@@ -2074,7 +2074,7 @@ int merge_recursive(struct merge_options *o,
 			return err(o, _("merge returned no commit"));
 	}
 
-	discard_cache();
+	discard_index(&the_index);
 	if (!o->call_depth)
 		read_index(&the_index);
 

@@ -209,7 +209,7 @@ static void refresh_index_quietly(void)
 	fd = hold_locked_index(lock_file, 0);
 	if (fd < 0)
 		return;
-	discard_cache();
+	discard_index(&the_index);
 	read_index(&the_index);
 	refresh_cache(REFRESH_QUIET|REFRESH_UNMERGED);
 	update_index_if_able(&the_index, lock_file);

@@ -234,7 +234,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 			break;
 		case 2:
 			opts.fn = twoway_merge;
-			opts.initial_checkout = is_cache_unborn();
+			opts.initial_checkout = is_index_unborn(&the_index);
 			break;
 		case 3:
 		default:

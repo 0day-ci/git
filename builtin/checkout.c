@@ -510,13 +510,13 @@ static int merge_working_tree(const struct checkout_opts *opts,
 
 		refresh_cache(REFRESH_QUIET);
 
-		if (unmerged_cache()) {
+		if (unmerged_index(&the_index)) {
 			error(_("you need to resolve your current index first"));
 			return 1;
 		}
 
 		/* 2-way merge to the new branch */
-		topts.initial_checkout = is_cache_unborn();
+		topts.initial_checkout = is_index_unborn(&the_index);
 		topts.update = 1;
 		topts.merge = 1;
 		topts.gently = opts->merge && old->commit;

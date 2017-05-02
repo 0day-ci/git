@@ -36,7 +36,7 @@ int try_merge_command(const char *strategy, size_t xopts_nr,
 	ret = run_command_v_opt(args.argv, RUN_GIT_CMD);
 	argv_array_clear(&args);
 
-	discard_cache();
+	discard_index(&the_index);
 	if (read_index(&the_index) < 0)
 		die(_("failed to read the cache"));
 	resolve_undo_clear_index(&the_index);

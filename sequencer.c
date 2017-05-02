@@ -958,7 +958,7 @@ static int do_pick_commit(enum todo_command command, struct commit *commit,
 		if (index_differs_from(unborn ? EMPTY_TREE_SHA1_HEX : "HEAD", 0, 0))
 			return error_dirty_index(opts);
 	}
-	discard_cache();
+	discard_index(&the_index);
 
 	if (!commit->parents)
 		parent = NULL;
@@ -1845,7 +1845,7 @@ static int do_exec(const char *command_line)
 	status = run_command_v_opt(child_argv, RUN_USING_SHELL);
 
 	/* force re-reading of the cache */
-	if (discard_cache() < 0 || read_index(&the_index) < 0)
+	if (discard_index(&the_index) < 0 || read_index(&the_index) < 0)
 		return error(_("could not read index"));
 
 	dirty = require_clean_work_tree("rebase", NULL, 1, 1);

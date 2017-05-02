@@ -2247,7 +2247,7 @@ int has_uncommitted_changes(int ignore_submodules)
 	struct rev_info rev_info;
 	int result;
 
-	if (is_cache_unborn())
+	if (is_index_unborn(&the_index))
 		return 0;
 
 	init_revisions(&rev_info, NULL);

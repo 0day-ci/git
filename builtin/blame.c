@@ -2394,7 +2394,7 @@ static struct commit *fake_working_tree_commit(struct diff_options *opt,
 	 * bits; we are not going to write this index out -- we just
 	 * want to run "diff-index --cached".
 	 */
-	discard_cache();
+	discard_index(&the_index);
 	read_index(&the_index);
 
 	len = strlen(path);

@@ -8,7 +8,7 @@ int cmd_main(int argc, const char **argv)
 	setup_git_directory();
 	for (i = 0; i < cnt; i++) {
 		read_index(&the_index);
-		discard_cache();
+		discard_index(&the_index);
 	}
 	return 0;
 }
