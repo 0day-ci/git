@@ -132,7 +132,7 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 		OPT_BOOL(0, "empty", &read_empty,
 			    N_("only empty the index")),
 		OPT__VERBOSE(&opts.verbose_update, N_("be verbose")),
-		OPT_GROUP(N_("Merging")),
+		OPT_GROUP(N_("Merging (needs at least one tree-ish")),
 		OPT_BOOL('m', NULL, &opts.merge,
 			 N_("perform a merge in addition to a read")),
 		OPT_BOOL(0, "trivial", &opts.trivial_merges_only,
@@ -226,9 +226,10 @@ int cmd_read_tree(int argc, const char **argv, const char *unused_prefix)
 		setup_work_tree();
 
 	if (opts.merge) {
-		if (stage < 2)
-			die("just how do you expect me to merge %d trees?", stage-1);
 		switch (stage - 1) {
+		case 0:
+			die("you must specify at least one tree to merge");
+			break;
 		case 1:
 			opts.fn = opts.prefix ? bind_merge : oneway_merge;
 			break;

@@ -135,10 +135,10 @@ OPTIONS
 
 Merging
 -------
-If `-m` is specified, 'git read-tree' can perform 3 kinds of
-merge, a single tree merge if only 1 tree is given, a
-fast-forward merge with 2 trees, or a 3-way merge if 3 trees are
-provided.
+If `-m` is specified, at least one tree must be given on the command
+line. 'git read-tree' can perform 3 kinds of merge, a single tree
+merge if only 1 tree is given, a fast-forward merge with 2 trees, or a
+3-way merge if 3 trees are provided.
 
 
 Single Tree Merge
