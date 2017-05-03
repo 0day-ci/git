@@ -1287,7 +1287,7 @@ int cmd_checkout(int argc, const char **argv, const char *prefix)
 		 */
 		if (opts.new_branch && argc == 1)
 			die(_("Cannot update paths and switch to branch '%s' at the same time.\n"
-			      "Did you intend to checkout '%s' which can not be resolved as commit?"),
+			      "'%s' can not be resolved as commit, but it should."),
 			    opts.new_branch, argv[0]);
 
 		if (opts.force_detach)
