@@ -449,9 +449,7 @@ static struct origin *make_origin(struct commit *commit, const char *path)
  * Locate an existing origin or create a new one.
  * This moves the origin to front position in the commit util list.
  */
-static struct origin *get_origin(struct scoreboard *sb,
-				 struct commit *commit,
-				 const char *path)
+static struct origin *get_origin(struct commit *commit, const char *path)
 {
 	struct origin *o, *l;
 
@@ -543,7 +541,7 @@ static struct origin *find_origin(struct scoreboard *sb,
 
 	if (!diff_queued_diff.nr) {
 		/* The path is the same as parent */
-		porigin = get_origin(sb, parent, origin->path);
+		porigin = get_origin(parent, origin->path);
 		oidcpy(&porigin->blob_oid, &origin->blob_oid);
 		porigin->mode = origin->mode;
 	} else {
@@ -569,7 +567,7 @@ static struct origin *find_origin(struct scoreboard *sb,
 			die("internal error in blame::find_origin (%c)",
 			    p->status);
 		case 'M':
-			porigin = get_origin(sb, parent, origin->path);
+			porigin = get_origin(parent, origin->path);
 			oidcpy(&porigin->blob_oid, &p->one->oid);
 			porigin->mode = p->one->mode;
 			break;
@@ -615,7 +613,7 @@ static struct origin *find_rename(struct scoreboard *sb,
 		struct diff_filepair *p = diff_queued_diff.queue[i];
 		if ((p->status == 'R' || p->status == 'C') &&
 		    !strcmp(p->two->path, origin->path)) {
-			porigin = get_origin(sb, parent, p->one->path);
+			porigin = get_origin(parent, p->one->path);
 			oidcpy(&porigin->blob_oid, &p->one->oid);
 			porigin->mode = p->one->mode;
 			break;
@@ -1270,7 +1268,7 @@ static void find_copy_in_parent(struct scoreboard *sb,
 				/* find_move already dealt with this path */
 				continue;
 
-			norigin = get_origin(sb, parent, p->one->path);
+			norigin = get_origin(parent, p->one->path);
 			oidcpy(&norigin->blob_oid, &p->one->oid);
 			norigin->mode = p->one->mode;
 			fill_origin_blob(&sb->revs->diffopt, norigin, &file_p);
@@ -2806,7 +2804,7 @@ parse_done:
 		sb.final_buf_size = o->file.size;
 	}
 	else {
-		o = get_origin(&sb, sb.final, path);
+		o = get_origin(sb.final, path);
 		if (fill_blob_sha1_and_mode(o))
 			die(_("no such path %s in %s"), path, final_commit_name);
 
