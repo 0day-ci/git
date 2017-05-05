@@ -28,6 +28,7 @@
 #include "line-log.h"
 #include "dir.h"
 #include "progress.h"
+#include "origin.h"
 
 static char blame_usage[] = N_("git blame [<options>] [<rev-opts>] [<rev>] [--] <file>");
 
@@ -84,50 +85,6 @@ static unsigned blame_copy_score;
 #define METAINFO_SHOWN		(1u<<12)
 #define MORE_THAN_ONE_PATH	(1u<<13)
 
-/*
- * One blob in a commit that is being suspected
- */
-struct origin {
-	int refcnt;
-	/* Record preceding blame record for this blob */
-	struct origin *previous;
-	/* origins are put in a list linked via `next' hanging off the
-	 * corresponding commit's util field in order to make finding
-	 * them fast.  The presence in this chain does not count
-	 * towards the origin's reference count.  It is tempting to
-	 * let it count as long as the commit is pending examination,
-	 * but even under circumstances where the commit will be
-	 * present multiple times in the priority queue of unexamined
-	 * commits, processing the first instance will not leave any
-	 * work requiring the origin data for the second instance.  An
-	 * interspersed commit changing that would have to be
-	 * preexisting with a different ancestry and with the same
-	 * commit date in order to wedge itself between two instances
-	 * of the same commit in the priority queue _and_ produce
-	 * blame entries relevant for it.  While we don't want to let
-	 * us get tripped up by this case, it certainly does not seem
-	 * worth optimizing for.
-	 */
-	struct origin *next;
-	struct commit *commit;
-	/* `suspects' contains blame entries that may be attributed to
-	 * this origin's commit or to parent commits.  When a commit
-	 * is being processed, all suspects will be moved, either by
-	 * assigning them to an origin in a different commit, or by
-	 * shipping them to the scoreboard's ent list because they
-	 * cannot be attributed to a different commit.
-	 */
-	struct blame_entry *suspects;
-	mmfile_t file;
-	struct object_id blob_oid;
-	unsigned mode;
-	/* guilty gets set when shipping any suspects to the final
-	 * blame list instead of other commits
-	 */
-	char guilty;
-	char path[FLEX_ARRAY];
-};
-
 struct progress_info {
 	struct progress *progress;
 	int blamed_lines;
@@ -176,39 +133,6 @@ static void fill_origin_blob(struct diff_options *opt,
 		*file = o->file;
 }
 
-/*
- * Origin is refcounted and usually we keep the blob contents to be
- * reused.
- */
-static inline struct origin *origin_incref(struct origin *o)
-{
-	if (o)
-		o->refcnt++;
-	return o;
-}
-
-static void origin_decref(struct origin *o)
-{
-	if (o && --o->refcnt <= 0) {
-		struct origin *p, *l = NULL;
-		if (o->previous)
-			origin_decref(o->previous);
-		free(o->file.ptr);
-		/* Should be present exactly once in commit chain */
-		for (p = o->commit->util; p; l = p, p = p->next) {
-			if (p == o) {
-				if (l)
-					l->next = p->next;
-				else
-					o->commit->util = p->next;
-				free(o);
-				return;
-			}
-		}
-		die("internal error in blame::origin_decref");
-	}
-}
-
 static void drop_origin_blob(struct origin *o)
 {
 	if (o->file.ptr) {
@@ -216,40 +140,6 @@ static void drop_origin_blob(struct origin *o)
 		o->file.ptr = NULL;
 	}
 }
-
-/*
- * Each group of lines is described by a blame_entry; it can be split
- * as we pass blame to the parents.  They are arranged in linked lists
- * kept as `suspects' of some unprocessed origin, or entered (when the
- * blame origin has been finalized) into the scoreboard structure.
- * While the scoreboard structure is only sorted at the end of
- * processing (according to final image line number), the lists
- * attached to an origin are sorted by the target line number.
- */
-struct blame_entry {
-	struct blame_entry *next;
-
-	/* the first line of this group in the final image;
-	 * internally all line numbers are 0 based.
-	 */
-	int lno;
-
-	/* how many lines this group has */
-	int num_lines;
-
-	/* the commit that introduced this group into the final image */
-	struct origin *suspect;
-
-	/* the line number of the first line of this group in the
-	 * suspect's file; internally all line numbers are 0 based.
-	 */
-	int s_lno;
-
-	/* how significant this entry is -- cached to avoid
-	 * scanning the lines over and over.
-	 */
-	unsigned score;
-};
 
 /*
  * Any merge of blames happens on lists of blames that arrived via
@@ -426,45 +316,6 @@ static void queue_blames(struct scoreboard *sb, struct origin *porigin,
 		porigin->suspects = sorted;
 		prio_queue_put(&sb->commits, porigin->commit);
 	}
-}
-
-/*
- * Given a commit and a path in it, create a new origin structure.
- * The callers that add blame to the scoreboard should use
- * get_origin() to obtain shared, refcounted copy instead of calling
- * this function directly.
- */
-static struct origin *make_origin(struct commit *commit, const char *path)
-{
-	struct origin *o;
-	FLEX_ALLOC_STR(o, path, path);
-	o->commit = commit;
-	o->refcnt = 1;
-	o->next = commit->util;
-	commit->util = o;
-	return o;
-}
-
-/*
- * Locate an existing origin or create a new one.
- * This moves the origin to front position in the commit util list.
- */
-static struct origin *get_origin(struct commit *commit, const char *path)
-{
-	struct origin *o, *l;
-
-	for (o = commit->util, l = NULL; o; l = o, o = o->next) {
-		if (!strcmp(o->path, path)) {
-			/* bump to front */
-			if (l) {
-				l->next = o->next;
-				o->next = commit->util;
-				commit->util = o;
-			}
-			return origin_incref(o);
-		}
-	}
-	return make_origin(commit, path);
 }
 
 /*
