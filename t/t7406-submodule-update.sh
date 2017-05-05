@@ -441,13 +441,11 @@ test_expect_success 'submodule update - command in .git/config catches failure -
 	test_i18ncmp actual expect
 '
 
+sq="'"
 test_expect_success 'submodule update - command run for initial population of submodule' '
-	cat >expect <<-EOF &&
-	Execution of '\''false $submodulesha1'\'' failed in submodule path '\''submodule'\''
-	EOF
 	rm -rf super/submodule &&
 	test_must_fail git -C super submodule update 2>actual &&
-	test_cmp expect actual &&
+	test_i18ngrep "Execution of ${sq}false $submodulesha1${sq} failed in submodule path ${sq}submodule${sq}" actual &&
 	git -C super submodule update --checkout
 '
 
