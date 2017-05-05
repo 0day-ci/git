@@ -124,6 +124,21 @@ test_expect_success GPG 'signed push sends push certificate' '
 	test_cmp expect dst/push-cert-status
 '
 
+test_expect_success GPG 'signed push reports push option status in receive hook' '
+	prepare_dst &&
+	mkdir -p dst/.git/hooks &&
+	git -C dst config receive.certnonceseed sekrit &&
+	git -C dst config receive.advertisepushoptions 1 &&
+	write_script dst/.git/hooks/post-receive <<-\EOF &&
+		# record the push option status
+		echo "$GIT_PUSH_CERT_OPTION_STATUS" > ../push-option-status
+	EOF
+
+	git push --push-option="foo" --push-option="bar" --signed dst noop ff &&
+
+	test "$(cat dst/push-option-status)" = "OK"
+'
+
 test_expect_success GPG 'fail without key and heed user.signingkey' '
 	prepare_dst &&
 	mkdir -p dst/.git/hooks &&

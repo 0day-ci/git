@@ -106,6 +106,16 @@ the following environment variables:
 	Also read about `receive.certNonceSlop` variable in
 	linkgit:git-config[1].
 
+`GIT_PUSH_CERT_OPTION_STATUS`::
+`BAD`;;
+	For backwards compatibility reasons, when accepting a signed
+	push, receive-pack requires that push options be written both
+	inside and outside the certificate. ("git push" does this
+	automatically.) `BAD` is returned if they are inconsistent.
+`OK`;;
+	The push options inside and outside the certificate are
+	consistent.
+
 This hook is called before any refname is updated and before any
 fast-forward checks are performed.
 

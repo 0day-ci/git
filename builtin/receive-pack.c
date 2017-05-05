@@ -81,6 +81,9 @@ static long nonce_stamp_slop;
 static unsigned long nonce_stamp_slop_limit;
 static struct ref_transaction *transaction;
 
+static const char *PUSH_OPTION_BAD = "BAD";
+static const char *PUSH_OPTION_OK = "OK";
+
 static enum {
 	KEEPALIVE_NEVER = 0,
 	KEEPALIVE_AFTER_NUL,
@@ -473,7 +476,8 @@ static char *prepare_push_cert_nonce(const char *path, unsigned long stamp)
  * after dropping "_commit" from its name and possibly moving it out
  * of commit.c
  */
-static char *find_header(const char *msg, size_t len, const char *key)
+static char *find_header(const char *msg, size_t len, const char *key,
+			 const char **next_line)
 {
 	int key_len = strlen(key);
 	const char *line = msg;
@@ -486,6 +490,8 @@ static char *find_header(const char *msg, size_t len, const char *key)
 		if (line + key_len < eol &&
 		    !memcmp(line, key, key_len) && line[key_len] == ' ') {
 			int offset = key_len + 1;
+			if (next_line)
+				*next_line = *eol ? eol + 1 : eol;
 			return xmemdupz(line + offset, (eol - line) - offset);
 		}
 		line = *eol ? eol + 1 : NULL;
@@ -495,7 +501,7 @@ static char *find_header(const char *msg, size_t len, const char *key)
 
 static const char *check_nonce(const char *buf, size_t len)
 {
-	char *nonce = find_header(buf, len, "nonce");
+	char *nonce = find_header(buf, len, "nonce", NULL);
 	unsigned long stamp, ostamp;
 	char *bohmac, *expect = NULL;
 	const char *retval = NONCE_BAD;
@@ -575,9 +581,40 @@ leave:
 	return retval;
 }
 
-static void prepare_push_cert_sha1(struct child_process *proc)
+static const char *check_push_option(const char *buf, size_t len,
+				     const struct string_list *push_options)
+{
+	int options_seen = 0;
+	char *option;
+	const char *next_line;
+	const char *retval = PUSH_OPTION_OK;
+
+	while ((option = find_header(buf, len, "push-option", &next_line))) {
+		len -= (next_line - buf);
+		buf = next_line;
+		options_seen++;
+		if (options_seen > push_options->nr
+		    || strcmp(option,
+			      push_options->items[options_seen - 1].string)) {
+			retval = PUSH_OPTION_BAD;
+			goto leave;
+		}
+		free(option);
+	}
+
+	if (options_seen != push_options->nr)
+		retval = PUSH_OPTION_BAD;
+
+leave:
+	free(option);
+	return retval;
+}
+
+static void prepare_push_cert_sha1(struct child_process *proc,
+				   const struct string_list *push_options)
 {
 	static int already_done;
+	static const char *push_option_status;
 
 	if (!push_cert.len)
 		return;
@@ -609,6 +646,8 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 		strbuf_release(&gpg_output);
 		strbuf_release(&gpg_status);
 		nonce_status = check_nonce(push_cert.buf, bogs);
+		push_option_status = check_push_option(push_cert.buf, bogs,
+						       push_options);
 	}
 	if (!is_null_sha1(push_cert_sha1)) {
 		argv_array_pushf(&proc->env_array, "GIT_PUSH_CERT=%s",
@@ -631,6 +670,8 @@ static void prepare_push_cert_sha1(struct child_process *proc)
 						 "GIT_PUSH_CERT_NONCE_SLOP=%ld",
 						 nonce_stamp_slop);
 		}
+		argv_array_pushf(&proc->env_array, "GIT_PUSH_CERT_OPTION_STATUS=%s",
+				 push_option_status);
 	}
 }
 
@@ -683,7 +724,7 @@ static int run_and_feed_hook(const char *hook_name, feed_fn feed,
 		proc.err = muxer.in;
 	}
 
-	prepare_push_cert_sha1(&proc);
+	prepare_push_cert_sha1(&proc, feed_state->push_options);
 
 	code = start_command(&proc);
 	if (code) {
