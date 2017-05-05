@@ -71,5 +71,7 @@ void blame_sort_final(struct scoreboard *sb);
 unsigned ent_score(struct scoreboard *sb, struct blame_entry *e);
 void assign_blame(struct scoreboard *sb, int opt);
 const char *nth_line(struct scoreboard *sb, long lno);
+void init_scoreboard(struct scoreboard *sb);
+void setup_scoreboard(struct scoreboard *sb, const char *path, struct origin **orig);
 
 #endif /* SCOREBOARD_H */
