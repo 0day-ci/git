@@ -1,6 +1,9 @@
 #ifndef REFS_H
 #define REFS_H
 
+#include <stdio.h>
+#include <string.h>
+
 struct object_id;
 struct ref_store;
 struct strbuf;

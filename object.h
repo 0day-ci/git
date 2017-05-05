@@ -1,6 +1,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "cache.h"
+
 struct object_list {
 	struct object *item;
 	struct object_list *next;
