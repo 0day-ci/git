@@ -1844,7 +1844,7 @@ static enum path_treatment read_directory_recursive(struct dir_struct *dir,
 	return dir_state;
 }
 
-static int cmp_name(const void *p1, const void *p2)
+int cmp_name(const void *p1, const void *p2)
 {
 	const struct dir_entry *e1 = *(const struct dir_entry **)p1;
 	const struct dir_entry *e2 = *(const struct dir_entry **)p2;
@@ -1853,7 +1853,7 @@ static int cmp_name(const void *p1, const void *p2)
 }
 
 /* check if *out lexically contains *in */
-static int check_contains(const struct dir_entry *out, const struct dir_entry *in)
+int check_contains(const struct dir_entry *out, const struct dir_entry *in)
 {
 	return (out->len < in->len) &&
 			(out->name[out->len - 1] == '/') &&
