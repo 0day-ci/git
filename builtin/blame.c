@@ -731,14 +731,8 @@ static struct commit *find_single_final(struct rev_info *revs,
 	return found;
 }
 
-static char *prepare_final(struct scoreboard *sb)
-{
-	const char *name;
-	sb->final = find_single_final(sb->revs, &name);
-	return xstrdup_or_null(name);
-}
-
-static const char *dwim_reverse_initial(struct scoreboard *sb)
+static struct commit *dwim_reverse_initial(struct rev_info *revs,
+					   const char **name_p)
 {
 	/*
 	 * DWIM "git blame --reverse ONE -- PATH" as
@@ -749,11 +743,11 @@ static const char *dwim_reverse_initial(struct scoreboard *sb)
 	struct commit *head_commit;
 	unsigned char head_sha1[20];
 
-	if (sb->revs->pending.nr != 1)
+	if (revs->pending.nr != 1)
 		return NULL;
 
 	/* Is that sole rev a committish? */
-	obj = sb->revs->pending.objects[0].item;
+	obj = revs->pending.objects[0].item;
 	obj = deref_tag(obj, NULL, 0);
 	if (obj->type != OBJ_COMMIT)
 		return NULL;
@@ -767,17 +761,19 @@ static const char *dwim_reverse_initial(struct scoreboard *sb)
 
 	/* Turn "ONE" into "ONE..HEAD" then */
 	obj->flags |= UNINTERESTING;
-	add_pending_object(sb->revs, &head_commit->object, "HEAD");
+	add_pending_object(revs, &head_commit->object, "HEAD");
 
-	sb->final = (struct commit *)obj;
-	return sb->revs->pending.objects[0].name;
+	if (name_p)
+		*name_p = revs->pending.objects[0].name;
+	return (struct commit *)obj;
 }
 
-static char *prepare_initial(struct scoreboard *sb)
+static struct commit *find_single_initial(struct rev_info *revs,
+					  const char **name_p)
 {
 	int i;
-	const char *final_commit_name = NULL;
-	struct rev_info *revs = sb->revs;
+	struct commit *found = NULL;
+	const char *name = NULL;
 
 	/*
 	 * There must be one and only one negative commit, and it must be
@@ -790,19 +786,127 @@ static char *prepare_initial(struct scoreboard *sb)
 		obj = deref_tag(obj, NULL, 0);
 		if (obj->type != OBJ_COMMIT)
 			die("Non commit %s?", revs->pending.objects[i].name);
-		if (sb->final)
+		if (found)
 			die("More than one commit to dig up from, %s and %s?",
-			    revs->pending.objects[i].name,
-			    final_commit_name);
-		sb->final = (struct commit *) obj;
-		final_commit_name = revs->pending.objects[i].name;
+			    revs->pending.objects[i].name, name);
+		found = (struct commit *) obj;
+		name = revs->pending.objects[i].name;
 	}
 
-	if (!final_commit_name)
-		final_commit_name = dwim_reverse_initial(sb);
-	if (!final_commit_name)
+	if (!name)
+		found = dwim_reverse_initial(revs, &name);
+	if (!name)
 		die("No commit to dig up from?");
-	return xstrdup(final_commit_name);
+
+	if (name_p)
+		*name_p = name;
+	return found;
+}
+
+void init_scoreboard(struct scoreboard *sb)
+{
+	memset(sb, 0, sizeof(struct scoreboard));
+	sb->blame_move_score = BLAME_DEFAULT_MOVE_SCORE;
+	sb->blame_copy_score = BLAME_DEFAULT_COPY_SCORE;
+}
+
+void setup_scoreboard(struct scoreboard *sb, const char *path, struct origin **orig)
+{
+	const char *final_commit_name = NULL;
+	struct origin *o;
+	struct commit *final_commit = NULL;
+	enum object_type type;
+
+	if (sb->reverse && sb->contents_from)
+		die(_("--contents and --reverse do not blend well."));
+
+	if (!sb->reverse) {
+		sb->final = find_single_final(sb->revs, &final_commit_name);
+		sb->commits.compare = compare_commits_by_commit_date;
+	} else {
+		sb->final = find_single_initial(sb->revs, &final_commit_name);
+		sb->commits.compare = compare_commits_by_reverse_commit_date;
+	}
+
+	if (sb->final && sb->contents_from)
+		die(_("cannot use --contents with final commit object name"));
+
+	if (sb->reverse && sb->revs->first_parent_only)
+		sb->revs->children.name = NULL;
+
+	if (!sb->final) {
+		/*
+		 * "--not A B -- path" without anything positive;
+		 * do not default to HEAD, but use the working tree
+		 * or "--contents".
+		 */
+		setup_work_tree();
+		sb->final = fake_working_tree_commit(&sb->revs->diffopt,
+						     path, sb->contents_from);
+		add_pending_object(sb->revs, &(sb->final->object), ":");
+	}
+
+	if (sb->reverse && sb->revs->first_parent_only) {
+		final_commit = find_single_final(sb->revs, NULL);
+		if (!final_commit)
+			die(_("--reverse and --first-parent together require specified latest commit"));
+	}
+
+	/*
+	 * If we have bottom, this will mark the ancestors of the
+	 * bottom commits we would reach while traversing as
+	 * uninteresting.
+	 */
+	if (prepare_revision_walk(sb->revs))
+		die(_("revision walk setup failed"));
+
+	if (sb->reverse && sb->revs->first_parent_only) {
+		struct commit *c = final_commit;
+
+		sb->revs->children.name = "children";
+		while (c->parents &&
+		       oidcmp(&c->object.oid, &sb->final->object.oid)) {
+			struct commit_list *l = xcalloc(1, sizeof(*l));
+
+			l->item = c;
+			if (add_decoration(&sb->revs->children,
+					   &c->parents->item->object, l))
+				die("BUG: not unique item in first-parent chain");
+			c = c->parents->item;
+		}
+
+		if (oidcmp(&c->object.oid, &sb->final->object.oid))
+			die(_("--reverse --first-parent together require range along first-parent chain"));
+	}
+
+	if (is_null_oid(&sb->final->object.oid)) {
+		o = sb->final->util;
+		sb->final_buf = xmemdupz(o->file.ptr, o->file.size);
+		sb->final_buf_size = o->file.size;
+	}
+	else {
+		o = get_origin(sb->final, path);
+		if (fill_blob_sha1_and_mode(o))
+			die(_("no such path %s in %s"), path, final_commit_name);
+
+		if (DIFF_OPT_TST(&sb->revs->diffopt, ALLOW_TEXTCONV) &&
+		    textconv_object(path, o->mode, &o->blob_oid, 1, (char **) &sb->final_buf,
+				    &sb->final_buf_size))
+			;
+		else
+			sb->final_buf = read_sha1_file(o->blob_oid.hash, &type,
+						       &sb->final_buf_size);
+
+		if (!sb->final_buf)
+			die(_("cannot read blob %s for path %s"),
+			    oid_to_hex(&o->blob_oid),
+			    path);
+	}
+	sb->num_read_blob++;
+	prepare_lines(sb);
+
+	if (orig)
+		*orig = o;
 }
 
 static int blame_copy_callback(const struct option *option, const char *arg, int unset)
@@ -846,9 +950,6 @@ int cmd_blame(int argc, const char **argv, const char *prefix)
 	struct origin *o;
 	struct blame_entry *ent = NULL;
 	long dashdash_pos, lno;
-	char *final_commit_name = NULL;
-	enum object_type type;
-	struct commit *final_commit = NULL;
 	struct progress_info pi = { NULL, 0 };
 
 	struct string_list range_list = STRING_LIST_INIT_NODUP;
@@ -996,11 +1097,6 @@ parse_done:
 		opt |= (PICKAXE_BLAME_COPY | PICKAXE_BLAME_MOVE |
 			PICKAXE_BLAME_COPY_HARDER);
 
-	if (!blame_move_score)
-		blame_move_score = BLAME_DEFAULT_MOVE_SCORE;
-	if (!blame_copy_score)
-		blame_copy_score = BLAME_DEFAULT_COPY_SCORE;
-
 	/*
 	 * We have collected options unknown to us in argv[1..unk]
 	 * which are to be passed to revision machinery if we are
@@ -1053,94 +1149,14 @@ parse_done:
 
 	revs.disable_stdin = 1;
 	setup_revisions(argc, argv, &revs, NULL);
-	memset(&sb, 0, sizeof(sb));
 
+	init_scoreboard(&sb);
 	sb.revs = &revs;
-	if (!reverse) {
-		final_commit_name = prepare_final(&sb);
-		sb.commits.compare = compare_commits_by_commit_date;
-	}
-	else if (contents_from)
-		die(_("--contents and --reverse do not blend well."));
-	else {
-		final_commit_name = prepare_initial(&sb);
-		sb.commits.compare = compare_commits_by_reverse_commit_date;
-		if (revs.first_parent_only)
-			revs.children.name = NULL;
-	}
+	sb.reverse = reverse;
+	sb.contents_from = contents_from;
+	setup_scoreboard(&sb, path, &o);
 
-	if (!sb.final) {
-		/*
-		 * "--not A B -- path" without anything positive;
-		 * do not default to HEAD, but use the working tree
-		 * or "--contents".
-		 */
-		setup_work_tree();
-		sb.final = fake_working_tree_commit(&sb.revs->diffopt,
-						    path, contents_from);
-		add_pending_object(&revs, &(sb.final->object), ":");
-	}
-	else if (contents_from)
-		die(_("cannot use --contents with final commit object name"));
-
-	if (reverse && revs.first_parent_only) {
-		final_commit = find_single_final(sb.revs, NULL);
-		if (!final_commit)
-			die(_("--reverse and --first-parent together require specified latest commit"));
-	}
-
-	/*
-	 * If we have bottom, this will mark the ancestors of the
-	 * bottom commits we would reach while traversing as
-	 * uninteresting.
-	 */
-	if (prepare_revision_walk(&revs))
-		die(_("revision walk setup failed"));
-
-	if (reverse && revs.first_parent_only) {
-		struct commit *c = final_commit;
-
-		sb.revs->children.name = "children";
-		while (c->parents &&
-		       oidcmp(&c->object.oid, &sb.final->object.oid)) {
-			struct commit_list *l = xcalloc(1, sizeof(*l));
-
-			l->item = c;
-			if (add_decoration(&sb.revs->children,
-					   &c->parents->item->object, l))
-				die("BUG: not unique item in first-parent chain");
-			c = c->parents->item;
-		}
-
-		if (oidcmp(&c->object.oid, &sb.final->object.oid))
-			die(_("--reverse --first-parent together require range along first-parent chain"));
-	}
-
-	if (is_null_oid(&sb.final->object.oid)) {
-		o = sb.final->util;
-		sb.final_buf = xmemdupz(o->file.ptr, o->file.size);
-		sb.final_buf_size = o->file.size;
-	}
-	else {
-		o = get_origin(sb.final, path);
-		if (fill_blob_sha1_and_mode(o))
-			die(_("no such path %s in %s"), path, final_commit_name);
-
-		if (DIFF_OPT_TST(&sb.revs->diffopt, ALLOW_TEXTCONV) &&
-		    textconv_object(path, o->mode, &o->blob_oid, 1, (char **) &sb.final_buf,
-				    &sb.final_buf_size))
-			;
-		else
-			sb.final_buf = read_sha1_file(o->blob_oid.hash, &type,
-						      &sb.final_buf_size);
-
-		if (!sb.final_buf)
-			die(_("cannot read blob %s for path %s"),
-			    oid_to_hex(&o->blob_oid),
-			    path);
-	}
-	sb.num_read_blob++;
-	lno = prepare_lines(&sb);
+	lno = sb.num_lines;
 
 	if (lno && !range_list.nr)
 		string_list_append(&range_list, "1");
@@ -1192,13 +1208,14 @@ parse_done:
 	sb.ent = NULL;
 	sb.path = path;
 
-	sb.blame_move_score = blame_move_score;
-	sb.blame_copy_score = blame_copy_score;
+	if (blame_move_score)
+		sb.blame_move_score = blame_move_score;
+	if (blame_copy_score)
+		sb.blame_copy_score = blame_copy_score;
 
 	sb.sanity_check = DEBUG ? &sanity_check_refcnt : NULL;
 
 	sb.show_root = show_root;
-	sb.reverse = reverse;
 	sb.xdl_opts = xdl_opts;
 	sb.no_whole_file_rename = no_whole_file_rename;
 
@@ -1216,10 +1233,7 @@ parse_done:
 
 	if (!incremental)
 		setup_pager();
-
-	free(final_commit_name);
-
-	if (incremental)
+	else
 		return 0;
 
 	blame_sort_final(&sb);

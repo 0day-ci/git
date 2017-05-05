@@ -24,6 +24,7 @@ struct scoreboard {
 	struct prio_queue commits;
 	struct rev_info *revs;
 	const char *path;
+	const char *contents_from;
 
 	/*
 	 * The contents in the final image.
