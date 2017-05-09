@@ -389,7 +389,8 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	parse_pathspec(&pathspec, 0,
 		       PATHSPEC_PREFER_FULL |
 		       PATHSPEC_SYMLINK_LEADING_PATH |
-		       PATHSPEC_STRIP_SUBMODULE_SLASH_EXPENSIVE,
+		       PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP |
+		       PATHSPEC_SUBMODULE_LEADING_PATH,
 		       prefix, argv);
 
 	if (add_new_files) {

@@ -398,29 +398,29 @@ static void strip_submodule_slash_cheap(struct pathspec_item *item)
 	}
 }
 
-static void strip_submodule_slash_expensive(struct pathspec_item *item)
+static void die_path_inside_submodule(const struct pathspec_item *item,
+				      const struct index_state *istate)
 {
 	int i;
 
-	for (i = 0; i < active_nr; i++) {
-		struct cache_entry *ce = active_cache[i];
+	for (i = 0; i < istate->cache_nr; i++) {
+		struct cache_entry *ce = istate->cache[i];
 		int ce_len = ce_namelen(ce);
 
 		if (!S_ISGITLINK(ce->ce_mode))
 			continue;
 
-		if (item->len <= ce_len || item->match[ce_len] != '/' ||
-		    memcmp(ce->name, item->match, ce_len))
+		if (item->len <= ce_len)
+			continue;
+		if (item->match[ce_len] != '/')
+			continue;
+		if (strncmp(ce->name, item->match, ce_len))
+			continue;
+		if (item->len == ce_len + 1)
 			continue;
 
-		if (item->len == ce_len + 1) {
-			/* strip trailing slash */
-			item->len--;
-			item->match[item->len] = '\0';
-		} else {
-			die(_("Pathspec '%s' is in submodule '%.*s'"),
-			    item->original, ce_len, ce->name);
-		}
+		die(_("Pathspec '%s' is in submodule '%.*s'"),
+		    item->original, ce_len, ce->name);
 	}
 }
 
@@ -498,9 +498,6 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 
 	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP)
 		strip_submodule_slash_cheap(item);
-
-	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH_EXPENSIVE)
-		strip_submodule_slash_expensive(item);
 
 	if (magic & PATHSPEC_LITERAL) {
 		item->nowildcard_len = item->len;
@@ -638,6 +635,9 @@ void parse_pathspec(struct pathspec *pathspec,
 		    has_symlink_leading_path(item[i].match, item[i].len)) {
 			die(_("pathspec '%s' is beyond a symbolic link"), entry);
 		}
+
+		if (flags & PATHSPEC_SUBMODULE_LEADING_PATH)
+			die_path_inside_submodule(item + i, &the_index);
 
 		if (item[i].nowildcard_len < item[i].len)
 			pathspec->has_wildcard = 1;

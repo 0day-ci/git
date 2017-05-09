@@ -63,13 +63,10 @@ struct pathspec {
 /* die if a symlink is part of the given path's directory */
 #define PATHSPEC_SYMLINK_LEADING_PATH (1<<4)
 /*
- * This is like a combination of ..LEADING_PATH and .._SLASH_CHEAP
- * (but not the same): it strips the trailing slash if the given path
- * is a gitlink but also checks and dies if gitlink is part of the
- * leading path (i.e. the given path goes beyond a submodule). It's
- * safer than _SLASH_CHEAP and also more expensive.
+ * Checks and dies if gitlink is part of the leading path
+ * (i.e. the given path goes beyond a submodule).
  */
-#define PATHSPEC_STRIP_SUBMODULE_SLASH_EXPENSIVE (1<<5)
+#define PATHSPEC_SUBMODULE_LEADING_PATH (1<<5)
 #define PATHSPEC_PREFIX_ORIGIN (1<<6)
 #define PATHSPEC_KEEP_ORDER (1<<7)
 /*
