@@ -430,7 +430,9 @@ static void die_path_inside_submodule(const struct pathspec_item *item,
 /*
  * Perform the initialization of a pathspec_item based on a pathspec element.
  */
-static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
+static void init_pathspec_item(struct pathspec_item *item,
+			       const struct index_state *istate,
+			       unsigned flags,
 			       const char *prefix, int prefixlen,
 			       const char *elt)
 {
@@ -500,7 +502,7 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	}
 
 	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH)
-		strip_submodule_slash(item, &the_index);
+		strip_submodule_slash(item, istate);
 
 	if (magic & PATHSPEC_LITERAL) {
 		item->nowildcard_len = item->len;
@@ -627,7 +629,8 @@ void parse_pathspec(struct pathspec *pathspec,
 	for (i = 0; i < n; i++) {
 		entry = argv[i];
 
-		init_pathspec_item(item + i, flags, prefix, prefixlen, entry);
+		init_pathspec_item(item + i, &the_index, flags,
+				   prefix, prefixlen, entry);
 
 		if (item[i].magic & PATHSPEC_EXCLUDE)
 			nr_exclude++;
@@ -653,7 +656,7 @@ void parse_pathspec(struct pathspec *pathspec,
 	 */
 	if (nr_exclude == n) {
 		int plen = (!(flags & PATHSPEC_PREFER_CWD)) ? 0 : prefixlen;
-		init_pathspec_item(item + n, 0, prefix, plen, "");
+		init_pathspec_item(item + n, &the_index, 0, prefix, plen, "");
 		pathspec->nr++;
 	}
 
