@@ -234,7 +234,7 @@ static void parse_args(struct pathspec *pathspec,
 	if (read_cache() < 0)
 		die(_("index file corrupt"));
 
-	parse_pathspec(pathspec, 0,
+	parse_pathspec(pathspec, &the_index, 0,
 		       PATHSPEC_PREFER_FULL |
 		       PATHSPEC_STRIP_SUBMODULE_SLASH |
 		       (patch_mode ? PATHSPEC_PREFIX_ORIGIN : 0),

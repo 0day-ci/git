@@ -1,3 +1,4 @@
+#define NO_THE_INDEX_COMPATIBILITY_MACROS
 #include "cache.h"
 #include "dir.h"
 #include "pathspec.h"
@@ -573,6 +574,7 @@ static void NORETURN unsupported_magic(const char *pattern,
  * pathspec. die() if any magic in magic_mask is used.
  */
 void parse_pathspec(struct pathspec *pathspec,
+		    const struct index_state *istate,
 		    unsigned magic_mask, unsigned flags,
 		    const char *prefix, const char **argv)
 {
@@ -592,6 +594,11 @@ void parse_pathspec(struct pathspec *pathspec,
 	if ((flags & PATHSPEC_PREFER_CWD) &&
 	    (flags & PATHSPEC_PREFER_FULL))
 		die("BUG: PATHSPEC_PREFER_CWD and PATHSPEC_PREFER_FULL are incompatible");
+
+	if (!istate && ((flags & PATHSPEC_STRIP_SUBMODULE_SLASH) ||
+			(flags & PATHSPEC_SUBMODULE_LEADING_PATH)))
+	    die("BUG: PATHSPEC_STRIP_SUBMODULE_SLASH and "
+		"PATHSPEC_SUBMODULE_LEADING_PATH require an index");
 
 	/* No arguments with prefix -> prefix pathspec */
 	if (!entry) {
@@ -629,7 +636,7 @@ void parse_pathspec(struct pathspec *pathspec,
 	for (i = 0; i < n; i++) {
 		entry = argv[i];
 
-		init_pathspec_item(item + i, &the_index, flags,
+		init_pathspec_item(item + i, istate, flags,
 				   prefix, prefixlen, entry);
 
 		if (item[i].magic & PATHSPEC_EXCLUDE)
@@ -643,7 +650,7 @@ void parse_pathspec(struct pathspec *pathspec,
 		}
 
 		if (flags & PATHSPEC_SUBMODULE_LEADING_PATH)
-			die_path_inside_submodule(item + i, &the_index);
+			die_path_inside_submodule(item + i, istate);
 
 		if (item[i].nowildcard_len < item[i].len)
 			pathspec->has_wildcard = 1;
@@ -656,7 +663,7 @@ void parse_pathspec(struct pathspec *pathspec,
 	 */
 	if (nr_exclude == n) {
 		int plen = (!(flags & PATHSPEC_PREFER_CWD)) ? 0 : prefixlen;
-		init_pathspec_item(item + n, &the_index, 0, prefix, plen, "");
+		init_pathspec_item(item + n, istate, 0, prefix, plen, "");
 		pathspec->nr++;
 	}
 

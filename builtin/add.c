@@ -181,7 +181,7 @@ int interactive_add(int argc, const char **argv, const char *prefix, int patch)
 {
 	struct pathspec pathspec;
 
-	parse_pathspec(&pathspec, 0,
+	parse_pathspec(&pathspec, NULL, 0,
 		       PATHSPEC_PREFER_FULL |
 		       PATHSPEC_SYMLINK_LEADING_PATH |
 		       PATHSPEC_PREFIX_ORIGIN,
@@ -386,7 +386,7 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	 * Check the "pathspec '%s' did not match any files" block
 	 * below before enabling new magic.
 	 */
-	parse_pathspec(&pathspec, 0,
+	parse_pathspec(&pathspec, &the_index, 0,
 		       PATHSPEC_PREFER_FULL |
 		       PATHSPEC_SYMLINK_LEADING_PATH |
 		       PATHSPEC_STRIP_SUBMODULE_SLASH |

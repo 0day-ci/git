@@ -253,7 +253,7 @@ int is_submodule_initialized(const char *path)
 			argv_array_push(&args, item->string);
 		}
 
-		parse_pathspec(&ps, 0, 0, NULL, args.argv);
+		parse_pathspec(&ps, NULL, 0, 0, NULL, args.argv);
 		ret = match_pathspec(&ps, path, strlen(path), 0, NULL, 1);
 
 		argv_array_clear(&args);

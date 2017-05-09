@@ -78,6 +78,7 @@ struct pathspec {
 #define PATHSPEC_LITERAL_PATH (1<<8)
 
 extern void parse_pathspec(struct pathspec *pathspec,
+			   const struct index_state *istate,
 			   unsigned magic_mask,
 			   unsigned flags,
 			   const char *prefix,

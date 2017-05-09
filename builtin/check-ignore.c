@@ -84,7 +84,7 @@ static int check_ignore(struct dir_struct *dir,
 	 * check-ignore just needs paths. Magic beyond :/ is really
 	 * irrelevant.
 	 */
-	parse_pathspec(&pathspec,
+	parse_pathspec(&pathspec, &the_index,
 		       PATHSPEC_ALL_MAGIC & ~PATHSPEC_FROMTOP,
 		       PATHSPEC_SYMLINK_LEADING_PATH |
 		       PATHSPEC_SUBMODULE_LEADING_PATH |
