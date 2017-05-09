@@ -88,7 +88,7 @@ static int check_ignore(struct dir_struct *dir,
 		       PATHSPEC_ALL_MAGIC & ~PATHSPEC_FROMTOP,
 		       PATHSPEC_SYMLINK_LEADING_PATH |
 		       PATHSPEC_SUBMODULE_LEADING_PATH |
-		       PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP |
+		       PATHSPEC_STRIP_SUBMODULE_SLASH |
 		       PATHSPEC_KEEP_ORDER,
 		       prefix, argv);
 

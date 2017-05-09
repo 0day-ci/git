@@ -386,7 +386,7 @@ static const char *parse_element_magic(unsigned *magic, int *prefix_len,
 		return parse_short_magic(magic, elem);
 }
 
-static void strip_submodule_slash_cheap(struct pathspec_item *item)
+static void strip_submodule_slash(struct pathspec_item *item)
 {
 	if (item->len >= 1 && item->match[item->len - 1] == '/') {
 		int i = cache_name_pos(item->match, item->len - 1);
@@ -496,8 +496,8 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 		item->original = xstrdup(elt);
 	}
 
-	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP)
-		strip_submodule_slash_cheap(item);
+	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH)
+		strip_submodule_slash(item);
 
 	if (magic & PATHSPEC_LITERAL) {
 		item->nowildcard_len = item->len;

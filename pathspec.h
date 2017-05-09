@@ -59,7 +59,7 @@ struct pathspec {
 #define PATHSPEC_PREFER_FULL (1<<1) /* No args means match everything */
 #define PATHSPEC_MAXDEPTH_VALID (1<<2) /* max_depth field is valid */
 /* strip the trailing slash if the given path is a gitlink */
-#define PATHSPEC_STRIP_SUBMODULE_SLASH_CHEAP (1<<3)
+#define PATHSPEC_STRIP_SUBMODULE_SLASH (1<<3)
 /* die if a symlink is part of the given path's directory */
 #define PATHSPEC_SYMLINK_LEADING_PATH (1<<4)
 /*
