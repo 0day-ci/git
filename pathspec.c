@@ -386,12 +386,13 @@ static const char *parse_element_magic(unsigned *magic, int *prefix_len,
 		return parse_short_magic(magic, elem);
 }
 
-static void strip_submodule_slash(struct pathspec_item *item)
+static void strip_submodule_slash(struct pathspec_item *item,
+				  const struct index_state *istate)
 {
 	if (item->len >= 1 && item->match[item->len - 1] == '/') {
-		int i = cache_name_pos(item->match, item->len - 1);
+		int i = index_name_pos(istate, item->match, item->len - 1);
 
-		if (i >= 0 && S_ISGITLINK(active_cache[i]->ce_mode)) {
+		if (i >= 0 && S_ISGITLINK(istate->cache[i]->ce_mode)) {
 			item->len--;
 			item->match[item->len] = '\0';
 		}
@@ -497,7 +498,7 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	}
 
 	if (flags & PATHSPEC_STRIP_SUBMODULE_SLASH)
-		strip_submodule_slash(item);
+		strip_submodule_slash(item, &the_index);
 
 	if (magic & PATHSPEC_LITERAL) {
 		item->nowildcard_len = item->len;
