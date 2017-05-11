@@ -241,89 +241,6 @@ static void add_instead_of(struct rewrite *rewrite, const char *instead_of)
 	rewrite->instead_of_nr++;
 }
 
-static const char *skip_spaces(const char *s)
-{
-	while (isspace(*s))
-		s++;
-	return s;
-}
-
-static void read_remotes_file(struct remote *remote)
-{
-	struct strbuf buf = STRBUF_INIT;
-	FILE *f = fopen(git_path("remotes/%s", remote->name), "r");
-
-	if (!f)
-		return;
-
-	warning(_("the remote '%s' uses the long-deprecated '%s' file"),
-		remote->name, git_path("branches/%s", remote->name));
-
-	remote->configured_in_repo = 1;
-	remote->origin = REMOTE_REMOTES;
-	while (strbuf_getline(&buf, f) != EOF) {
-		const char *v;
-
-		strbuf_rtrim(&buf);
-
-		if (skip_prefix(buf.buf, "URL:", &v))
-			add_url_alias(remote, xstrdup(skip_spaces(v)));
-		else if (skip_prefix(buf.buf, "Push:", &v))
-			add_push_refspec(remote, xstrdup(skip_spaces(v)));
-		else if (skip_prefix(buf.buf, "Pull:", &v))
-			add_fetch_refspec(remote, xstrdup(skip_spaces(v)));
-	}
-	strbuf_release(&buf);
-	fclose(f);
-}
-
-static void read_branches_file(struct remote *remote)
-{
-	char *frag;
-	struct strbuf buf = STRBUF_INIT;
-	FILE *f = fopen(git_path("branches/%s", remote->name), "r");
-
-	if (!f)
-		return;
-
-	strbuf_getline_lf(&buf, f);
-	fclose(f);
-	strbuf_trim(&buf);
-	if (!buf.len) {
-		strbuf_release(&buf);
-		return;
-	}
-
-	warning(_("the branch '%s' uses the long-deprecated '%s' file"),
-		remote->name, git_path("branches/%s", remote->name));
-
-	remote->configured_in_repo = 1;
-	remote->origin = REMOTE_BRANCHES;
-
-	/*
-	 * The branches file would have URL and optionally
-	 * #branch specified.  The "master" (or specified) branch is
-	 * fetched and stored in the local branch matching the
-	 * remote name.
-	 */
-	frag = strchr(buf.buf, '#');
-	if (frag)
-		*(frag++) = '\0';
-	else
-		frag = "master";
-
-	add_url_alias(remote, strbuf_detach(&buf, NULL));
-	add_fetch_refspec(remote, xstrfmt("refs/heads/%s:refs/heads/%s",
-					  frag, remote->name));
-
-	/*
-	 * Cogito compatible push: push current HEAD to remote #branch
-	 * (master if missing)
-	 */
-	add_push_refspec(remote, xstrfmt("HEAD:refs/heads/%s", frag));
-	remote->fetch_tags = 1; /* always auto-follow */
-}
-
 static int handle_config(const char *key, const char *value, void *cb)
 {
 	const char *name;
@@ -652,13 +569,6 @@ void free_refspec(int nr_refspec, struct refspec *refspec)
 	free(refspec);
 }
 
-static int valid_remote_nick(const char *name)
-{
-	if (!name[0] || is_dot_or_dotdot(name))
-		return 0;
-	return !strchr(name, '/'); /* no slash */
-}
-
 const char *remote_for_branch(struct branch *branch, int *explicit)
 {
 	if (branch && branch->remote_name) {
@@ -700,12 +610,6 @@ static struct remote *remote_get_1(const char *name,
 		name = get_default(current_branch, &name_given);
 
 	ret = make_remote(name, 0);
-	if (valid_remote_nick(name) && have_git_dir()) {
-		if (!valid_remote(ret))
-			read_remotes_file(ret);
-		if (!valid_remote(ret))
-			read_branches_file(ret);
-	}
 	if (name_given && !valid_remote(ret))
 		add_url_alias(ret, name);
 	if (!valid_remote(ret))
