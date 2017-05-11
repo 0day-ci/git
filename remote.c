@@ -255,6 +255,10 @@ static void read_remotes_file(struct remote *remote)
 
 	if (!f)
 		return;
+
+	warning(_("the remote '%s' uses the long-deprecated '%s' file"),
+		remote->name, git_path("branches/%s", remote->name));
+
 	remote->configured_in_repo = 1;
 	remote->origin = REMOTE_REMOTES;
 	while (strbuf_getline(&buf, f) != EOF) {
