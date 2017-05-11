@@ -290,6 +290,9 @@ static void read_branches_file(struct remote *remote)
 		return;
 	}
 
+	warning(_("the branch '%s' uses the long-deprecated '%s' file"),
+		remote->name, git_path("branches/%s", remote->name));
+
 	remote->configured_in_repo = 1;
 	remote->origin = REMOTE_BRANCHES;
 
