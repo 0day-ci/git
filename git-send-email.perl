@@ -27,6 +27,7 @@ use Term::ANSIColor;
 use File::Temp qw/ tempdir tempfile /;
 use File::Spec::Functions qw(catfile);
 use Error qw(:try);
+use Cwd qw(abs_path cwd);
 use Git;
 use Git::I18N;
 
@@ -628,9 +629,24 @@ if (@rev_list_opts) {
 @files = handle_backup_files(@files);
 
 if ($validate) {
+	my @hook = ($repo->repo_path().'/hooks/sendemail-validate', '');
+	my $use_hook = -x $hook[0];
+	if ($use_hook) {
+		# The hook needs a correct GIT_DIR.
+		$ENV{"GIT_DIR"} = $repo->repo_path();
+	}
 	foreach my $f (@files) {
 		unless (-p $f) {
-			my $error = validate_patch($f);
+			my $error;
+			if ($use_hook) {
+				$hook[1] = abs_path($f);
+				my $cwd_save = cwd();
+				chdir($repo->wc_path() or $repo->repo_path());
+				$error = "rejected by sendemail-validate hook"
+					unless system(@hook) == 0;
+				chdir($cwd_save);
+			}
+			$error = validate_patch($f) unless $error;
 			$error and die sprintf(__("fatal: %s: %s\nwarning: no patches were sent\n"),
 						  $f, $error);
 		}
