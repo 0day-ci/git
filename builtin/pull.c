@@ -77,6 +77,7 @@ static const char * const pull_usage[] = {
 /* Shared options */
 static int opt_verbosity;
 static char *opt_progress;
+static int recurse_submodules;
 
 /* Options passed to git-merge or git-rebase */
 static enum rebase_type opt_rebase = -1;
@@ -532,6 +533,17 @@ static int pull_into_void(const struct object_id *merge_head,
 	return 0;
 }
 
+static int  update_submodules(void)
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	cp.git_cmd = 1;
+
+	argv_array_pushl(&cp.args, "submodule", "update", "--recursive", NULL);
+	argv_array_push(&cp.args, "--rebase");
+
+	return run_command(&cp);
+}
+
 /**
  * Runs git-merge, returning its exit status.
  */
@@ -816,6 +828,14 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 			oidclr(&rebase_fork_point);
 	}
 
+	if (opt_recurse_submodules &&
+	    !strcmp(opt_recurse_submodules, "--recurse-submodules")) {
+		recurse_submodules = 1;
+
+		if (!opt_rebase)
+			die(_("--recurse-submodules is only valid with --rebase"));
+	}
+
 	if (run_fetch(repo, refspecs))
 		return 1;
 
@@ -862,6 +882,7 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 		die(_("Cannot rebase onto multiple branches."));
 
 	if (opt_rebase) {
+		int ret = 0;
 		struct commit_list *list = NULL;
 		struct commit *merge_head, *head;
 
@@ -871,9 +892,14 @@ int cmd_pull(int argc, const char **argv, const char *prefix)
 		if (is_descendant_of(merge_head, list)) {
 			/* we can fast-forward this without invoking rebase */
 			opt_ff = "--ff-only";
-			return run_merge();
+			ret = run_merge();
 		}
-		return run_rebase(&curr_head, merge_heads.oid, &rebase_fork_point);
+		ret = run_rebase(&curr_head, merge_heads.oid, &rebase_fork_point);
+
+		if (!ret && recurse_submodules)
+			ret = update_submodules();
+
+		return ret;
 	} else {
 		return run_merge();
 	}
