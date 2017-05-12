@@ -1700,10 +1700,10 @@ int is_scissors_line(const char *line)
 /*
  * Inspect the given string and determine the true "end" of the log message, in
  * order to find where to put a new Signed-off-by: line.  Ignored are
- * trailing comment lines and blank lines, and also the traditional
- * "Conflicts:" block that is not commented out, so that we can use
- * "git commit -s --amend" on an existing commit that forgot to remove
- * it.
+ * trailing comment lines and blank lines.  To support "git commit -s
+ * --amend" on an existing commit, we also ignore "Conflicts:".  To
+ * support "git commit -v", we truncate at "---- >8 ----" and similar
+ * scissors lines.
  *
  * Returns the number of bytes from the tail to ignore, to be fed as
  * the second parameter to append_signoff().
@@ -1722,6 +1722,11 @@ int ignore_non_trailer(const char *buf, size_t len)
 		else
 			next_line++;
 
+		if (is_scissors_line(&buf[bol])) {
+			if (!boc)
+				boc = bol;
+			break;
+		}
 		if (buf[bol] == comment_line_char || buf[bol] == '\n') {
 			/* is this the first of the run of comments? */
 			if (!boc)
