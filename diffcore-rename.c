@@ -280,7 +280,7 @@ static int find_identical_files(struct hashmap *srcs,
 	 * Find the best source match for specified destination.
 	 */
 	p = hashmap_get_from_hash(srcs, hash_filespec(target), NULL);
-	for (; p; p = hashmap_get_next(srcs, p)) {
+	for (; p; p = hashmap_get_next(srcs, p, NULL)) {
 		int score;
 		struct diff_filespec *source = p->filespec;
 

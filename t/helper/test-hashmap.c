@@ -206,7 +206,7 @@ int cmd_main(int argc, const char **argv)
 				puts("NULL");
 			while (entry) {
 				puts(get_value(entry));
-				entry = hashmap_get_next(&map, entry);
+				entry = hashmap_get_next(&map, entry, NULL);
 			}
 
 		} else if (!strcmp("remove", cmd) && l1) {

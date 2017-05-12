@@ -140,11 +140,11 @@ to `hashmap_cmp_fn` to decide whether the entry matches the key.
 `hash` is the hash code of the entry to look up.
 +
 If an entry with matching hash code is found, `keydata` is passed to
-`hashmap_cmp_fn` to decide whether the entry matches the key. The
+`hashmap_cmp_fn` to decide whether the `entry` matches the key. The
 `entry_or_key` parameter points to a bogus hashmap_entry structure that
 should not be used in the comparison.
 
-`void *hashmap_get_next(const struct hashmap *map, const void *entry)`::
+`void *hashmap_get_next(const struct hashmap *map, const void *entry, const void *keydata)`::
 
 	Returns the next equal hashmap entry, or NULL if not found. This can be
 	used to iterate over duplicate entries (see `hashmap_add`).
@@ -153,6 +153,8 @@ should not be used in the comparison.
 +
 `entry` is the hashmap_entry to start the search from, obtained via a previous
 call to `hashmap_get` or `hashmap_get_next`.
++
+`keydata` is passed to `hashmap_cmp_fn` to decide whether the entry matches the key.
 
 `void hashmap_add(struct hashmap *map, void *entry)`::
 

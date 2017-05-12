@@ -182,11 +182,12 @@ void *hashmap_get(const struct hashmap *map, const void *key, const void *keydat
 	return *find_entry_ptr(map, key, keydata);
 }
 
-void *hashmap_get_next(const struct hashmap *map, const void *entry)
+void *hashmap_get_next(const struct hashmap *map, const void *entry,
+		       const void *keydata)
 {
 	struct hashmap_entry *e = ((struct hashmap_entry *) entry)->next;
 	for (; e; e = e->next)
-		if (entry_equals(map, entry, e, NULL))
+		if (entry_equals(map, entry, e, keydata))
 			return e;
 	return NULL;
 }
