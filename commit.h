@@ -355,6 +355,7 @@ extern void free_commit_extra_headers(struct commit_extra_header *extra);
  */
 extern const char *find_commit_header(const char *msg, const char *key,
 				      size_t *out_len);
+extern int is_scissors_line(const char *line);
 
 /* Find the end of the log message, the right place for a new trailer. */
 extern int ignore_non_trailer(const char *buf, size_t len);
