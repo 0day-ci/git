@@ -661,7 +661,7 @@ static int is_scissors_line(const char *line)
 	const char *first_nonblank = NULL, *last_nonblank = NULL;
 	int visible, perforation = 0, in_perforation = 0;
 
-	for (c = line; *c; c++) {
+	for (c = line; *c != '\n'; c++) {
 		if (isspace(*c)) {
 			if (in_perforation) {
 				perforation++;
