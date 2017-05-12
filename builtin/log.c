@@ -34,7 +34,7 @@ static int default_abbrev_commit;
 static int default_show_root = 1;
 static int default_follow;
 static int default_show_signature;
-static int decoration_style;
+static int decoration_style = -1;
 static int decoration_given;
 static int use_mailmap_config;
 static const char *fmt_patch_subject_prefix = "PATCH";
@@ -410,7 +410,7 @@ static int git_log_config(const char *var, const char *value, void *cb)
 		if (decoration_style < 0)
 			decoration_style = 0; /* maybe warn? */
 		return 0;
-	} else {
+	} else if (decoration_style == -1) {
 		decoration_style = auto_decoration_style();
 	}
 	if (!strcmp(var, "log.showroot")) {
