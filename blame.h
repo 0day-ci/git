@@ -4,6 +4,8 @@
 #include "cache.h"
 #include "commit.h"
 #include "xdiff-interface.h"
+#include "revision.h"
+#include "prio-queue.h"
 
 /*
  * One blob in a commit that is being suspected
@@ -81,6 +83,33 @@ struct blame_entry {
 	 * scanning the lines over and over.
 	 */
 	unsigned score;
+};
+
+/*
+ * The current state of the blame assignment.
+ */
+struct blame_scoreboard {
+	/* the final commit (i.e. where we started digging from) */
+	struct commit *final;
+	/* Priority queue for commits with unassigned blame records */
+	struct prio_queue commits;
+	struct rev_info *revs;
+	const char *path;
+
+	/*
+	 * The contents in the final image.
+	 * Used by many functions to obtain contents of the nth line,
+	 * indexed with scoreboard.lineno[blame_entry.lno].
+	 */
+	const char *final_buf;
+	unsigned long final_buf_size;
+
+	/* linked list of blames */
+	struct blame_entry *ent;
+
+	/* look-up a line in the final buffer */
+	int num_lines;
+	int *lineno;
 };
 
 #endif /* BLAME_H */
