@@ -115,6 +115,36 @@ enum diff_submodule_format {
 	DIFF_SUBMODULE_INLINE_DIFF
 };
 
+/*
+ * This struct is used when we need to buffer the output of the diff output.
+ *
+ * NEEDSWORK: Instead of storing a copy of the line, add an offset pointer
+ * into the pre/post image file. This pointer could be a union with the
+ * line pointer. By storing an offset into the file instead of the literal line,
+ * we can decrease the memory footprint for the buffered output. At first we
+ * may want to only have indirection for the content lines, but we could
+ * also have an enum (based on sign?) that stores prefabricated lines, e.g.
+ * the similarity score line or hunk/file headers.
+ */
+struct buffered_patch_line {
+	const char *set;
+	const char *reset;
+	const char *line;
+	int len;
+	int sign;
+	enum {
+		BPL_EMIT_LINE_WS,
+		BPL_EMIT_LINE_ASIS,
+		BPL_HANDOVER
+	} state;
+};
+#define BUFFERED_PATCH_LINE_INIT {NULL, NULL, NULL, 0, 0, 0}
+
+struct buffered_filepair {
+	const char *ws;
+	unsigned ws_rule;
+};
+
 struct diff_options {
 	const char *orderfile;
 	const char *pickaxe;
@@ -186,6 +216,15 @@ struct diff_options {
 	void *output_prefix_data;
 
 	int diff_path_counter;
+
+	int use_buffer;
+
+	struct buffered_patch_line *line_buffer;
+	int line_buffer_nr, line_buffer_alloc;
+
+	struct buffered_filepair *filepair_buffer;
+	int filepair_buffer_nr, filepair_buffer_alloc;
+	struct buffered_filepair *current_filepair;
 };
 
 void emit_line_fmt(struct diff_options *o, const char *set, const char *reset,

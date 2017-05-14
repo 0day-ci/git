@@ -516,34 +516,93 @@ static void check_blank_at_eof(mmfile_t *mf1, mmfile_t *mf2,
 	ecbdata->blank_at_eof_in_postimage = (at - l2) + 1;
 }
 
-static void emit_line_0(struct diff_options *o, const char *set, const char *reset,
-			int sign, const char *line, int len)
+static void emit_buffered_patch_line(struct diff_options *o,
+				     struct buffered_patch_line *e)
 {
-	int has_trailing_newline, has_trailing_carriage_return;
+	int has_trailing_newline, has_trailing_carriage_return, len = e->len;
 	FILE *file = o->file;
 
 	fputs(diff_line_prefix(o), file);
 
-	has_trailing_newline = (len > 0 && line[len-1] == '\n');
+	has_trailing_newline = (len > 0 && e->line[len-1] == '\n');
 	if (has_trailing_newline)
 		len--;
-	has_trailing_carriage_return = (len > 0 && line[len-1] == '\r');
+	has_trailing_carriage_return = (len > 0 && e->line[len-1] == '\r');
 	if (has_trailing_carriage_return)
 		len--;
 
-	if (len || sign) {
-		if (set)
-			fputs(set, file);
-		if (sign)
-			fputc(sign, file);
-		fwrite(line, len, 1, file);
-		if (reset)
-			fputs(reset, file);
+	if (len || e->sign) {
+		if (e->set)
+			fputs(e->set, file);
+		if (e->sign)
+			fputc(e->sign, file);
+		fwrite(e->line, len, 1, file);
+		if (e->reset)
+			fputs(e->reset, file);
 	}
 	if (has_trailing_carriage_return)
 		fputc('\r', file);
 	if (has_trailing_newline)
 		fputc('\n', file);
+}
+
+static void emit_buffered_patch_line_ws(struct diff_options *o,
+					struct buffered_patch_line *e,
+					const char *ws, unsigned ws_rule)
+{
+	struct buffered_patch_line s = {e->set, e->reset, "", 0, e->sign};
+
+	emit_buffered_patch_line(o, &s);
+	ws_check_emit(e->line, e->len, ws_rule,
+		      o->file, e->set, e->reset, ws);
+}
+
+static void process_next_buffered_patch_line(struct diff_options *o, int line_no)
+{
+	struct buffered_patch_line *e = &o->line_buffer[line_no];
+
+	const char *ws = o->current_filepair->ws;
+	unsigned ws_rule = o->current_filepair->ws_rule;
+
+	switch (e->state) {
+		case BPL_EMIT_LINE_ASIS:
+			emit_buffered_patch_line(o, e);
+			break;
+		case BPL_EMIT_LINE_WS:
+			emit_buffered_patch_line_ws(o, e, ws, ws_rule);
+			break;
+		case BPL_HANDOVER:
+			o->current_filepair++;
+			break;
+		default:
+			die("BUG: malformatted buffered patch line: '%d'", e->state);
+	}
+}
+
+static void append_buffered_patch_line(struct diff_options *o,
+				       struct buffered_patch_line *e)
+{
+	struct buffered_patch_line *f;
+	ALLOC_GROW(o->line_buffer,
+		   o->line_buffer_nr + 1,
+		   o->line_buffer_alloc);
+	f = &o->line_buffer[o->line_buffer_nr];
+	o->line_buffer_nr++;
+
+	memcpy(f, e, sizeof(struct buffered_patch_line));
+	f->line = e->line ? xmemdupz(e->line, e->len) : NULL;
+}
+
+static void emit_line_0(struct diff_options *o,
+			const char *set, const char *reset,
+			int sign, const char *line, int len)
+{
+	struct buffered_patch_line e = {set, reset, line, len, sign, BPL_EMIT_LINE_ASIS};
+
+	if (o->use_buffer)
+		append_buffered_patch_line(o, &e);
+	else
+		emit_buffered_patch_line(o, &e);
 }
 
 void emit_line(struct diff_options *o, const char *set, const char *reset,
@@ -557,9 +616,12 @@ static void emit_line_ws(struct diff_options *o,
 			 const char *line, int len,
 			 const char *ws, unsigned ws_rule)
 {
-	emit_line_0(o, set, reset, sign, "", 0);
-	ws_check_emit(line, len, ws_rule,
-		      o->file, set, reset, ws);
+	struct buffered_patch_line e = {set, reset, line, len, sign, BPL_EMIT_LINE_WS};
+
+	if (o->use_buffer)
+		append_buffered_patch_line(o, &e);
+	else
+		emit_buffered_patch_line_ws(o, &e, ws, ws_rule);
 }
 
 void emit_line_fmt(struct diff_options *o,
@@ -1160,6 +1222,16 @@ static void diff_words_flush(struct emit_callback *ecbdata)
 	if (ecbdata->diff_words->minus.text.size ||
 	    ecbdata->diff_words->plus.text.size)
 		diff_words_show(ecbdata->diff_words);
+
+	if (ecbdata->diff_words->opt->line_buffer_nr) {
+		int i;
+		for (i = 0; i < ecbdata->diff_words->opt->line_buffer_nr; i++)
+			append_buffered_patch_line(ecbdata->opt,
+				&ecbdata->diff_words->opt->line_buffer[i]);
+
+		ecbdata->diff_words->opt->line_buffer_nr = 0;
+		/* TODO: free memory as well */
+	}
 }
 
 static void diff_filespec_load_driver(struct diff_filespec *one)
@@ -1195,6 +1267,11 @@ static void init_diff_words_data(struct emit_callback *ecbdata,
 		xcalloc(1, sizeof(struct diff_words_data));
 	ecbdata->diff_words->type = o->word_diff;
 	ecbdata->diff_words->opt = o;
+
+	o->line_buffer = NULL;
+	o->line_buffer_nr = 0;
+	o->line_buffer_alloc = 0;
+
 	if (!o->word_regex)
 		o->word_regex = userdiff_word_regex(one);
 	if (!o->word_regex)
@@ -2568,9 +2645,25 @@ static void builtin_diff(const char *name_a,
 			xecfg.ctxlen = strtoul(v, NULL, 10);
 		if (o->word_diff)
 			init_diff_words_data(&ecbdata, o, one, two);
+		if (o->use_buffer) {
+			ALLOC_GROW(o->filepair_buffer,
+				   o->filepair_buffer_nr + 1,
+				   o->filepair_buffer_alloc);
+			o->current_filepair =
+				&o->filepair_buffer[o->filepair_buffer_nr++];
+
+			o->current_filepair->ws_rule = ecbdata.ws_rule;
+			o->current_filepair->ws =
+				diff_get_color(ecbdata.color_diff, DIFF_WHITESPACE);
+		}
 		if (xdi_diff_outf(&mf1, &mf2, fn_out_consume, &ecbdata,
 				  &xpp, &xecfg))
 			die("unable to generate diff for %s", one->path);
+		if (o->use_buffer) {
+			struct buffered_patch_line e = BUFFERED_PATCH_LINE_INIT;
+			e.state = BPL_HANDOVER; /* handover to next file pair */
+			append_buffered_patch_line(o, &e);
+		}
 		if (o->word_diff)
 			free_diff_words_data(&ecbdata);
 		if (textconv_one)
@@ -4785,10 +4878,43 @@ static void diff_flush_patch_all_file_pairs(struct diff_options *o)
 {
 	int i;
 	struct diff_queue_struct *q = &diff_queued_diff;
+	/*
+	 * For testing purposes we want to make sure the diff machinery
+	 * works completely with the buffer. If there is anything emitted
+	 * outside the emit_buffered_patch_line, then the order is screwed
+	 * up and the tests will fail.
+	 *
+	 * TODO (later in this series):
+	 * We'll unset this flag in a later patch.
+	 */
+	o->use_buffer = 1;
+
+	if (o->use_buffer) {
+		ALLOC_GROW(o->filepair_buffer,
+			   o->filepair_buffer_nr + 1,
+			   o->filepair_buffer_alloc);
+		o->current_filepair = &o->filepair_buffer[o->filepair_buffer_nr];
+	}
 	for (i = 0; i < q->nr; i++) {
 		struct diff_filepair *p = q->queue[i];
 		if (check_pair_status(p))
 			diff_flush_patch(p, o);
+	}
+
+	if (o->use_buffer) {
+		o->current_filepair = &o->filepair_buffer[0];
+		for (i = 0; i < o->line_buffer_nr; i++)
+			process_next_buffered_patch_line(o, i);
+
+		for (i = 0; i < o->line_buffer_nr; i++);
+			free((void*)o->line_buffer[i].line);
+
+		o->line_buffer = NULL;
+		o->line_buffer_nr = 0;
+		free(o->line_buffer);
+		o->filepair_buffer = NULL;
+		o->filepair_buffer_nr = 0;
+		free(o->filepair_buffer);
 	}
 }
 
