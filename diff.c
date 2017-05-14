@@ -552,6 +552,16 @@ void emit_line(struct diff_options *o, const char *set, const char *reset,
 	emit_line_0(o, set, reset, 0, line, len);
 }
 
+static void emit_line_ws(struct diff_options *o,
+			 const char *set, const char *reset, int sign,
+			 const char *line, int len,
+			 const char *ws, unsigned ws_rule)
+{
+	emit_line_0(o, set, reset, sign, "", 0);
+	ws_check_emit(line, len, ws_rule,
+		      o->file, set, reset, ws);
+}
+
 void emit_line_fmt(struct diff_options *o,
 		   const char *set, const char *reset,
 		   const char *fmt, ...)
@@ -598,12 +608,10 @@ static void emit_line_checked(const char *reset,
 	else if (sign == '+' && new_blank_line_at_eof(ecbdata, line, len))
 		/* Blank line at EOF - paint '+' as well */
 		emit_line_0(ecbdata->opt, ws, reset, sign, line, len);
-	else {
+	else
 		/* Emit just the prefix, then the rest. */
-		emit_line_0(ecbdata->opt, set, reset, sign, "", 0);
-		ws_check_emit(line, len, ecbdata->ws_rule,
-			      ecbdata->opt->file, set, reset, ws);
-	}
+		emit_line_ws(ecbdata->opt, set, reset, sign, line, len,
+			     ws, ecbdata->ws_rule);
 }
 
 static void emit_add_line(const char *reset,
