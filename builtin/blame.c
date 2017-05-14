@@ -80,7 +80,7 @@ struct progress_info {
 };
 
 static int diff_hunks(mmfile_t *file_a, mmfile_t *file_b,
-		      xdl_emit_hunk_consume_func_t hunk_func, void *cb_data)
+		      xdl_emit_hunk_consume_func_t hunk_func, void *cb_data, int xdl_opts)
 {
 	xpparam_t xpp = {0};
 	xdemitconf_t xecfg = {0};
@@ -823,7 +823,7 @@ static void pass_blame_to_parent(struct blame_scoreboard *sb,
 	fill_origin_blob(&sb->revs->diffopt, target, &file_o, &sb->num_read_blob);
 	sb->num_get_patch++;
 
-	if (diff_hunks(&file_p, &file_o, blame_chunk_cb, &d))
+	if (diff_hunks(&file_p, &file_o, blame_chunk_cb, &d, sb->xdl_opts))
 		die("unable to generate diff (%s -> %s)",
 		    oid_to_hex(&parent->commit->object.oid),
 		    oid_to_hex(&target->commit->object.oid));
@@ -972,7 +972,7 @@ static void find_copy_in_blob(struct blame_scoreboard *sb,
 	 * file_p partially may match that image.
 	 */
 	memset(split, 0, sizeof(struct blame_entry [3]));
-	if (diff_hunks(file_p, &file_o, handle_split_cb, &d))
+	if (diff_hunks(file_p, &file_o, handle_split_cb, &d, sb->xdl_opts))
 		die("unable to generate diff (%s)",
 		    oid_to_hex(&parent->commit->object.oid));
 	/* remainder, if any, all match the preimage */
@@ -2762,6 +2762,7 @@ parse_done:
 		sb.copy_score = blame_copy_score;
 
 	sb.show_root = show_root;
+	sb.xdl_opts = xdl_opts;
 
 	read_mailmap(&mailmap, NULL);
 
