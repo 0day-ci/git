@@ -4873,7 +4873,9 @@ void diff_flush(struct diff_options *options)
 				  term, 1);
 			if (options->stat_sep) {
 				/* attach patch instead of inline */
-				fputs(options->stat_sep, options->file);
+				emit_line(options, NULL, NULL,
+					  options->stat_sep,
+					  strlen(options->stat_sep));
 			}
 		}
 
