@@ -1026,10 +1026,8 @@ parse_done:
 
 	revs.disable_stdin = 1;
 	setup_revisions(argc, argv, &revs, NULL);
-	memset(&sb, 0, sizeof(sb));
-	sb.move_score = BLAME_DEFAULT_MOVE_SCORE;
-	sb.copy_score = BLAME_DEFAULT_COPY_SCORE;
 
+	init_scoreboard(&sb);
 	sb.revs = &revs;
 	sb.contents_from = contents_from;
 	sb.reverse = reverse;

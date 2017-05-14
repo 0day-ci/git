@@ -171,4 +171,6 @@ extern unsigned blame_entry_score(struct blame_scoreboard *sb, struct blame_entr
 extern void assign_blame(struct blame_scoreboard *sb, int opt);
 extern const char *blame_nth_line(struct blame_scoreboard *sb, long lno);
 
+extern void init_scoreboard(struct blame_scoreboard *sb);
+
 #endif /* BLAME_H */
