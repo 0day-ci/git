@@ -1598,9 +1598,10 @@ static int emit_one_suspect_detail(struct blame_origin *suspect, int repeat)
  * The blame_entry is found to be guilty for the range.
  * Show it in incremental output.
  */
-static void found_guilty_entry(struct blame_entry *ent,
-			   struct progress_info *pi)
+static void found_guilty_entry(struct blame_entry *ent, void *data)
 {
+	struct progress_info *pi = (struct progress_info *)data;
+
 	if (incremental) {
 		struct blame_origin *suspect = ent->suspect;
 
@@ -1623,11 +1624,6 @@ static void assign_blame(struct blame_scoreboard *sb, int opt)
 {
 	struct rev_info *revs = sb->revs;
 	struct commit *commit = prio_queue_get(&sb->commits);
-	struct progress_info pi = { NULL, 0 };
-
-	if (show_progress)
-		pi.progress = start_progress_delay(_("Blaming lines"),
-						   sb->num_lines, 50, 1);
 
 	while (commit) {
 		struct blame_entry *ent;
@@ -1669,7 +1665,8 @@ static void assign_blame(struct blame_scoreboard *sb, int opt)
 			suspect->guilty = 1;
 			for (;;) {
 				struct blame_entry *next = ent->next;
-				found_guilty_entry(ent, &pi);
+				if (sb->found_guilty_entry)
+					sb->found_guilty_entry(ent, sb->found_guilty_entry_data);
 				if (next) {
 					ent = next;
 					continue;
@@ -1685,8 +1682,6 @@ static void assign_blame(struct blame_scoreboard *sb, int opt)
 		if (sb->debug) /* sanity */
 			sanity_check_refcnt(sb);
 	}
-
-	stop_progress(&pi.progress);
 }
 
 static const char *format_time(unsigned long time, const char *tz_str,
@@ -2419,6 +2414,7 @@ int cmd_blame(int argc, const char **argv, const char *prefix)
 	char *final_commit_name = NULL;
 	enum object_type type;
 	struct commit *final_commit = NULL;
+	struct progress_info pi = { NULL, 0 };
 
 	struct string_list range_list = STRING_LIST_INIT_NODUP;
 	int output_option = 0, opt = 0;
@@ -2774,7 +2770,15 @@ parse_done:
 
 	read_mailmap(&mailmap, NULL);
 
+	sb.found_guilty_entry = &found_guilty_entry;
+	sb.found_guilty_entry_data = &pi;
+	if (show_progress)
+		pi.progress = start_progress_delay(_("Blaming lines"),
+						   sb.num_lines, 50, 1);
+
 	assign_blame(&sb, opt);
+
+	stop_progress(&pi.progress);
 
 	if (!incremental)
 		setup_pager();

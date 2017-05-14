@@ -138,6 +138,9 @@ struct blame_scoreboard {
 
 	/* callbacks */
 	void(*on_sanity_fail)(struct blame_scoreboard *, int);
+	void(*found_guilty_entry)(struct blame_entry *, void *);
+
+	void *found_guilty_entry_data;
 };
 
 #endif /* BLAME_H */
