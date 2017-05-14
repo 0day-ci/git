@@ -134,6 +134,10 @@ struct blame_scoreboard {
 	int show_root;
 	int xdl_opts;
 	int no_whole_file_rename;
+	int debug;
+
+	/* callbacks */
+	void(*on_sanity_fail)(struct blame_scoreboard *, int);
 };
 
 #endif /* BLAME_H */
