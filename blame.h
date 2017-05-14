@@ -131,6 +131,7 @@ struct blame_scoreboard {
 
 	/* flags */
 	int reverse;
+	int show_root;
 };
 
 #endif /* BLAME_H */
