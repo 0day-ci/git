@@ -128,6 +128,9 @@ struct blame_scoreboard {
 
 	/* use this file's contents as the final image */
 	const char *contents_from;
+
+	/* flags */
+	int reverse;
 };
 
 #endif /* BLAME_H */
