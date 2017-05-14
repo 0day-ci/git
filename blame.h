@@ -125,6 +125,9 @@ struct blame_scoreboard {
 	 */
 	unsigned move_score;
 	unsigned copy_score;
+
+	/* use this file's contents as the final image */
+	const char *contents_from;
 };
 
 #endif /* BLAME_H */
