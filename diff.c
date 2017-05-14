@@ -532,11 +532,13 @@ static void emit_line_0(struct diff_options *o, const char *set, const char *res
 		len--;
 
 	if (len || sign) {
-		fputs(set, file);
+		if (set)
+			fputs(set, file);
 		if (sign)
 			fputc(sign, file);
 		fwrite(line, len, 1, file);
-		fputs(reset, file);
+		if (reset)
+			fputs(reset, file);
 	}
 	if (has_trailing_carriage_return)
 		fputc('\r', file);
