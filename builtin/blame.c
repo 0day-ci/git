@@ -890,16 +890,7 @@ parse_done:
 
 	for (range_i = ranges.nr; range_i > 0; --range_i) {
 		const struct range *r = &ranges.ranges[range_i - 1];
-		long bottom = r->start;
-		long top = r->end;
-		struct blame_entry *next = ent;
-		ent = xcalloc(1, sizeof(*ent));
-		ent->lno = bottom;
-		ent->num_lines = top - bottom;
-		ent->suspect = o;
-		ent->s_lno = bottom;
-		ent->next = next;
-		blame_origin_incref(o);
+		ent = blame_entry_prepend(ent, r->start, r->end, o);
 	}
 
 	o->suspects = ent;
