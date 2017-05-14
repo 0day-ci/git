@@ -110,6 +110,11 @@ struct blame_scoreboard {
 	/* look-up a line in the final buffer */
 	int num_lines;
 	int *lineno;
+
+	/* stats */
+	int num_read_blob;
+	int num_get_patch;
+	int num_commits;
 };
 
 #endif /* BLAME_H */
