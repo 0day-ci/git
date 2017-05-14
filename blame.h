@@ -133,6 +133,7 @@ struct blame_scoreboard {
 	int reverse;
 	int show_root;
 	int xdl_opts;
+	int no_whole_file_rename;
 };
 
 #endif /* BLAME_H */
