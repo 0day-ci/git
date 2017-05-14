@@ -748,7 +748,7 @@ static void emit_rewrite_lines(struct emit_callback *ecb,
 	if (!endp) {
 		const char *context = diff_get_color(ecb->color_diff,
 						     DIFF_CONTEXT);
-		putc('\n', ecb->opt->file);
+		emit_line(ecb->opt, NULL, NULL, "\n", 1);
 		emit_line_0(ecb->opt, context, reset, '\\',
 			    nneof, strlen(nneof));
 	}
