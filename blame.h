@@ -7,6 +7,9 @@
 #include "revision.h"
 #include "prio-queue.h"
 
+#define BLAME_DEFAULT_MOVE_SCORE	20
+#define BLAME_DEFAULT_COPY_SCORE	40
+
 /*
  * One blob in a commit that is being suspected
  */
@@ -115,6 +118,13 @@ struct blame_scoreboard {
 	int num_read_blob;
 	int num_get_patch;
 	int num_commits;
+
+	/*
+	 * blame for a blame_entry with score lower than these thresholds
+	 * is not passed to the parent using move/copy logic.
+	 */
+	unsigned move_score;
+	unsigned copy_score;
 };
 
 #endif /* BLAME_H */
