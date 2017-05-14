@@ -7,6 +7,7 @@
 #include "tree-walk.h"
 #include "pathspec.h"
 #include "object.h"
+#include "hashmap.h"
 
 struct rev_info;
 struct diff_options;
@@ -145,6 +146,8 @@ struct buffered_filepair {
 	unsigned ws_rule;
 };
 
+struct moved_entry;
+
 struct diff_options {
 	const char *orderfile;
 	const char *pickaxe;
@@ -217,6 +220,8 @@ struct diff_options {
 
 	int diff_path_counter;
 
+	/* Determines color moved code. Flipped between 1, 2 for alt. color. */
+	int color_moved;
 	int use_buffer;
 
 	struct buffered_patch_line *line_buffer;
@@ -225,6 +230,16 @@ struct diff_options {
 	struct buffered_filepair *filepair_buffer;
 	int filepair_buffer_nr, filepair_buffer_alloc;
 	struct buffered_filepair *current_filepair;
+
+	/* built up in the first pass: */
+	struct hashmap *deleted_lines;
+	struct hashmap *added_lines;
+	/* needed for building up */
+	struct moved_entry *prev_line;
+
+	/* state in the second pass */
+	struct moved_entry **pmb; /* potentially moved blocks */
+	int pmb_nr, pmb_alloc;
 };
 
 void emit_line_fmt(struct diff_options *o, const char *set, const char *reset,
@@ -241,7 +256,11 @@ enum color_diff {
 	DIFF_FILE_NEW = 5,
 	DIFF_COMMIT = 6,
 	DIFF_WHITESPACE = 7,
-	DIFF_FUNCINFO = 8
+	DIFF_FUNCINFO = 8,
+	DIFF_FILE_OLD_MOVED = 9,
+	DIFF_FILE_OLD_MOVED_ALT = 10,
+	DIFF_FILE_NEW_MOVED = 11,
+	DIFF_FILE_NEW_MOVED_ALT = 12
 };
 const char *diff_get_color(int diff_use_color, enum color_diff ix);
 #define diff_get_color_opt(o, ix) \
