@@ -6,6 +6,7 @@
 #include "xdiff-interface.h"
 #include "revision.h"
 #include "prio-queue.h"
+#include "diff.h"
 
 #define BLAME_DEFAULT_MOVE_SCORE	20
 #define BLAME_DEFAULT_COPY_SCORE	40
@@ -155,7 +156,8 @@ static inline struct blame_origin *blame_origin_incref(struct blame_origin *o)
 }
 extern void blame_origin_decref(struct blame_origin *o);
 
-extern struct blame_origin *make_origin(struct commit *commit, const char *path);
 extern struct blame_origin *get_origin(struct commit *commit, const char *path);
+
+extern struct commit *fake_working_tree_commit(struct diff_options *opt, const char *path, const char *contents_from);
 
 #endif /* BLAME_H */
