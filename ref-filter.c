@@ -967,7 +967,8 @@ static void find_subpos(const char *buf, unsigned long sz,
 	/* subject is first non-empty line */
 	*sub = buf;
 	/* subject goes to first empty line */
-	while (buf < *sig && *buf && *buf != '\n') {
+	while (buf < *sig && *buf && *buf != '\n'
+	       && !(*buf == '\r' && *(buf + 1) == '\n')) {
 		eol = strchrnul(buf, '\n');
 		if (*eol)
 			eol++;
@@ -975,12 +976,22 @@ static void find_subpos(const char *buf, unsigned long sz,
 	}
 	*sublen = buf - *sub;
 	/* drop trailing newline, if present */
-	if (*sublen && (*sub)[*sublen - 1] == '\n')
+	if (*sublen && (*sub)[*sublen - 1] == '\n') {
 		*sublen -= 1;
+		/* also drop trailing CR before that LF */
+		if ((*sublen) && (*sub)[*sublen - 1] == '\r')
+			*sublen -= 1;
+	}
 
 	/* skip any empty lines */
-	while (*buf == '\n')
-		buf++;
+	while (1) {
+		if (*buf == '\n')
+			buf++;
+		else if (*buf == '\r' && *(buf + 1) == '\n')
+			buf += 2;
+		else
+			break;
+	}
 	*body = buf;
 	*bodylen = strlen(buf);
 	*nonsiglen = *sig - buf;
