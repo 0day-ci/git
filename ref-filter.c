@@ -942,6 +942,17 @@ static void grab_person(const char *who, struct atom_value *val, int deref, stru
 	}
 }
 
+/*
+ * check if line in range [start, end) is a blank line or not
+ * data in range [start, end) must be valid before calling this function
+ */
+static int is_blank_line(const char *start, const char *end)
+{
+	while (start != end && isspace(*start))
+		++start;
+	return start == end;
+}
+
 static void find_subpos(const char *buf, unsigned long sz,
 			const char **sub, unsigned long *sublen,
 			const char **body, unsigned long *bodylen,
@@ -967,19 +978,21 @@ static void find_subpos(const char *buf, unsigned long sz,
 	/* subject is first non-empty line */
 	*sub = buf;
 	/* subject goes to first empty line */
-	while (buf < *sig && *buf && *buf != '\n') {
+	while (buf < *sig) {
 		eol = strchrnul(buf, '\n');
 		if (*eol)
 			eol++;
+		if (is_blank_line(buf, eol))
+			break;
 		buf = eol;
 	}
 	*sublen = buf - *sub;
-	/* drop trailing newline, if present */
-	if (*sublen && (*sub)[*sublen - 1] == '\n')
+	/* drop trailing whitespace, if present */
+	while (*sublen && isspace((*sub)[*sublen - 1]))
 		*sublen -= 1;
 
 	/* skip any empty lines */
-	while (*buf == '\n')
+	while (isspace(*buf))
 		buf++;
 	*body = buf;
 	*bodylen = strlen(buf);
