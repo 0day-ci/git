@@ -61,4 +61,24 @@ test_expect_success 'command line pathspec parsing for "git log"' '
 	git log --merge -- a
 '
 
+# This differs from the ":/a" check above in that :/in only _looks_
+# like a pathspec, but doesn't match an actual file. So we prefer
+# it as a rev.
+test_expect_success '"git log :/in" should not be ambiguous' '
+	git log :/in
+'
+
+test_expect_success '"git log :^sub" should not be ambiguous' '
+	git log :^sub
+'
+
+test_expect_success '"git log :(exclude)sub" should not be ambiguous' '
+	git log ":(exclude)sub"
+'
+
+test_expect_success '"git log :%foo" should complain of bad magic' '
+	test_must_fail git log :%foo 2>error &&
+	test_i18ngrep pathspec.magic error
+'
+
 test_done
