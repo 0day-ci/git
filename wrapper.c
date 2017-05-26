@@ -434,6 +434,10 @@ static void warn_on_inaccessible(const char *path)
  * see if the errno indicates a missing file that we can safely ignore.
  */
 static int is_missing_file_error(int errno_) {
+#ifdef GIT_WINDOWS_NATIVE
+	if (errno_ == EINVAL)
+		return 1;
+#endif
 	return (errno_ == ENOENT || errno_ == ENOTDIR);
 }
 
