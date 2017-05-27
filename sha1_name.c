@@ -1505,6 +1505,7 @@ static int get_sha1_with_context_1(const char *name,
 	int namelen = strlen(name);
 	const char *cp;
 	int only_to_die = flags & GET_SHA1_ONLY_TO_DIE;
+	static int dep_state = 0;
 
 	if (only_to_die)
 		flags |= GET_SHA1_QUIETLY;
@@ -1527,6 +1528,8 @@ static int get_sha1_with_context_1(const char *name,
 		char *new_path = NULL;
 		int pos;
 		if (!only_to_die && namelen > 2 && name[1] == '/') {
+			deprecate(&dep_state, _(":/<text> is deprecated. Use ^{/<text>} instead!"),
+				  213, 214, 215, 216);
 			struct commit_list *list = NULL;
 
 			for_each_ref(handle_one_ref, &list);
