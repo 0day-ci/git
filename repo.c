@@ -84,6 +84,11 @@ void repo_set_gitdir(struct repo *repo, const char *path)
 	repo_setup_env(repo);
 }
 
+void repo_set_worktree(struct repo *repo, const char *path)
+{
+	repo->worktree = real_pathdup(path, 1);
+}
+
 int repo_init(struct repo *repo, const char *gitdir)
 {
 	int error = 0;
@@ -121,4 +126,6 @@ int repo_init(struct repo *repo, const char *gitdir)
 void repo_clear(struct repo *repo)
 {
 	repo_clear_env(repo);
+	free(repo->worktree);
+	repo->worktree = NULL;
 }
