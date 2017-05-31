@@ -53,10 +53,18 @@ testrebase() {
 		git checkout -b rebased-feature-branch feature-branch &&
 		test_when_finished git branch -D rebased-feature-branch &&
 		echo dirty >>file3 &&
-		git rebase$type unrelated-onto-branch &&
+		git rebase$type unrelated-onto-branch >tmp 2>&1 &&
 		grep unrelated file4 &&
 		grep dirty file3 &&
 		git checkout feature-branch
+	'
+
+	test_expect_success "rebase$type --autostash: check output" '
+		suffix=${type#\ -} && suffix=${suffix:--am} &&
+		sed -f $TEST_DIRECTORY/t3420/remove-ids.sed tmp \
+			>actual-success$suffix &&
+		test_cmp $TEST_DIRECTORY/t3420/expected-success$suffix \
+			actual-success$suffix
 	'
 
 	test_expect_success "rebase$type: dirty index, non-conflicting rebase" '

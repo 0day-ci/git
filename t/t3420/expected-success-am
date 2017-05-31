@@ -1,0 +1,6 @@
+Created autostash: XXX
+HEAD is now at XXX third commit
+First, rewinding head to replay your work on top of it...
+Applying: second commit
+Applying: third commit
+Applied autostash.
