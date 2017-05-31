@@ -148,7 +148,7 @@ testrebase() {
 		test_when_finished git branch -D rebased-feature-branch &&
 		echo dirty >file4 &&
 		git add file4 &&
-		git rebase$type unrelated-onto-branch &&
+		git rebase$type unrelated-onto-branch >tmp 2>&1 &&
 		test_path_is_missing $dotest &&
 		git reset --hard &&
 		grep unrelated file4 &&
@@ -156,6 +156,14 @@ testrebase() {
 		git checkout feature-branch &&
 		git stash pop &&
 		grep dirty file4
+	'
+
+	test_expect_success "rebase$type: check output with conflicting stash" '
+		suffix=${type#\ -} && suffix=${suffix:--am} &&
+		sed -f $TEST_DIRECTORY/t3420/remove-ids.sed tmp \
+			>actual-fail$suffix &&
+		test_cmp $TEST_DIRECTORY/t3420/expected-fail$suffix \
+			actual-fail$suffix
 	'
 }
 

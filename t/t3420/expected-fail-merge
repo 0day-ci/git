@@ -1,0 +1,32 @@
+Created autostash: XXX
+HEAD is now at XXX third commit
+First, rewinding head to replay your work on top of it...
+Merging unrelated-onto-branch with HEAD~1
+Merging:
+XXX unrelated commit
+XXX second commit
+found 1 common ancestor:
+XXX initial commit
+[detached HEAD XXX] second commit
+ Author: A U Thor <author@example.com>
+ Date: Thu Apr 7 15:14:13 2005 -0700
+ 2 files changed, 2 insertions(+)
+ create mode 100644 file1
+ create mode 100644 file2
+Committed: 0001 second commit
+Merging unrelated-onto-branch with HEAD~0
+Merging:
+XXX second commit
+XXX third commit
+found 1 common ancestor:
+XXX second commit
+[detached HEAD XXX] third commit
+ Author: A U Thor <author@example.com>
+ Date: Thu Apr 7 15:15:13 2005 -0700
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file3
+Committed: 0002 third commit
+All done.
+Applying autostash resulted in conflicts.
+Your changes are safe in the stash.
+You can run "git stash pop" or "git stash drop" at any time.
