@@ -1,5 +1,6 @@
 #include "cache.h"
 #include "repo.h"
+#include "config.h"
 
 /*
  * This may be the wrong place for this.
@@ -89,6 +90,20 @@ void repo_set_worktree(struct repo *repo, const char *path)
 	repo->worktree = real_pathdup(path, 1);
 }
 
+void repo_read_config(struct repo *repo)
+{
+	struct config_options opts = { 1, repo->commondir };
+
+	if (!repo->config)
+		repo->config = xcalloc(1, sizeof(struct config_set));
+	else
+		git_configset_clear(repo->config);
+
+	git_configset_init(repo->config);
+
+	git_config_with_options(config_set_callback, repo->config, NULL, &opts);
+}
+
 int repo_init(struct repo *repo, const char *gitdir)
 {
 	int error = 0;
@@ -128,4 +143,10 @@ void repo_clear(struct repo *repo)
 	repo_clear_env(repo);
 	free(repo->worktree);
 	repo->worktree = NULL;
+
+	if (repo->config) {
+		git_configset_clear(repo->config);
+		free(repo->config);
+		repo->config = NULL;
+	}
 }

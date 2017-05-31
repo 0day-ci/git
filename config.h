@@ -149,6 +149,7 @@ struct config_set {
 };
 
 extern void git_configset_init(struct config_set *cs);
+extern int config_set_callback(const char *key, const char *value, void *cb);
 extern int git_configset_add_file(struct config_set *cs, const char *filename);
 extern int git_configset_get_value(struct config_set *cs, const char *key, const char **value);
 extern const struct string_list *git_configset_get_value_multi(struct config_set *cs, const char *key);

@@ -7,6 +7,7 @@
  */
 #include "cache.h"
 #include "config.h"
+#include "repo.h"
 #include "lockfile.h"
 #include "exec_cmd.h"
 #include "strbuf.h"
@@ -71,13 +72,6 @@ static enum config_scope current_parsing_scope;
 static int core_compression_seen;
 static int pack_compression_seen;
 static int zlib_compression_seen;
-
-/*
- * Default config_set that contains key-value pairs from the usual set of config
- * config files (i.e repo specific .git/config, user wide ~/.gitconfig, XDG
- * config file and the global /etc/gitconfig)
- */
-static struct config_set the_config_set;
 
 static int config_file_fgetc(struct config_source *conf)
 {
@@ -1606,28 +1600,6 @@ int git_config_with_options(config_fn_t fn, void *data,
 	return do_git_config_sequence(opts, fn, data);
 }
 
-static void git_config_raw(config_fn_t fn, void *data)
-{
-	struct config_options opts = {0};
-
-	opts.respect_includes = 1;
-	if (have_git_dir())
-		opts.git_dir = get_git_common_dir();
-	if (git_config_with_options(fn, data, NULL, &opts) < 0)
-		/*
-		 * git_config_with_options() normally returns only
-		 * zero, as most errors are fatal, and
-		 * non-fatal potential errors are guarded by "if"
-		 * statements that are entered only when no error is
-		 * possible.
-		 *
-		 * If we ever encounter a non-fatal error, it means
-		 * something went really wrong and we should stop
-		 * immediately.
-		 */
-		die(_("unknown error occurred while reading the configuration files"));
-}
-
 static void configset_iter(struct config_set *cs, config_fn_t fn, void *data)
 {
 	int i, value_index;
@@ -1674,14 +1646,6 @@ void read_early_config(config_fn_t cb, void *data)
 	git_config_with_options(cb, data, NULL, &opts);
 
 	strbuf_release(&buf);
-}
-
-static void git_config_check_init(void);
-
-void git_config(config_fn_t fn, void *data)
-{
-	git_config_check_init();
-	configset_iter(&the_config_set, fn, data);
 }
 
 static struct config_set_element *configset_find_element(struct config_set *cs, const char *key)
@@ -1782,7 +1746,7 @@ void git_configset_clear(struct config_set *cs)
 	cs->list.items = NULL;
 }
 
-static int config_set_callback(const char *key, const char *value, void *cb)
+int config_set_callback(const char *key, const char *value, void *cb)
 {
 	struct config_set *cs = cb;
 	configset_add_value(cs, key, value);
@@ -1893,87 +1857,164 @@ int git_configset_get_pathname(struct config_set *cs, const char *key, const cha
 		return 1;
 }
 
-static void git_config_check_init(void)
+/* Functions use to read configuration from a repository */
+static void git_config_check_init(struct repo *repository)
 {
-	if (the_config_set.hash_initialized)
+	if (repository->config && repository->config->hash_initialized)
 		return;
-	git_configset_init(&the_config_set);
-	git_config_raw(config_set_callback, &the_config_set);
+	repo_read_config(repository);
+}
+
+static void repo_config_clear(struct repo *repository)
+{
+	if (!repository->config || !repository->config->hash_initialized)
+		return;
+	git_configset_clear(repository->config);
+}
+
+static void repo_config(struct repo *repository, config_fn_t fn, void *data)
+{
+	git_config_check_init(repository);
+	configset_iter(repository->config, fn, data);
+}
+
+static int repo_config_get_value(struct repo *repository,
+				 const char *key, const char **value)
+{
+	git_config_check_init(repository);
+	return git_configset_get_value(repository->config, key, value);
+}
+
+static const struct string_list *repo_config_get_value_multi(struct repo *repository,
+							     const char *key)
+{
+	git_config_check_init(repository);
+	return git_configset_get_value_multi(repository->config, key);
+}
+
+static int repo_config_get_string_const(struct repo *repository,
+					const char *key, const char **dest)
+{
+	int ret;
+	git_config_check_init(repository);
+	ret = git_configset_get_string_const(repository->config, key, dest);
+	if (ret < 0)
+		git_die_config(key, NULL);
+	return ret;
+}
+
+static int repo_config_get_string(struct repo *repository,
+				  const char *key, char **dest)
+{
+	git_config_check_init(repository);
+	return repo_config_get_string_const(repository, key, (const char **)dest);
+}
+
+static int repo_config_get_int(struct repo *repository,
+			       const char *key, int *dest)
+{
+	git_config_check_init(repository);
+	return git_configset_get_int(repository->config, key, dest);
+}
+
+static int repo_config_get_ulong(struct repo *repository,
+				const char *key, unsigned long *dest)
+{
+	git_config_check_init(repository);
+	return git_configset_get_ulong(repository->config, key, dest);
+}
+
+static int repo_config_get_bool(struct repo *repository,
+				const char *key, int *dest)
+{
+	git_config_check_init(repository);
+	return git_configset_get_bool(repository->config, key, dest);
+}
+
+static int repo_config_get_bool_or_int(struct repo *repository,
+				       const char *key, int *is_bool, int *dest)
+{
+	git_config_check_init(repository);
+	return git_configset_get_bool_or_int(repository->config, key, is_bool, dest);
+}
+
+static int repo_config_get_maybe_bool(struct repo *repository,
+				      const char *key, int *dest)
+{
+	git_config_check_init(repository);
+	return git_configset_get_maybe_bool(repository->config, key, dest);
+}
+
+static int repo_config_get_pathname(struct repo *repository,
+				    const char *key, const char **dest)
+{
+	int ret;
+	git_config_check_init(repository);
+	ret = git_configset_get_pathname(repository->config, key, dest);
+	if (ret < 0)
+		git_die_config(key, NULL);
+	return ret;
+}
+
+/* Functions used historically to read configuration from 'the_repository' */
+void git_config(config_fn_t fn, void *data)
+{
+	repo_config(&the_repository, fn, data);
 }
 
 void git_config_clear(void)
 {
-	if (!the_config_set.hash_initialized)
-		return;
-	git_configset_clear(&the_config_set);
+	repo_config_clear(&the_repository);
 }
 
 int git_config_get_value(const char *key, const char **value)
 {
-	git_config_check_init();
-	return git_configset_get_value(&the_config_set, key, value);
+	return repo_config_get_value(&the_repository, key, value);
 }
 
 const struct string_list *git_config_get_value_multi(const char *key)
 {
-	git_config_check_init();
-	return git_configset_get_value_multi(&the_config_set, key);
+	return repo_config_get_value_multi(&the_repository, key);
 }
 
 int git_config_get_string_const(const char *key, const char **dest)
 {
-	int ret;
-	git_config_check_init();
-	ret = git_configset_get_string_const(&the_config_set, key, dest);
-	if (ret < 0)
-		git_die_config(key, NULL);
-	return ret;
+	return repo_config_get_string_const(&the_repository, key, dest);
 }
 
 int git_config_get_string(const char *key, char **dest)
 {
-	git_config_check_init();
-	return git_config_get_string_const(key, (const char **)dest);
+	return repo_config_get_string(&the_repository, key, dest);
 }
 
 int git_config_get_int(const char *key, int *dest)
 {
-	git_config_check_init();
-	return git_configset_get_int(&the_config_set, key, dest);
+	return repo_config_get_int(&the_repository, key, dest);
 }
 
 int git_config_get_ulong(const char *key, unsigned long *dest)
 {
-	git_config_check_init();
-	return git_configset_get_ulong(&the_config_set, key, dest);
+	return repo_config_get_ulong(&the_repository, key, dest);
 }
 
 int git_config_get_bool(const char *key, int *dest)
 {
-	git_config_check_init();
-	return git_configset_get_bool(&the_config_set, key, dest);
+	return repo_config_get_bool(&the_repository, key, dest);
 }
 
 int git_config_get_bool_or_int(const char *key, int *is_bool, int *dest)
 {
-	git_config_check_init();
-	return git_configset_get_bool_or_int(&the_config_set, key, is_bool, dest);
+	return repo_config_get_bool_or_int(&the_repository, key, is_bool, dest);
 }
 
 int git_config_get_maybe_bool(const char *key, int *dest)
 {
-	git_config_check_init();
-	return git_configset_get_maybe_bool(&the_config_set, key, dest);
+	return repo_config_get_maybe_bool(&the_repository, key, dest);
 }
 
 int git_config_get_pathname(const char *key, const char **dest)
 {
-	int ret;
-	git_config_check_init();
-	ret = git_configset_get_pathname(&the_config_set, key, dest);
-	if (ret < 0)
-		git_die_config(key, NULL);
-	return ret;
+	return repo_config_get_pathname(&the_repository, key, dest);
 }
 
 int git_config_get_expiry(const char *key, const char **output)
