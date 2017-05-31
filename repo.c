@@ -154,6 +154,7 @@ int repo_init(struct repo *repo, const char *gitdir)
 	}
 
 	repo_set_gitdir(repo, resolved_gitdir);
+	repo_set_worktree(repo, gitdir);
 
 	/* NEEDSWORK: Verify repository format version */
 
@@ -169,6 +170,8 @@ void repo_clear(struct repo *repo)
 	repo_clear_env(repo);
 	free(repo->worktree);
 	repo->worktree = NULL;
+	free(repo->submodule_prefix);
+	repo->submodule_prefix = NULL;
 
 	if (repo->config) {
 		git_configset_clear(repo->config);
