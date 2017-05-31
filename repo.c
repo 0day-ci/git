@@ -116,6 +116,20 @@ void repo_read_index(struct repo *repo)
 		die(_("failure reading index"));
 }
 
+static int gitmodules_cb(const char *var, const char *value, void *data)
+{
+	struct repo *repo = data;
+	return submodule_config_option(repo, var, value);
+}
+
+void repo_read_gitmodules(struct repo *repo)
+{
+	char *gitmodules_path = xstrfmt("%s/.gitmodules", repo->worktree);
+
+	git_config_from_file(gitmodules_cb, gitmodules_path, repo);
+	free(gitmodules_path);
+}
+
 int repo_init(struct repo *repo, const char *gitdir)
 {
 	int error = 0;
