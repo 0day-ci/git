@@ -1885,8 +1885,8 @@ static int repo_config_get_value(struct repo *repository,
 	return git_configset_get_value(repository->config, key, value);
 }
 
-static const struct string_list *repo_config_get_value_multi(struct repo *repository,
-							     const char *key)
+const struct string_list *repo_config_get_value_multi(struct repo *repository,
+						      const char *key)
 {
 	git_config_check_init(repository);
 	return git_configset_get_value_multi(repository->config, key);
@@ -1903,8 +1903,8 @@ static int repo_config_get_string_const(struct repo *repository,
 	return ret;
 }
 
-static int repo_config_get_string(struct repo *repository,
-				  const char *key, char **dest)
+int repo_config_get_string(struct repo *repository,
+			   const char *key, char **dest)
 {
 	git_config_check_init(repository);
 	return repo_config_get_string_const(repository, key, (const char **)dest);
@@ -1924,8 +1924,8 @@ static int repo_config_get_ulong(struct repo *repository,
 	return git_configset_get_ulong(repository->config, key, dest);
 }
 
-static int repo_config_get_bool(struct repo *repository,
-				const char *key, int *dest)
+int repo_config_get_bool(struct repo *repository,
+			 const char *key, int *dest)
 {
 	git_config_check_init(repository);
 	return git_configset_get_bool(repository->config, key, dest);

@@ -163,6 +163,15 @@ extern int git_configset_get_bool_or_int(struct config_set *cs, const char *key,
 extern int git_configset_get_maybe_bool(struct config_set *cs, const char *key, int *dest);
 extern int git_configset_get_pathname(struct config_set *cs, const char *key, const char **dest);
 
+struct repo;
+
+extern const struct string_list *repo_config_get_value_multi(struct repo *repository,
+							     const char *key);
+extern int repo_config_get_string(struct repo *repository,
+				  const char *key, char **dest);
+extern int repo_config_get_bool(struct repo *repository,
+				const char *key, int *dest);
+
 extern int git_config_get_value(const char *key, const char **value);
 extern const struct string_list *git_config_get_value_multi(const char *key);
 extern void git_config_clear(void);
