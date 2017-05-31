@@ -3,6 +3,7 @@
 
 struct config_set;
 struct index_state;
+struct submodule_cache;
 
 struct repo {
 	/* Environment */
@@ -22,6 +23,7 @@ struct repo {
 	 */
 	struct config_set *config;
 	struct index_state *index;
+	struct submodule_cache *submodule_cache;
 
 	/* Configurations */
 	unsigned ignore_env:1;

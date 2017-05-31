@@ -1,6 +1,7 @@
 #include "cache.h"
 #include "repo.h"
 #include "config.h"
+#include "submodule-config.h"
 
 /*
  * This may be the wrong place for this.
@@ -165,5 +166,10 @@ void repo_clear(struct repo *repo)
 		discard_index(repo->index);
 		free(repo->index);
 		repo->index = NULL;
+	}
+
+	if (repo->submodule_cache) {
+		submodule_cache_free(repo->submodule_cache);
+		repo->submodule_cache = NULL;
 	}
 }
