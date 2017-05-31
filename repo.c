@@ -104,6 +104,17 @@ void repo_read_config(struct repo *repo)
 	git_config_with_options(config_set_callback, repo->config, NULL, &opts);
 }
 
+void repo_read_index(struct repo *repo)
+{
+	if (!repo->index)
+		repo->index = xcalloc(1, sizeof(struct index_state));
+	else
+		discard_index(repo->index);
+
+	if (read_index_from(repo->index, repo->index_file) < 0)
+		die(_("failure reading index"));
+}
+
 int repo_init(struct repo *repo, const char *gitdir)
 {
 	int error = 0;
@@ -148,5 +159,11 @@ void repo_clear(struct repo *repo)
 		git_configset_clear(repo->config);
 		free(repo->config);
 		repo->config = NULL;
+	}
+
+	if (repo->index) {
+		discard_index(repo->index);
+		free(repo->index);
+		repo->index = NULL;
 	}
 }

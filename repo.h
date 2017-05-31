@@ -2,6 +2,7 @@
 #define REPO_H
 
 struct config_set;
+struct index_state;
 
 struct repo {
 	/* Environment */
@@ -20,6 +21,7 @@ struct repo {
 	 * ~/.gitconfig, XDG config file and the global /etc/gitconfig)
 	 */
 	struct config_set *config;
+	struct index_state *index;
 
 	/* Configurations */
 	unsigned ignore_env:1;
@@ -32,6 +34,7 @@ extern struct repo the_repository;
 extern void repo_set_gitdir(struct repo *repo, const char *path);
 extern void repo_set_worktree(struct repo *repo, const char *path);
 extern void repo_read_config(struct repo *repo);
+extern void repo_read_index(struct repo *repo);
 extern int repo_init(struct repo *repo, const char *path);
 extern void repo_clear(struct repo *repo);
 
