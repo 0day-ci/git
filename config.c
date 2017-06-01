@@ -2639,16 +2639,17 @@ static int section_name_is_ok(const char *name)
 }
 
 /* if new_name == NULL, the section is removed instead */
-int git_config_rename_section_in_file(const char *config_filename,
-				      const char *old_name, const char *new_name)
+static int git_config_copy_or_rename_section_in_file(const char *config_filename,
+				      const char *old_name, const char *new_name, int copy)
 {
-	int ret = 0, remove = 0;
+	int ret = 0, remove = 0, copying_section = 0, copied_section_length;
 	char *filename_buf = NULL;
 	struct lock_file *lock;
 	int out_fd;
 	char buf[1024];
 	FILE *config_file = NULL;
 	struct stat st;
+	struct strbuf copied_section;
 
 	if (new_name && !section_name_is_ok(new_name)) {
 		ret = error("invalid section name: %s", new_name);
@@ -2689,6 +2690,13 @@ int git_config_rename_section_in_file(const char *config_filename,
 			; /* do nothing */
 		if (buf[i] == '[') {
 			/* it's a section */
+			if (copying_section) {
+				/* Mark the end of copying the matching
+				 * section, as this is the beginning
+				 * of the new section
+				 */
+				copying_section = 0;
+			}
 			int offset = section_name_match(&buf[i], old_name);
 			if (offset > 0) {
 				ret++;
@@ -2696,26 +2704,41 @@ int git_config_rename_section_in_file(const char *config_filename,
 					remove = 1;
 					continue;
 				}
-				store.baselen = strlen(new_name);
-				if (!store_write_section(out_fd, new_name)) {
-					ret = write_error(get_lock_file_path(lock));
-					goto out;
+				if (!copy) {
+					store.baselen = strlen(new_name);
+					if (!store_write_section(out_fd, new_name)) {
+						ret = write_error(get_lock_file_path(lock));
+						goto out;
+					}
+				} else {
+					/* Mark the beginning of copying the matching section */
+					copying_section = 1;
+
+					/* TODO: Make this work for the
+					 * case when there are multiple
+					 * matching sections
+					 */
+					/* Create a section with new branch name */
+					store.baselen = strlen(new_name);
+					copied_section = store_create_section(new_name);
 				}
 				/*
 				 * We wrote out the new section, with
 				 * a newline, now skip the old
 				 * section's length
 				 */
-				output += offset + i;
-				if (strlen(output) > 0) {
-					/*
-					 * More content means there's
-					 * a declaration to put on the
-					 * next line; indent with a
-					 * tab
-					 */
-					output -= 1;
-					output[0] = '\t';
+				if (!copy) {
+					output += offset + i;
+					if (strlen(output) > 0) {
+						/*
+						 * More content means there's
+						 * a declaration to put on the
+						 * next line; indent with a
+						 * tab
+						 */
+						output -= 1;
+						output[0] = '\t';
+					}
 				}
 			}
 			remove = 0;
@@ -2723,7 +2746,21 @@ int git_config_rename_section_in_file(const char *config_filename,
 		if (remove)
 			continue;
 		length = strlen(output);
+
+		if (copying_section > 1) {
+			strbuf_addf(&copied_section, "%s", output);
+		} else if (copying_section == 1) {
+			copying_section = 2;
+		}
 		if (write_in_full(out_fd, output, length) != length) {
+			ret = write_error(get_lock_file_path(lock));
+			goto out;
+		}
+	}
+
+	if (copy && copied_section.len > 0) {
+		copied_section_length = strlen(copied_section.buf);
+		if (write_in_full(out_fd, copied_section.buf, copied_section_length) != copied_section_length) {
 			ret = write_error(get_lock_file_path(lock));
 			goto out;
 		}
@@ -2743,9 +2780,28 @@ out_no_rollback:
 	return ret;
 }
 
+int git_config_rename_section_in_file(const char *config_filename,
+				      const char *old_name, const char *new_name)
+{
+	return git_config_copy_or_rename_section_in_file(config_filename,
+					 old_name, new_name, 0);
+}
+
 int git_config_rename_section(const char *old_name, const char *new_name)
 {
 	return git_config_rename_section_in_file(NULL, old_name, new_name);
+}
+
+int git_config_copy_section_in_file(const char *config_filename,
+				      const char *old_name, const char *new_name)
+{
+	return git_config_copy_or_rename_section_in_file(config_filename,
+					 old_name, new_name, 1);
+}
+
+int git_config_copy_section(const char *old_name, const char *new_name)
+{
+	return git_config_copy_section_in_file(NULL, old_name, new_name);
 }
 
 /*
