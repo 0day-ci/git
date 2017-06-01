@@ -341,6 +341,106 @@ test_expect_success 'config information was renamed, too' '
 	test_must_fail git config branch.s/s/dummy
 '
 
+test_expect_success 'git branch -c dumps usage' '
+	test_expect_code 128 git branch -c 2>err &&
+	test_i18ngrep "branch name required" err
+'
+
+test_expect_success 'git branch -c d e should work' '
+	git branch -l d &&
+	git reflog exists refs/heads/d &&
+	git config branch.d.dummy Hello &&
+	git branch -c d e &&
+	git reflog exists refs/heads/d &&
+	git reflog exists refs/heads/e &&
+	test $(git config branch.e.dummy) = Hello &&
+	test $(git config branch.d.dummy) = Hello
+'
+
+test_expect_success 'git branch -c f/f g/g should work' '
+	git branch -l f/f &&
+	git reflog exists refs/heads/f/f &&
+	git config branch.f/f.dummy Hello &&
+	git branch -c f/f g/g &&
+	git reflog exists refs/heads/f/f &&
+	git reflog exists refs/heads/g/g &&
+	test $(git config branch.f/f.dummy) = Hello &&
+	test $(git config branch.g/g.dummy) = Hello
+'
+
+test_expect_success 'git branch -c m2 m2 should work' '
+	git branch -l m2 &&
+	git reflog exists refs/heads/m2 &&
+	git config branch.m2.dummy Hello &&
+	git branch -c m2 m2 &&
+	git reflog exists refs/heads/m2 &&
+	test $(git config branch.m2.dummy) = Hello
+'
+
+test_expect_success 'git branch -c a a/a should fail' '
+	git branch -l a &&
+	git reflog exists refs/heads/a &&
+	test_must_fail git branch -c a a/a
+'
+
+test_expect_success 'git branch -c b/b b should fail' '
+	git branch -l b/b &&
+	test_must_fail git branch -c b/b b
+'
+
+test_expect_success 'git branch -C o/q o/p should work when o/p exists' '
+	git branch -l o/q &&
+	git reflog exists refs/heads/o/q &&
+	git reflog exists refs/heads/o/p &&
+	git branch -C o/q o/p
+'
+
+test_expect_success 'git branch -c -f o/q o/p should work when o/p exists' '
+	git reflog exists refs/heads/o/q &&
+	git reflog exists refs/heads/o/p &&
+	git branch -m -f o/q o/p
+'
+
+test_expect_success 'git branch -c q r/q should fail when r exists' '
+	git branch q &&
+	git branch r &&
+	test_must_fail git branch -c q r/q
+'
+
+test_expect_success 'git branch -C b1 b2 should fail when b2 is checked out' '
+	git branch b1 &&
+	git checkout -b b2 &&
+	test_must_fail git branch -C b1 b2
+'
+
+test_expect_success 'git branch -C c1 c2 should succeed when c1 is checked out' '
+	git checkout -b c1 &&
+	git branch c2 &&
+	git branch -C c1 c2 &&
+	test $(git rev-parse --abbrev-ref HEAD) = c2
+'
+
+test_expect_success 'git branch -C c1 c2 should add entries to .git/logs/HEAD' '
+	msg="Branch: copied refs/heads/c1 to refs/heads/c2" &&
+	grep "^0\{40\}.*$msg$" .git/logs/HEAD
+'
+
+test_expect_success 'git branch -C master should work when master is checked out' '
+	git checkout master &&
+	git branch -C master
+'
+
+test_expect_success 'git branch -C master master should work when master is checked out' '
+	git checkout master &&
+	git branch -C master master
+'
+
+test_expect_success 'git branch -C master5 master5 should work when master is checked out' '
+	git checkout master &&
+	git branch master5 &&
+	git branch -C master5 master5
+'
+
 test_expect_success 'deleting a symref' '
 	git branch target &&
 	git symbolic-ref refs/heads/symref refs/heads/target &&
