@@ -421,6 +421,77 @@ test_expect_success 'index-pack <pack> works in non-repo' '
 	test_path_is_file foo.idx
 '
 
+unpack() {
+	perl -e '$/ = undef; $input = <>; print unpack("H2" x length($input), $input)'
+}
+
+rcut() {
+	perl -e '$/ = undef; $_ = <>; s/.{'$1'}$//s; print $_'
+}
+
+test_expect_success '--blob-size-limit works with multiple excluded' '
+	rm -rf server &&
+	git init server &&
+	printf a > server/a &&
+	printf b > server/b &&
+	printf c-very-long-file > server/c &&
+	printf d-very-long-file > server/d &&
+	git -C server add a b c d &&
+	git -C server commit -m x &&
+
+	git -C server rev-parse HEAD >objects &&
+	git -C server pack-objects --revs --stdout --blob-size-limit=10 <objects >out &&
+	unpack <out >actual &&
+
+	# Check that the excluded hashes are included, sorted, at the end
+	if [ $(git hash-object server/c) \< $(git hash-object server/d) ]
+	then
+		printf "0000000000000002%s0000000000000010%s0000000000000010$" \
+			$(git hash-object server/c) \
+			$(git hash-object server/d) >expect
+	else
+		printf "0000000000000002%s0000000000000010%s0000000000000010$" \
+			$(git hash-object server/d) \
+			$(git hash-object server/c) >expect
+	fi &&
+	grep $(cat expect) actual &&
+
+	# Ensure that only the small blobs are in the packfile
+	rcut 64 <out >my.pack &&
+	git index-pack my.pack &&
+	git verify-pack -v my.idx >objectlist &&
+	grep $(git hash-object server/a) objectlist &&
+	grep $(git hash-object server/b) objectlist &&
+	! grep $(git hash-object server/c) objectlist &&
+	! grep $(git hash-object server/d) objectlist
+'
+
+test_expect_success '--blob-size-limit never excludes special files' '
+	rm -rf server &&
+	git init server &&
+	printf a-very-long-file > server/a &&
+	printf a-very-long-file > server/.git-a &&
+	printf b-very-long-file > server/b &&
+	git -C server add a .git-a b &&
+	git -C server commit -m x &&
+
+	git -C server rev-parse HEAD >objects &&
+	git -C server pack-objects --revs --stdout --blob-size-limit=10 <objects >out &&
+	unpack <out >actual &&
+
+	# Check that the excluded hash is included at the end
+	printf "0000000000000001%s0000000000000010$" \
+		$(git hash-object server/b) >expect &&
+	grep $(cat expect) actual &&
+
+	# Ensure that the .git-a blob is in the packfile, despite also
+	# appearing as a non-.git file
+	rcut 36 <out >my.pack &&
+	git index-pack my.pack &&
+	git verify-pack -v my.idx >objectlist &&
+	grep $(git hash-object server/a) objectlist
+'
+
 #
 # WARNING!
 #
