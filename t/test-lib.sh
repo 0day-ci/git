@@ -15,6 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/ .
 
+# If we have a set max runtime record the startup time before anything
+# else is done.
+if test -n "$GIT_TEST_TIMEOUT"
+then
+	TEST_STARTUP_TIME=$(date +%s)
+fi
+
 # Test the binaries we have just built.  The tests are kept in
 # t/ subdirectory and are run in 'trash directory' subdirectory.
 if test -z "$TEST_DIRECTORY"
@@ -689,11 +696,22 @@ test_skip () {
 		to_skip=t
 		skipped_reason="--run"
 	fi
+	if test -n "$GIT_TEST_TIMEOUT" &&
+		test "$(($(date +%s) - $TEST_STARTUP_TIME))" -ge "$GIT_TEST_TIMEOUT"
+	then
+		to_skip=all
+		skipped_reason="Exceeded GIT_TEST_TIMEOUT in runtime"
+	fi
 
 	case "$to_skip" in
-	t)
+	all|t)
 		say_color skip >&3 "skipping test: $@"
 		say_color skip "ok $test_count # skip $1 ($skipped_reason)"
+		if test "$to_skip" = all
+		then
+			skip_all="$skipped_reason"
+			test_done
+		fi
 		: true
 		;;
 	*)
