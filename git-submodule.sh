@@ -337,14 +337,13 @@ cmd_foreach()
 		die_if_unmatched "$mode" "$sha1"
 		if test -e "$sm_path"/.git
 		then
-			displaypath=$(git submodule--helper relative-path "$prefix$sm_path" "$wt_prefix")
-			say "$(eval_gettext "Entering '\$displaypath'")"
+			dpath=$(git submodule--helper relative-path "$prefix$sm_path" "$wt_prefix")
+			say "$(eval_gettext "Entering '\$dpath'")"
 			name=$(git submodule--helper name "$sm_path")
 			(
 				prefix="$prefix$sm_path/"
 				sanitize_submodule_env
 				cd "$sm_path" &&
-				sm_path=$(git submodule--helper relative-path "$sm_path" "$wt_prefix") &&
 				# we make $path available to scripts ...
 				path=$sm_path &&
 				if test $# -eq 1
@@ -358,7 +357,7 @@ cmd_foreach()
 					cmd_foreach "--recursive" "$@"
 				fi
 			) <&3 3<&- ||
-			die "$(eval_gettext "Stopping at '\$displaypath'; script returned non-zero status.")"
+			die "$(eval_gettext "Stopping at '\$dpath'; script returned non-zero status.")"
 		fi
 	done
 }

@@ -218,20 +218,24 @@ information too.
 
 foreach [--recursive] <command>::
 	Evaluates an arbitrary shell command in each checked out submodule.
-	The command has access to the variables $name, $path, $sha1 and
-	$toplevel:
-	$name is the name of the relevant submodule section in .gitmodules,
-	$path is the name of the submodule directory relative to the
-	superproject, $sha1 is the commit as recorded in the superproject,
-	and $toplevel is the absolute path to the top-level of the superproject.
-	Any submodules defined in the superproject but not checked out are
-	ignored by this command. Unless given `--quiet`, foreach prints the name
-	of each submodule before evaluating the command.
-	If `--recursive` is given, submodules are traversed recursively (i.e.
-	the given shell command is evaluated in nested submodules as well).
-	A non-zero return from the command in any submodule causes
-	the processing to terminate. This can be overridden by adding '|| :'
-	to the end of the command.
+	The command has access to the following variables:
++
+* `$name` is the name of the relevant submodule section in .gitmodules,
+* `$sha1` is the commit as recorded in the superproject.
+* `$sm_path` is the path recorded in the superproject.
+* `$toplevel` is the absolute path to its superproject, such that
+  `$toplevel/$sm_path` is the absolute path of the submodule.
+* `$dpath` contains the relative path from the current working directory
+   to the submodules root directory.
++
+Any submodules defined in the superproject but not checked out are
+ignored by this command. Unless given `--quiet`, foreach prints the name
+of each submodule before evaluating the command.
+If `--recursive` is given, submodules are traversed recursively (i.e.
+the given shell command is evaluated in nested submodules as well).
+A non-zero return from the command in any submodule causes
+the processing to terminate. This can be overridden by adding '|| :'
+to the end of the command.
 +
 As an example, the command below will show the path and currently
 checked out commit for each submodule:
