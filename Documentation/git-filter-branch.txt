@@ -86,7 +86,8 @@ OPTIONS
 	This is not a real filter executed for each commit but a one
 	time setup just before the loop. Therefore no commit-specific
 	variables are defined yet.  Functions or variables defined here
-	can be used or modified in the following filter steps.
+	can be used or modified in the following filter steps except
+	the commit filter, for technical reasons.
 
 --env-filter <command>::
 	This filter may be used if you only need to modify the environment
