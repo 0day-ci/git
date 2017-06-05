@@ -100,6 +100,14 @@ test_expect_success 'git branch -m n/n n should work' '
 	git reflog exists refs/heads/n
 '
 
+test_expect_success 'git branch -m bbb should rename checked out branch' '
+	test_when_finished git branch -d bbb &&
+	test_when_finished git checkout master &&
+	git checkout -b aaa &&
+	git branch -m bbb &&
+	git reflog exists refs/heads/bbb
+'
+
 test_expect_success 'git branch -m o/o o should fail when o/p exists' '
 	git branch o/o &&
 	git branch o/p &&
