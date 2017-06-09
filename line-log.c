@@ -34,9 +34,8 @@ void range_set_init(struct range_set *rs, size_t prealloc)
 
 void range_set_release(struct range_set *rs)
 {
-	free(rs->ranges);
+	FREEZ(rs->ranges);
 	rs->alloc = rs->nr = 0;
-	rs->ranges = NULL;
 }
 
 /* dst must be uninitialized! */
@@ -610,8 +609,7 @@ parse_lines(struct commit *commit, const char *prefix, struct string_list *args)
 		line_log_data_insert(&ranges, full_name, begin, end);
 
 		free_filespec(spec);
-		free(ends);
-		ends = NULL;
+		FREEZ(ends);
 	}
 
 	for (p = ranges; p; p = p->next)

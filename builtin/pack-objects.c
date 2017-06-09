@@ -264,8 +264,7 @@ static unsigned long write_no_reuse_object(struct sha1file *f, struct object_ent
 		 * make sure no cached delta data remains from a
 		 * previous attempt before a pack split occurred.
 		 */
-		free(entry->delta_data);
-		entry->delta_data = NULL;
+		FREEZ(entry->delta_data);
 		entry->z_delta_size = 0;
 	} else if (entry->delta_data) {
 		size = entry->delta_size;
@@ -1375,12 +1374,10 @@ static void cleanup_preferred_base(void)
 		if (!pbase_tree_cache[i])
 			continue;
 		free(pbase_tree_cache[i]->tree_data);
-		free(pbase_tree_cache[i]);
-		pbase_tree_cache[i] = NULL;
+		FREEZ(pbase_tree_cache[i]);
 	}
 
-	free(done_pbase_paths);
-	done_pbase_paths = NULL;
+	FREEZ(done_pbase_paths);
 	done_pbase_paths_num = done_pbase_paths_alloc = 0;
 }
 
@@ -1970,8 +1967,7 @@ static unsigned long free_unpacked(struct unpacked *n)
 	n->index = NULL;
 	if (n->data) {
 		freed_mem += n->entry->size;
-		free(n->data);
-		n->data = NULL;
+		FREEZ(n->data);
 	}
 	n->entry = NULL;
 	n->depth = 0;

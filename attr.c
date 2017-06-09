@@ -638,13 +638,11 @@ void attr_check_reset(struct attr_check *check)
 
 void attr_check_clear(struct attr_check *check)
 {
-	free(check->items);
-	check->items = NULL;
+	FREEZ(check->items);
 	check->alloc = 0;
 	check->nr = 0;
 
-	free(check->all_attrs);
-	check->all_attrs = NULL;
+	FREEZ(check->all_attrs);
 	check->all_attrs_nr = 0;
 
 	drop_attr_stack(&check->stack);

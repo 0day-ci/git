@@ -299,10 +299,8 @@ static int add_worktree(const char *path, const char *refname,
 	}
 
 	is_junk = 0;
-	free(junk_work_tree);
-	free(junk_git_dir);
-	junk_work_tree = NULL;
-	junk_git_dir = NULL;
+	FREEZ(junk_work_tree);
+	FREEZ(junk_git_dir);
 
 done:
 	if (ret || !opts->keep_locked) {
