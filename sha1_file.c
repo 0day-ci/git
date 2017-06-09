@@ -1936,8 +1936,10 @@ static void *unpack_sha1_rest(git_zstream *stream, void *buffer, unsigned long s
  * too permissive for what we want to check. So do an anal
  * object header parse by hand.
  */
-static int parse_sha1_header_extended(const char *hdr, struct object_info *oi,
-			       unsigned int flags)
+static int parse_sha1_header_extended(const char *hdr, enum object_type *typep,
+				      unsigned long *sizep,
+				      struct object_info *oi,
+				      unsigned int flags)
 {
 	const char *type_buf = hdr;
 	unsigned long size;
@@ -1968,8 +1970,8 @@ static int parse_sha1_header_extended(const char *hdr, struct object_info *oi,
 		type = 0;
 	else if (type < 0)
 		die("invalid object type");
-	if (oi->typep)
-		*oi->typep = type;
+	if (typep)
+		*typep = type;
 
 	/*
 	 * The length must follow immediately, and be in canonical
@@ -1988,8 +1990,8 @@ static int parse_sha1_header_extended(const char *hdr, struct object_info *oi,
 		}
 	}
 
-	if (oi->sizep)
-		*oi->sizep = size;
+	if (sizep)
+		*sizep = size;
 
 	/*
 	 * The length must be followed by a zero byte
@@ -2000,9 +2002,8 @@ static int parse_sha1_header_extended(const char *hdr, struct object_info *oi,
 int parse_sha1_header(const char *hdr, unsigned long *sizep)
 {
 	struct object_info oi = OBJECT_INFO_INIT;
-
-	oi.sizep = sizep;
-	return parse_sha1_header_extended(hdr, &oi, LOOKUP_REPLACE_OBJECT);
+	return parse_sha1_header_extended(hdr, NULL, sizep, &oi,
+					  LOOKUP_REPLACE_OBJECT);
 }
 
 static void *unpack_sha1_file(void *map, unsigned long mapsize, enum object_type *type, unsigned long *size, const unsigned char *sha1)
@@ -2240,6 +2241,7 @@ unwind:
 }
 
 int packed_object_info(struct packed_git *p, off_t obj_offset,
+		       enum object_type *typep, unsigned long *sizep,
 		       struct object_info *oi)
 {
 	struct pack_window *w_curs = NULL;
@@ -2253,7 +2255,7 @@ int packed_object_info(struct packed_git *p, off_t obj_offset,
 	 */
 	type = unpack_object_header(p, &w_curs, &curpos, &size);
 
-	if (oi->sizep) {
+	if (sizep) {
 		if (type == OBJ_OFS_DELTA || type == OBJ_REF_DELTA) {
 			off_t tmp_pos = curpos;
 			off_t base_offset = get_delta_base(p, &w_curs, &tmp_pos,
@@ -2262,13 +2264,13 @@ int packed_object_info(struct packed_git *p, off_t obj_offset,
 				type = OBJ_BAD;
 				goto out;
 			}
-			*oi->sizep = get_size_from_delta(p, &w_curs, tmp_pos);
-			if (*oi->sizep == 0) {
+			*sizep = get_size_from_delta(p, &w_curs, tmp_pos);
+			if (*sizep == 0) {
 				type = OBJ_BAD;
 				goto out;
 			}
 		} else {
-			*oi->sizep = size;
+			*sizep = size;
 		}
 	}
 
@@ -2277,12 +2279,12 @@ int packed_object_info(struct packed_git *p, off_t obj_offset,
 		*oi->disk_sizep = revidx[1].offset - obj_offset;
 	}
 
-	if (oi->typep || oi->typename) {
+	if (typep || oi->typename) {
 		enum object_type ptot;
 		ptot = packed_to_object_type(p, obj_offset, type, &w_curs,
 					     curpos);
-		if (oi->typep)
-			*oi->typep = ptot;
+		if (typep)
+			*typep = ptot;
 		if (oi->typename) {
 			const char *tn = typename(ptot);
 			if (tn)
@@ -2905,6 +2907,8 @@ struct packed_git *find_sha1_pack(const unsigned char *sha1,
 }
 
 static int sha1_loose_object_info(const unsigned char *sha1,
+				  enum object_type *typep,
+				  unsigned long *sizep,
 				  struct object_info *oi,
 				  int flags)
 {
@@ -2926,7 +2930,7 @@ static int sha1_loose_object_info(const unsigned char *sha1,
 	 * return value implicitly indicates whether the
 	 * object even exists.
 	 */
-	if (!oi->typep && !oi->typename && !oi->sizep) {
+	if (!typep && !oi->typename && !sizep) {
 		const char *path;
 		struct stat st;
 		if (stat_sha1_file(sha1, &st, &path) < 0)
@@ -2951,20 +2955,25 @@ static int sha1_loose_object_info(const unsigned char *sha1,
 	if (status < 0)
 		; /* Do nothing */
 	else if (hdrbuf.len) {
-		if ((status = parse_sha1_header_extended(hdrbuf.buf, oi, flags)) < 0)
+		if ((status = parse_sha1_header_extended(hdrbuf.buf, typep,
+							 sizep, oi, flags)) < 0)
 			status = error("unable to parse %s header with --allow-unknown-type",
 				       sha1_to_hex(sha1));
-	} else if ((status = parse_sha1_header_extended(hdr, oi, flags)) < 0)
+	} else if ((status = parse_sha1_header_extended(hdr, typep, sizep, oi,
+							flags)) < 0)
 		status = error("unable to parse %s header", sha1_to_hex(sha1));
 	git_inflate_end(&stream);
 	munmap(map, mapsize);
-	if (status && oi->typep)
-		*oi->typep = status;
+	if (status && typep)
+		*typep = status;
 	strbuf_release(&hdrbuf);
 	return (status < 0) ? status : 0;
 }
 
-int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi, unsigned flags)
+int sha1_object_info_extended(const unsigned char *sha1,
+			      enum object_type *typep,
+			      unsigned long *sizep, struct object_info *oi,
+			      unsigned flags)
 {
 	struct cached_object *co;
 	struct pack_entry e;
@@ -2973,10 +2982,10 @@ int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi,
 
 	co = find_cached_object(real);
 	if (co) {
-		if (oi->typep)
-			*(oi->typep) = co->type;
-		if (oi->sizep)
-			*(oi->sizep) = co->size;
+		if (typep)
+			*typep = co->type;
+		if (sizep)
+			*sizep = co->size;
 		if (oi->disk_sizep)
 			*(oi->disk_sizep) = 0;
 		if (oi->delta_base_sha1)
@@ -2989,7 +2998,7 @@ int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi,
 
 	if (!find_pack_entry(real, &e)) {
 		/* Most likely it's a loose object. */
-		if (!sha1_loose_object_info(real, oi, flags)) {
+		if (!sha1_loose_object_info(real, typep, sizep, oi, flags)) {
 			oi->whence = OI_LOOSE;
 			return 0;
 		}
@@ -3000,10 +3009,10 @@ int sha1_object_info_extended(const unsigned char *sha1, struct object_info *oi,
 			return -1;
 	}
 
-	rtype = packed_object_info(e.p, e.offset, oi);
+	rtype = packed_object_info(e.p, e.offset, typep, sizep, oi);
 	if (rtype < 0) {
 		mark_bad_packed_object(e.p, real);
-		return sha1_object_info_extended(real, oi, 0);
+		return sha1_object_info_extended(real, typep, sizep, oi, 0);
 	} else if (in_delta_base_cache(e.p, e.offset)) {
 		oi->whence = OI_DBCACHED;
 	} else {
@@ -3023,9 +3032,8 @@ int sha1_object_info(const unsigned char *sha1, unsigned long *sizep)
 	enum object_type type;
 	struct object_info oi = OBJECT_INFO_INIT;
 
-	oi.typep = &type;
-	oi.sizep = sizep;
-	if (sha1_object_info_extended(sha1, &oi, LOOKUP_REPLACE_OBJECT) < 0)
+	if (sha1_object_info_extended(sha1, &type, sizep, &oi,
+				      LOOKUP_REPLACE_OBJECT) < 0)
 		return -1;
 	return type;
 }

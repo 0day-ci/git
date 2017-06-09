@@ -1830,8 +1830,6 @@ extern int for_each_packed_object(each_packed_object_fn, void *, unsigned flags)
 
 struct object_info {
 	/* Request */
-	enum object_type *typep;
-	unsigned long *sizep;
 	off_t *disk_sizep;
 	unsigned char *delta_base_sha1;
 	struct strbuf *typename;
@@ -1866,8 +1864,8 @@ struct object_info {
  */
 #define OBJECT_INFO_INIT {NULL}
 
-extern int sha1_object_info_extended(const unsigned char *, struct object_info *, unsigned flags);
-extern int packed_object_info(struct packed_git *pack, off_t offset, struct object_info *);
+extern int sha1_object_info_extended(const unsigned char *, enum object_type *typep, unsigned long *sizep, struct object_info *, unsigned flags);
+extern int packed_object_info(struct packed_git *pack, off_t offset, enum object_type *typep, unsigned long *sizep, struct object_info *);
 
 /* Dumb servers support */
 extern int update_server_info(int);

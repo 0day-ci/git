@@ -75,7 +75,8 @@ static int cat_one_file(int opt, const char *exp_type, const char *obj_name,
 	switch (opt) {
 	case 't':
 		oi.typename = &sb;
-		if (sha1_object_info_extended(oid.hash, &oi, flags) < 0)
+		if (sha1_object_info_extended(oid.hash, NULL, NULL, &oi,
+					      flags) < 0)
 			die("git cat-file: could not get object info");
 		if (sb.len) {
 			printf("%s\n", sb.buf);
@@ -85,8 +86,8 @@ static int cat_one_file(int opt, const char *exp_type, const char *obj_name,
 		break;
 
 	case 's':
-		oi.sizep = &size;
-		if (sha1_object_info_extended(oid.hash, &oi, flags) < 0)
+		if (sha1_object_info_extended(oid.hash, NULL, &size, &oi,
+					      flags) < 0)
 			die("git cat-file: could not get object info");
 		printf("%lu\n", size);
 		return 0;
@@ -194,10 +195,12 @@ struct expand_data {
 	int split_on_whitespace;
 
 	/*
-	 * After a mark_query run, this object_info is set up to be
-	 * passed to sha1_object_info_extended. It will point to the data
+	 * After a mark_query run, these fields are set up to be
+	 * passed to sha1_object_info_extended. They will point to the data
 	 * elements above, so you can retrieve the response from there.
 	 */
+	enum object_type *typep;
+	unsigned long *sizep;
 	struct object_info info;
 
 	/*
@@ -224,12 +227,12 @@ static void expand_atom(struct strbuf *sb, const char *atom, int len,
 			strbuf_addstr(sb, oid_to_hex(&data->oid));
 	} else if (is_atom("objecttype", atom, len)) {
 		if (data->mark_query)
-			data->info.typep = &data->type;
+			data->typep = &data->type;
 		else
 			strbuf_addstr(sb, typename(data->type));
 	} else if (is_atom("objectsize", atom, len)) {
 		if (data->mark_query)
-			data->info.sizep = &data->size;
+			data->sizep = &data->size;
 		else
 			strbuf_addf(sb, "%lu", data->size);
 	} else if (is_atom("objectsize:disk", atom, len)) {
@@ -280,7 +283,7 @@ static void print_object_or_die(struct batch_options *opt, struct expand_data *d
 {
 	const struct object_id *oid = &data->oid;
 
-	assert(data->info.typep);
+	assert(data->typep);
 
 	if (data->type == OBJ_BLOB) {
 		if (opt->buffer_output)
@@ -323,7 +326,7 @@ static void print_object_or_die(struct batch_options *opt, struct expand_data *d
 			die("object %s disappeared", oid_to_hex(oid));
 		if (type != data->type)
 			die("object %s changed type!?", oid_to_hex(oid));
-		if (data->info.sizep && size != data->size)
+		if (data->sizep && size != data->size)
 			die("object %s changed size!?", oid_to_hex(oid));
 
 		batch_write(opt, contents, size);
@@ -337,7 +340,8 @@ static void batch_object_write(const char *obj_name, struct batch_options *opt,
 	struct strbuf buf = STRBUF_INIT;
 
 	if (!data->skip_object_info &&
-	    sha1_object_info_extended(data->oid.hash, &data->info, LOOKUP_REPLACE_OBJECT) < 0) {
+	    sha1_object_info_extended(data->oid.hash, data->typep, data->sizep,
+				      &data->info, LOOKUP_REPLACE_OBJECT) < 0) {
 		printf("%s missing\n",
 		       obj_name ? obj_name : oid_to_hex(&data->oid));
 		fflush(stdout);
@@ -454,7 +458,8 @@ static int batch_objects(struct batch_options *opt)
 
 	if (opt->all_objects) {
 		struct object_info empty = OBJECT_INFO_INIT;
-		if (!memcmp(&data.info, &empty, sizeof(empty)))
+		if (!data.typep && !data.sizep &&
+		    !memcmp(&data.info, &empty, sizeof(empty)))
 			data.skip_object_info = 1;
 	}
 
@@ -463,7 +468,7 @@ static int batch_objects(struct batch_options *opt)
 	 * since we will want to decide whether or not to stream.
 	 */
 	if (opt->print_contents)
-		data.info.typep = &data.type;
+		data.typep = &data.type;
 
 	if (opt->all_objects) {
 		struct oid_array sa = OID_ARRAY_INIT;
