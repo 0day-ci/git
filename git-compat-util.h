@@ -805,6 +805,12 @@ extern int xmkstemp_mode(char *template, int mode);
 extern char *xgetcwd(void);
 extern FILE *fopen_for_writing(const char *path);
 
+/*
+ * FREEZ(ptr) is like free(ptr) followed by ptr = NULL. Note that ptr
+ * is used twice, so don't pass e.g. ptr++.
+ */
+#define FREEZ(p) do { free(p); (p) = NULL; } while (0)
+
 #define ALLOC_ARRAY(x, alloc) (x) = xmalloc(st_mult(sizeof(*(x)), (alloc)))
 #define REALLOC_ARRAY(x, alloc) (x) = xrealloc((x), st_mult(sizeof(*(x)), (alloc)))
 
