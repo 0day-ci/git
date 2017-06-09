@@ -27,6 +27,9 @@
 #include "list.h"
 #include "mergesort.h"
 #include "quote.h"
+#include "iterator.h"
+#include "dir-iterator.h"
+#include "sha1-lookup.h"
 
 #define SZ_FMT PRIuMAX
 static inline uintmax_t sz_fmt(size_t s) { return s; }
@@ -1624,6 +1627,72 @@ static const struct packed_git *has_packed_and_bad(const unsigned char *sha1)
 	return NULL;
 }
 
+struct missing_blob_manifest {
+	struct missing_blob_manifest *next;
+	const char *data;
+};
+struct missing_blob_manifest *missing_blobs;
+int missing_blobs_initialized;
+
+static void prepare_missing_blobs(void)
+{
+	int ok;
+	char *dirname;
+	struct dir_iterator *iter;
+
+	if (missing_blobs_initialized)
+		return;
+
+	missing_blobs_initialized = 1;
+
+	dirname = xstrfmt("%s/missing", get_object_directory());
+	iter = dir_iterator_begin(dirname);
+
+	while ((ok = dir_iterator_advance(iter)) == ITER_OK) {
+		int fd;
+		const char *data;
+		struct missing_blob_manifest *m;
+		if (!S_ISREG(iter->st.st_mode))
+			continue;
+		fd = git_open(iter->path.buf);
+		data = xmmap(NULL, iter->st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+		close(fd);
+
+		m = xmalloc(sizeof(*m));
+		m->next = missing_blobs;
+		m->data = data;
+		missing_blobs = m;
+	}
+
+	if (ok != ITER_DONE) {
+		/* do something */
+	}
+
+	free(dirname);
+}
+
+int has_missing_blob(const unsigned char *sha1, unsigned long *size)
+{
+	struct missing_blob_manifest *m;
+	prepare_missing_blobs();
+	for (m = missing_blobs; m; m = m->next) {
+		uint64_t nr_nbo, nr;
+		int result;
+		memcpy(&nr_nbo, m->data, sizeof(nr_nbo));
+		nr = htonll(nr_nbo);
+		result = sha1_entry_pos(m->data, GIT_SHA1_RAWSZ + 8, 8, 0, nr, nr, sha1);
+		if (result >= 0) {
+			if (size) {
+				uint64_t size_nbo;
+				memcpy(&size_nbo, m->data + 8 + result * (GIT_SHA1_RAWSZ + 8) + GIT_SHA1_RAWSZ, sizeof(size_nbo));
+				*size = ntohll(size_nbo);
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /*
  * With an in-core object data in "map", rehash it to make sure the
  * object name actually matches "sha1" to detect object corruption.
@@ -2949,6 +3018,49 @@ static int sha1_loose_object_info(const unsigned char *sha1,
 	return (status < 0) ? status : 0;
 }
 
+static char *missing_blob_command;
+static int sha1_file_config(const char *conf_key, const char *value, void *cb)
+{
+	if (!strcmp(conf_key, "core.missingblobcommand")) {
+		missing_blob_command = xstrdup(value);
+	}
+	return 0;
+}
+
+static int configured;
+static void ensure_configured(void)
+{
+	if (configured)
+		return;
+
+	git_config(sha1_file_config, NULL);
+	configured = 1;
+}
+
+static void handle_missing_blob(const unsigned char *sha1)
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	const char *argv[] = {missing_blob_command, NULL};
+	char input[GIT_MAX_HEXSZ + 1];
+
+	memcpy(input, sha1_to_hex(sha1), 40);
+	input[40] = '\n';
+
+	cp.argv = argv;
+	cp.env = local_repo_env;
+	cp.use_shell = 1;
+
+	if (pipe_command(&cp, input, sizeof(input), NULL, 0, NULL, 0)) {
+		die("failed to load blob %s", sha1_to_hex(sha1));
+	}
+
+	/*
+	 * The command above may have updated packfiles, so update our record
+	 * of them.
+	 */
+	reprepare_packed_git();
+}
+
 static int get_cached_object(const unsigned char *sha1, enum object_type *typep,
 			     unsigned long *sizep, struct object_info *oi,
 			     void **buf)
@@ -3075,25 +3187,40 @@ static int get_object(const unsigned char *sha1, enum object_type *typep,
 {
 	struct pack_entry e;
 	const unsigned char *real = lookup_replace_object_extended(sha1, flags);
+	int already_retried = 0;
 
 	if (!(flags & GET_OBJECT_IGNORE_CACHED) &&
 	    get_cached_object(real, typep, sizep, oi, buf))
 		return 1;
+retry:
+	if (find_pack_entry(real, &e))
+		goto found_packed;
 
-	if (!find_pack_entry(real, &e)) {
-		/* Most likely it's a loose object. */
-		if (get_loose_object(real, typep, sizep, oi, buf,
-				     flags & LOOKUP_UNKNOWN_OBJECT))
-			return 1;
+	/* Most likely it's a loose object. */
+	if (get_loose_object(real, typep, sizep, oi, buf,
+			     flags & LOOKUP_UNKNOWN_OBJECT))
+		return 1;
 
-		/* Not a loose object; someone else may have just packed it. */
-		if (flags & GET_OBJECT_QUICK)
-			return 0;
+	/* Not a loose object; someone else may have just packed it. */
+	if (!(flags & GET_OBJECT_QUICK)) {
 		reprepare_packed_git();
-		if (!find_pack_entry(real, &e))
-			return 0;
+		if (find_pack_entry(real, &e))
+			goto found_packed;
+	}
+	
+	/* Try the missing blobs */
+	if (!already_retried) {
+		ensure_configured();
+		if (missing_blob_command && has_missing_blob(sha1, NULL)) {
+			already_retried = 1;
+			handle_missing_blob(sha1);
+			goto retry;
+		}
 	}
 
+	return 0;
+
+found_packed:
 	if (get_packed_object(&e, typep, sizep, oi, buf))
 		return 1;
 
