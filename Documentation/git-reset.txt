@@ -290,7 +290,8 @@ $ git reset --keep start                    <3>
     to branch2 (i.e. "git checkout -b branch2 start"), but nobody is
     perfect.
 <3> But you can use "reset --keep" to remove the unwanted commit after
-    you switched to "branch2".
+    you switched to "branch2" (as long as the commit doesn't conflict with your
+    working tree changes, see the "DISCUSSION" below for more details).
 
 Split a commit apart into a sequence of commits::
 +
