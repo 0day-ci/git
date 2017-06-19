@@ -44,7 +44,9 @@ static void warn_builtin(const char *warn, va_list params)
 static int die_is_recursing_builtin(void)
 {
 	static int dying;
-	return dying++;
+	static int recursion_limit = 1024;
+
+	return dying++ > recursion_limit;
 }
 
 /* If we are in a dlopen()ed .so write to a global variable would segfault
