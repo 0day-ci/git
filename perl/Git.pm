@@ -1461,6 +1461,7 @@ when not using -z
 
 {
 	my %unquote_map = (
+		"a" => chr(7),
 		"b" => chr(8),
 		"t" => chr(9),
 		"n" => chr(10),
@@ -1487,7 +1488,7 @@ when not using -z
 					$_ = $2;
 					last;
 				}
-				if (/^([\\\042btnvfr])(.*)$/) {
+				if (/^([\\\042abtnvfr])(.*)$/) {
 					$retval .= $unquote_map{$1};
 					$_ = $2;
 					last;
