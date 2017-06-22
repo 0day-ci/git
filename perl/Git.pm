@@ -1493,8 +1493,8 @@ when not using -z
 					$_ = $2;
 					last;
 				}
-				# This is malformed -- just return it as-is for now.
-				return $_[0];
+				# This is malformed
+				throw Error::Simple("Invalid quoted path $_[0]");
 			}
 			$_ = $remainder;
 		}
