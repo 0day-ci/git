@@ -215,6 +215,7 @@ static int include_by_gitdir(const struct config_options *opts,
 	int ret = 0, prefix;
 	const char *git_dir;
 	int already_tried_absolute = 0;
+	struct wildmatch_compiled *code = NULL;
 
 	if (opts->git_dir)
 		git_dir = opts->git_dir;
@@ -244,8 +245,10 @@ again:
 			goto done;
 	}
 
-	ret = !wildmatch(pattern.buf + prefix, text.buf + prefix,
-			 icase ? WM_CASEFOLD : 0);
+	if (!code)
+		code = wildmatch_compile(pattern.buf + prefix,
+					 icase ? WM_CASEFOLD : 0);
+	ret = !wildmatch_match(code, text.buf + prefix);
 
 	if (!ret && !already_tried_absolute) {
 		/*
@@ -264,6 +267,7 @@ again:
 done:
 	strbuf_release(&pattern);
 	strbuf_release(&text);
+	wildmatch_free(code);
 	return ret;
 }
 

@@ -31,7 +31,7 @@ enum replace_format {
 };
 
 struct show_data {
-	const char *pattern;
+	struct wildmatch_compiled *code;
 	enum replace_format format;
 };
 
@@ -40,7 +40,7 @@ static int show_reference(const char *refname, const struct object_id *oid,
 {
 	struct show_data *data = cb_data;
 
-	if (!wildmatch(data->pattern, refname, 0)) {
+	if (!wildmatch_match(data->code, refname)) {
 		if (data->format == REPLACE_FORMAT_SHORT)
 			printf("%s\n", refname);
 		else if (data->format == REPLACE_FORMAT_MEDIUM)
@@ -69,7 +69,7 @@ static int list_replace_refs(const char *pattern, const char *format)
 
 	if (pattern == NULL)
 		pattern = "*";
-	data.pattern = pattern;
+	data.code = wildmatch_compile(pattern, 0);
 
 	if (format == NULL || *format == '\0' || !strcmp(format, "short"))
 		data.format = REPLACE_FORMAT_SHORT;
@@ -83,6 +83,7 @@ static int list_replace_refs(const char *pattern, const char *format)
 		    format);
 
 	for_each_replace_ref(show_reference, (void *)&data);
+	wildmatch_free(data.code);
 
 	return 0;
 }
