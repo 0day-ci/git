@@ -276,3 +276,23 @@ int wildmatch(const char *pattern, const char *text, unsigned int flags)
 {
 	return dowild((const uchar*)pattern, (const uchar*)text, flags);
 }
+
+struct wildmatch_compiled *wildmatch_compile(const char *pattern, unsigned int flags)
+{
+	struct wildmatch_compiled *code = xmalloc(sizeof(struct wildmatch_compiled));
+	code->pattern = xstrdup(pattern);
+	code->flags = flags;
+
+	return code;
+}
+
+int wildmatch_match(struct wildmatch_compiled *code, const char *text)
+{
+	return wildmatch(code->pattern, text, code->flags);
+}
+
+void wildmatch_free(struct wildmatch_compiled *code)
+{
+	free((void *)code->pattern);
+	free(code);
+}
