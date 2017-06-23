@@ -122,6 +122,16 @@ static void add_branch(const char *key, const char *branchname,
 	git_config_set_multivar(key, tmp->buf, "^$", 0);
 }
 
+static void add_tracking(const char *key, const char *namespace,
+			 const char *remotename, struct strbuf *tmp)
+{
+	strbuf_reset(tmp);
+	strbuf_addch(tmp, '+');
+	strbuf_addf(tmp, "refs/%s/*:refs/tracking/%s/%s/*",
+		    namespace, remotename, namespace);
+	git_config_set_multivar(key, tmp->buf, "^$", 0);
+}
+
 static const char mirror_advice[] =
 N_("--mirror is dangerous and deprecated; please\n"
    "\t use --mirror=fetch or --mirror=push instead");
@@ -149,6 +159,7 @@ static int add(int argc, const char **argv)
 	int fetch = 0, fetch_tags = TAGS_DEFAULT;
 	unsigned mirror = MIRROR_NONE;
 	struct string_list track = STRING_LIST_INIT_NODUP;
+	struct string_list follow = STRING_LIST_INIT_NODUP;
 	const char *master = NULL;
 	struct remote *remote;
 	struct strbuf buf = STRBUF_INIT, buf2 = STRBUF_INIT;
@@ -164,6 +175,8 @@ static int add(int argc, const char **argv)
 			    N_("or do not fetch any tag at all (--no-tags)"), TAGS_UNSET),
 		OPT_STRING_LIST('t', "track", &track, N_("branch"),
 				N_("branch(es) to track")),
+		OPT_STRING_LIST(0, "follow", &follow, N_("namespace"),
+				N_("refs namespaces to follow in refs/tracking")),
 		OPT_STRING('m', "master", &master, N_("branch"), N_("master branch")),
 		{ OPTION_CALLBACK, 0, "mirror", &mirror, N_("push|fetch"),
 			N_("set up remote as a mirror to push to or fetch from"),
@@ -205,6 +218,11 @@ static int add(int argc, const char **argv)
 			add_branch(buf.buf, track.items[i].string,
 				   name, mirror, &buf2);
 		}
+	}
+
+	for (i = 0; i < follow.nr; i++) {
+		add_tracking(buf.buf, follow.items[i].string,
+			     name, &buf2);
 	}
 
 	if (mirror & MIRROR_PUSH) {
