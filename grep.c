@@ -80,8 +80,6 @@ int grep_config(const char *var, const char *value, void *cb)
 	if (!strcmp(var, "grep.extendedregexp")) {
 		if (git_config_bool(var, value))
 			opt->extended_regexp_option = 1;
-		else
-			opt->extended_regexp_option = 0;
 		return 0;
 	}
 
