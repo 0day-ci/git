@@ -7,7 +7,8 @@ struct oidset_entry {
 };
 
 static int oidset_hashcmp(const void *va, const void *vb,
-			  const void *vkey)
+			  const void *vkey,
+			  const void *unused_data)
 {
 	const struct oidset_entry *a = va, *b = vb;
 	const struct object_id *key = vkey;
@@ -30,7 +31,7 @@ int oidset_insert(struct oidset *set, const struct object_id *oid)
 	struct oidset_entry *entry;
 
 	if (!set->map.cmpfn)
-		hashmap_init(&set->map, oidset_hashcmp, 0);
+		hashmap_init(&set->map, oidset_hashcmp, NULL, 0);
 
 	if (oidset_contains(set, oid))
 		return 1;

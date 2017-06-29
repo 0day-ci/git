@@ -36,7 +36,8 @@ static int is_cache_init;
 
 static int config_path_cmp(const struct submodule_entry *a,
 			   const struct submodule_entry *b,
-			   const void *unused)
+			   const void *unused_keydata,
+			   const void *unused_data)
 {
 	return strcmp(a->config->path, b->config->path) ||
 	       hashcmp(a->config->gitmodules_sha1, b->config->gitmodules_sha1);
@@ -44,7 +45,8 @@ static int config_path_cmp(const struct submodule_entry *a,
 
 static int config_name_cmp(const struct submodule_entry *a,
 			   const struct submodule_entry *b,
-			   const void *unused)
+			   const void *unused_keydata,
+			   const void *unused_data)
 {
 	return strcmp(a->config->name, b->config->name) ||
 	       hashcmp(a->config->gitmodules_sha1, b->config->gitmodules_sha1);
@@ -52,8 +54,8 @@ static int config_name_cmp(const struct submodule_entry *a,
 
 static void cache_init(struct submodule_cache *cache)
 {
-	hashmap_init(&cache->for_path, (hashmap_cmp_fn) config_path_cmp, 0);
-	hashmap_init(&cache->for_name, (hashmap_cmp_fn) config_name_cmp, 0);
+	hashmap_init(&cache->for_path, (hashmap_cmp_fn) config_path_cmp, NULL, 0);
+	hashmap_init(&cache->for_name, (hashmap_cmp_fn) config_name_cmp, NULL, 0);
 }
 
 static void free_one_config(struct submodule_entry *entry)

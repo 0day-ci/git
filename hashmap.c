@@ -95,7 +95,9 @@ static inline int entry_equals(const struct hashmap *map,
 		const struct hashmap_entry *e1, const struct hashmap_entry *e2,
 		const void *keydata)
 {
-	return (e1 == e2) || (e1->hash == e2->hash && !map->cmpfn(e1, e2, keydata));
+	return (e1 == e2) ||
+	       (e1->hash == e2->hash &&
+		!map->cmpfn(e1, e2, keydata, map->data));
 }
 
 static inline unsigned int bucket(const struct hashmap *map,
@@ -140,19 +142,23 @@ static inline struct hashmap_entry **find_entry_ptr(const struct hashmap *map,
 	return e;
 }
 
-static int always_equal(const void *unused1, const void *unused2, const void *unused3)
+static int always_equal(const void *unused1,
+			const void *unused2,
+			const void *unused_keydata,
+			const void *unused_data)
 {
 	return 0;
 }
 
 void hashmap_init(struct hashmap *map, hashmap_cmp_fn equals_function,
-		size_t initial_size)
+		const void *data, size_t initial_size)
 {
 	unsigned int size = HASHMAP_INITIAL_SIZE;
 
 	memset(map, 0, sizeof(*map));
 
 	map->cmpfn = equals_function ? equals_function : always_equal;
+	map->data = data;
 
 	/* calculate initial table size and allocate the table */
 	initial_size = (unsigned int) ((uint64_t) initial_size * 100
@@ -262,7 +268,8 @@ struct pool_entry {
 
 static int pool_entry_cmp(const struct pool_entry *e1,
 			  const struct pool_entry *e2,
-			  const unsigned char *keydata)
+			  const unsigned char *keydata,
+			  const void *unused_data)
 {
 	return e1->data != keydata &&
 	       (e1->len != e2->len || memcmp(e1->data, keydata, e1->len));
@@ -275,7 +282,7 @@ const void *memintern(const void *data, size_t len)
 
 	/* initialize string pool hashmap */
 	if (!map.tablesize)
-		hashmap_init(&map, (hashmap_cmp_fn) pool_entry_cmp, 0);
+		hashmap_init(&map, (hashmap_cmp_fn) pool_entry_cmp, NULL, 0);
 
 	/* lookup interned string in pool */
 	hashmap_entry_init(&key, memhash(data, len));

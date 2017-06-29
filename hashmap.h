@@ -33,11 +33,12 @@ struct hashmap_entry {
 };
 
 typedef int (*hashmap_cmp_fn)(const void *entry, const void *entry_or_key,
-		const void *keydata);
+		const void *keydata, const void *cbdata);
 
 struct hashmap {
 	struct hashmap_entry **table;
 	hashmap_cmp_fn cmpfn;
+	const void *data;
 	unsigned int size, tablesize, grow_at, shrink_at;
 	unsigned disallow_rehash : 1;
 };
@@ -50,8 +51,10 @@ struct hashmap_iter {
 
 /* hashmap functions */
 
-extern void hashmap_init(struct hashmap *map, hashmap_cmp_fn equals_function,
-		size_t initial_size);
+extern void hashmap_init(struct hashmap *map,
+			 hashmap_cmp_fn equals_function,
+			 const void *data,
+			 size_t initial_size);
 extern void hashmap_free(struct hashmap *map, int free_entries);
 
 /* hashmap_entry functions */

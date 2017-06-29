@@ -6,8 +6,9 @@
 #include "pkt-line.h"
 
 int cmd2process_cmp(const struct subprocess_entry *e1,
-			   const struct subprocess_entry *e2,
-			   const void *unused)
+		    const struct subprocess_entry *e2,
+		    const void *unused_keydata,
+		    const void *unused_data)
 {
 	return strcmp(e1->cmd, e2->cmd);
 }

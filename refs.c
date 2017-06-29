@@ -1526,7 +1526,7 @@ struct ref_store_hash_entry
 };
 
 static int ref_store_hash_cmp(const void *entry, const void *entry_or_key,
-			      const void *keydata)
+			      const void *keydata, const void *unused_data)
 {
 	const struct ref_store_hash_entry *e1 = entry, *e2 = entry_or_key;
 	const char *name = keydata ? keydata : e2->name;
@@ -1608,7 +1608,7 @@ static void register_ref_store_map(struct hashmap *map,
 				   const char *name)
 {
 	if (!map->tablesize)
-		hashmap_init(map, ref_store_hash_cmp, 0);
+		hashmap_init(map, ref_store_hash_cmp, NULL, 0);
 
 	if (hashmap_put(map, alloc_ref_store_hash_entry(name, refs)))
 		die("BUG: %s ref_store '%s' initialized twice", type, name);
