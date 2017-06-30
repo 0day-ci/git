@@ -1126,6 +1126,11 @@ static void finalize_deferred_config(struct wt_status *s)
 			die(_("--long and -z are incompatible"));
 	}
 
+	/* suppress all additional output in porcelain mode */
+	if (status_format == STATUS_FORMAT_PORCELAIN ||
+	    status_format == STATUS_FORMAT_PORCELAIN_V2)
+		safe_crlf = SAFE_CRLF_FALSE;
+
 	if (use_deferred_config && status_format == STATUS_FORMAT_UNSPECIFIED)
 		status_format = status_deferred_config.status_format;
 	if (status_format == STATUS_FORMAT_UNSPECIFIED)
