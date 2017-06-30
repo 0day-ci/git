@@ -33,4 +33,7 @@ case "$2,$3" in
 esac
 
 # SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+# SOB_TO_ADD='
+#
+# '$SOB
+# grep -qs "^$SOB" "$1" || (echo "$SOB_TO_ADD" | cat - "$1" >temp-template && mv temp-template "$1")
