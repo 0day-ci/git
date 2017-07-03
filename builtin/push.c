@@ -561,6 +561,9 @@ int cmd_push(int argc, const char **argv, const char *prefix)
 
 	packet_trace_identity("push");
 	git_config(git_push_config, &flags);
+	if (push_always_force_with_lease) {
+		cas.use_tracking_for_rest = 1;
+	}
 	argc = parse_options(argc, argv, prefix, options, push_usage, 0);
 	set_push_cert_flags(&flags, push_cert);
 

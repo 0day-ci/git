@@ -2537,6 +2537,11 @@ push.default::
 	specific workflows; for instance, in a purely central workflow
 	(i.e. the fetch source is equal to the push destination),
 	`upstream` is probably what you want.  Possible values are:
+
+push.alwaysforcewithlease::
+	When true, `--force-with-lease` is the default behavior when
+	using `push --force`. Explicit invocations of `--force-with-lease`
+	or `--no-force-with-lease` if present, take precedence.
 +
 --
 
