@@ -20,17 +20,28 @@
 # The third example adds a Signed-off-by line to the message, that can
 # still be edited.  This is rarely a good idea.
 
-case "$2,$3" in
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+NEW_LINE='\
+'
+SED_TEMP_FILE='.sed-output.temp'
+
+case "$COMMIT_SOURCE,$SHA1" in
   merge,)
-    @PERL_PATH@ -i.bak -ne 's/^/# /, s/^# #/#/ if /^Conflicts/ .. /#/; print' "$1" ;;
+    @PERL_PATH@ -i.bak -ne 's/^/# /, s/^# #/#/ if /^Conflicts/ .. /#/; print' "$COMMIT_MSG_FILE" ;;
 
 # ,|template,)
 #   @PERL_PATH@ -i.bak -pe '
 #      print "\n" . `git diff --cached --name-status -r`
-#	 if /^#/ && $first++ == 0' "$1" ;;
+#	 if /^#/ && $first++ == 0' "$COMMIT_MSG_FILE" ;;
 
   *) ;;
 esac
 
 # SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+# git interpret-trailers --in-place --trailer "$SOB" "$COMMIT_MSG_FILE"
+# if [ -z "$COMMIT_SOURCE" ]
+# then
+#  sed -e "1i$NEW_LINE" "$COMMIT_MSG_FILE" >"$SED_TEMP_FILE" && mv "$SED_TEMP_FILE "$COMMIT_MSG_FILE"
+# fi
