@@ -17,7 +17,8 @@ test_expect_success setup '
 	# create template repository
 	test_commit A &&
 	test_commit B &&
-	test_commit C
+	test_commit C &&
+	git config --global push.allowLazyForceWithLease true
 '
 
 test_expect_success 'push to update (protected)' '
@@ -78,7 +79,6 @@ test_expect_success 'push to update (protected, tracking, forced)' '
 	(
 		cd dst &&
 		test_commit E &&
-		git ls-remote . refs/remotes/origin/master >expect &&
 		git push --force --force-with-lease=master origin master
 	) &&
 	git ls-remote dst refs/heads/master >expect &&
@@ -91,6 +91,7 @@ test_expect_success 'push to update (allowed)' '
 	(
 		cd dst &&
 		test_commit D &&
+		git config push.allowLazyForceWithLease false &&
 		git push --force-with-lease=master:master^ origin master
 	) &&
 	git ls-remote dst refs/heads/master >expect &&
@@ -103,6 +104,10 @@ test_expect_success 'push to update (allowed, tracking)' '
 	(
 		cd dst &&
 		test_commit D &&
+		git config push.allowLazyForceWithLease false &&
+		test_must_fail git push --force-with-lease=master origin master 2>err &&
+		grep "lazy force-with-lease" err &&
+		git config --unset push.allowLazyForceWithLease &&
 		git push --force-with-lease=master origin master 2>err &&
 		! grep "forced update" err
 	) &&
@@ -151,6 +156,10 @@ test_expect_success 'push to delete (allowed)' '
 	setup_srcdst_basic &&
 	(
 		cd dst &&
+		git config push.allowLazyForceWithLease false &&
+		test_must_fail git push --force-with-lease=master origin :master 2>err &&
+		grep "lazy force-with-lease" err &&
+		git config --unset push.allowLazyForceWithLease &&
 		git push --force-with-lease=master origin :master 2>err &&
 		grep deleted err
 	) &&
@@ -183,6 +192,9 @@ test_expect_success 'cover everything with default force-with-lease (allowed)' '
 	(
 		cd dst &&
 		git fetch &&
+		git config push.allowLazyForceWithLease false &&
+		test_must_fail git push --force-with-lease origin master master:naster &&
+		git config --unset push.allowLazyForceWithLease &&
 		git push --force-with-lease origin master master:naster
 	) &&
 	git ls-remote dst refs/heads/master |
@@ -196,6 +208,9 @@ test_expect_success 'new branch covered by force-with-lease' '
 	(
 		cd dst &&
 		git branch branch master &&
+		git config push.allowLazyForceWithLease false &&
+		test_must_fail git push --force-with-lease=branch origin branch &&
+		git config --unset push.allowLazyForceWithLease &&
 		git push --force-with-lease=branch origin branch
 	) &&
 	git ls-remote dst refs/heads/branch >expect &&

@@ -212,8 +212,9 @@ must not already exist.
 +
 Note that all forms other than `--force-with-lease=<refname>:<expect>`
 that specifies the expected current value of the ref explicitly are
-still experimental and their semantics may change as we gain experience
-with this feature.
+disabled by default.  Read the note on safety below, and if you think
+you are not affected, enable it with the `push.allowLazyForceWithLease`
+configuration option (cf. linkgit:git-config[1]).
 +
 "--no-force-with-lease" will cancel all the previous --force-with-lease on the
 command line.
