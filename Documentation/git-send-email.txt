@@ -161,7 +161,8 @@ Sending
 	unspecified, choosing the envelope sender is left to your MTA.
 
 --smtp-encryption=<encryption>::
-	Specify the encryption to use, either 'ssl' or 'tls'.  Any other
+	Specify the encryption to use, either 'ssl' (direct TLS) or
+	'tls' (plain text upgraded to TLS via STARTTLS).  Any other
 	value reverts to plain SMTP.  Default is the value of
 	`sendemail.smtpEncryption`.
 
@@ -216,13 +217,15 @@ a password is obtained using 'git-credential'.
 	`sendemail.smtpServerPort` configuration variable.
 
 --smtp-server-option=<option>::
-	If set, specifies the outgoing SMTP server option to use.
+	Specifies a command line option to pass to the local sendmail-like
+	binary.  Only useful when `--smtp-server` (or `sendemail.smtpServer`)
+	points to a local absolute path corresponding to the program binary.
 	Default value can be specified by the `sendemail.smtpServerOption`
-	configuration option.
+	configuration variable.
 +
-The --smtp-server-option option must be repeated for each option you want
-to pass to the server. Likewise, different lines in the configuration files
-must be used for each option.
+This option must be used once for each command line argument you want to pass
+to the program.  Correspondingly, the configuration variable is multivalued:
+set it, in order, once per command line argument.
 
 --smtp-ssl::
 	Legacy alias for '--smtp-encryption ssl'.
