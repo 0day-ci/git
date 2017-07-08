@@ -2903,10 +2903,6 @@ sendemail.identity::
 	values in the 'sendemail' section. The default identity is
 	the value of `sendemail.identity`.
 
-sendemail.smtpEncryption::
-	See linkgit:git-send-email[1] for description.  Note that this
-	setting is not subject to the 'identity' mechanism.
-
 sendemail.smtpssl (deprecated)::
 	Deprecated alias for 'sendemail.smtpEncryption = ssl'.
 
@@ -2937,6 +2933,7 @@ sendemail.suppresscc::
 sendemail.suppressFrom::
 sendemail.to::
 sendemail.smtpDomain::
+sendemail.smtpEncryption::
 sendemail.smtpServer::
 sendemail.smtpServerPort::
 sendemail.smtpServerOption::
