@@ -31,6 +31,10 @@ characters, `-` and `.` are allowed in section names.  Each variable
 must belong to some section, which means that there must be a section
 header before the first setting of a variable.
 
+Multiple occurrences of the same section are all logically merged.  (There's
+no special treatment for variables defined multiple times across physically
+different sections, the variable is simply made multivalued.)
+
 Sections can be further divided into subsections.  To begin a subsection
 put its name in double quotes, separated by space from the section name,
 in the section header, like in the example below:
