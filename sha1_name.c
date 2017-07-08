@@ -483,7 +483,7 @@ int find_unique_abbrev_r(char *hex, const unsigned char *sha1, int len)
 		 * together we need to divide by 2; but we also want to round
 		 * odd numbers up, hence adding one before dividing.
 		 */
-		len = (len + 1) / 2;
+		len = DIV_ROUND_UP(len, 2);
 		/*
 		 * For very small repos, we stick with our regular fallback.
 		 */
