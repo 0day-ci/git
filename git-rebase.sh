@@ -55,9 +55,10 @@ LF='
 '
 ok_to_skip_pre_rebase=
 resolvemsg="
-$(gettext 'When you have resolved this problem, run "git rebase --continue".
-If you prefer to skip this patch, run "git rebase --skip" instead.
-To check out the original branch and stop rebasing, run "git rebase --abort".')
+$(gettext 'Resolve this conflict manually, mark it as resolved with "git add <conflicted_file>",
+then run "git rebase --continue".
+You can instead skip this commit: run "git rebase --skip".
+To stop the whole rebasing and get back to your pre-rebase state, run "git rebase --abort".')
 "
 unset onto
 unset restrict_revision
