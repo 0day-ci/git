@@ -33,6 +33,34 @@ static void commit_pager_choice(void) {
 	}
 }
 
+void setup_auto_pager(const char *cmd, int def)
+{
+	if (use_pager != -1)
+		return;
+
+	use_pager = check_pager_config(cmd);
+
+	if (use_pager == -1) {
+		struct strbuf buf = STRBUF_INIT;
+		size_t len;
+
+		strbuf_addstr(&buf, cmd);
+		len = buf.len;
+		while (use_pager == -1 && len--) {
+			if (buf.buf[len] == '.') {
+				strbuf_setlen(&buf, len);
+				use_pager = check_pager_config(buf.buf);
+			}
+		}
+		strbuf_release(&buf);
+	}
+
+	if (use_pager == -1)
+		use_pager = def;
+
+	commit_pager_choice();
+}
+
 static int handle_options(const char ***argv, int *argc, int *envchanged)
 {
 	const char **orig_argv = *argv;

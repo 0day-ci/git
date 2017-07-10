@@ -25,6 +25,20 @@ struct fmt_merge_msg_opts {
 extern int fmt_merge_msg(struct strbuf *in, struct strbuf *out,
 			 struct fmt_merge_msg_opts *);
 
+/**
+ * If a builtin has IGNORE_PAGER_CONFIG set, the builtin should call this early
+ * when it wishes to respect the `pager.foo`-config. In the simplest case, the
+ * `cmd` is the name of the builtin, e.g., "foo". If a paging-choice has already
+ * been setup, this does nothing. The default in `def` should be 0 for "pager
+ * off", 1 for "pager on" or -1 for "punt".
+ *
+ * With one or more '.', substrings are tried out from longer to shorter. If no
+ * config is found, uses `def`. For example, with `cmd` as "foo.bar.baz", this
+ * function tries `pager.foo.bar.baz`, `pager.foo.bar` and `pager.foo` in that
+ * order before resorting to `def`.
+ */
+extern void setup_auto_pager(const char *cmd, int def);
+
 extern int is_builtin(const char *s);
 
 extern int cmd_add(int argc, const char **argv, const char *prefix);
