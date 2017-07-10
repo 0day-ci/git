@@ -101,6 +101,10 @@ patterns may be given; if any of them matches, the tag is shown.
 This option is implicitly supplied if any other list-like option such
 as `--contains` is provided. See the documentation for each of those
 options for details.
++
+When determining whether to use a pager, `pager.tag.list` is considered
+before `pager.tag`.
+See linkgit:git-config[1].
 
 --sort=<key>::
 	Sort based on the key given.  Prefix `-` to sort in

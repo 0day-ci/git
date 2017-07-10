@@ -146,9 +146,15 @@ test_expect_success TTY 'git tag -l respects pager.tag' '
 	test -e paginated.out
 '
 
+test_expect_success TTY 'git tag -l respects pager.tag.list' '
+	rm -f paginated.out &&
+	test_terminal git -c pager.tag=false -c pager.tag.list tag -l &&
+	test -e paginated.out
+'
+
 test_expect_success TTY 'git tag -l respects --no-pager' '
 	rm -f paginated.out &&
-	test_terminal git -c pager.tag --no-pager tag -l &&
+	test_terminal git -c pager.tag.list --no-pager tag -l &&
 	! test -e paginated.out
 '
 
@@ -163,6 +169,14 @@ test_expect_success TTY 'git tag -a respects pager.tag' '
 	test_when_finished "git tag -d newtag" &&
 	rm -f paginated.out &&
 	test_terminal git -c pager.tag tag -am message newtag &&
+	test -e paginated.out
+'
+
+test_expect_success TTY 'git tag -a ignores pager.tag.list' '
+	test_when_finished "git tag -d newtag" &&
+	rm -f paginated.out &&
+	test_terminal git -c pager.tag -c pager.tag.list=false \
+		tag -am message newtag &&
 	test -e paginated.out
 '
 

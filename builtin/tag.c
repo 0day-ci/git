@@ -446,6 +446,8 @@ int cmd_tag(int argc, const char **argv, const char *prefix)
 
 	argc = parse_options(argc, argv, prefix, options, git_tag_usage, 0);
 
+	if (cmdmode == 'l')
+		setup_auto_pager("tag.list", 0);
 	setup_auto_pager("tag", 0);
 
 	if (keyid) {
