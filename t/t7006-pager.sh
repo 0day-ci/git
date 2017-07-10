@@ -134,22 +134,22 @@ test_expect_success TTY 'configuration can enable pager (from subdir)' '
 	}
 '
 
-test_expect_success TTY 'git tag -l defaults to not paging' '
+test_expect_success TTY 'git tag -l defaults to paging' '
 	rm -f paginated.out &&
 	test_terminal git tag -l &&
-	! test -e paginated.out
+	test -e paginated.out
 '
 
 test_expect_success TTY 'git tag -l respects pager.tag' '
 	rm -f paginated.out &&
-	test_terminal git -c pager.tag tag -l &&
-	test -e paginated.out
+	test_terminal git -c pager.tag=false tag -l &&
+	! test -e paginated.out
 '
 
 test_expect_success TTY 'git tag -l respects pager.tag.list' '
 	rm -f paginated.out &&
-	test_terminal git -c pager.tag=false -c pager.tag.list tag -l &&
-	test -e paginated.out
+	test_terminal git -c pager.tag -c pager.tag.list=false tag -l &&
+	! test -e paginated.out
 '
 
 test_expect_success TTY 'git tag -l respects --no-pager' '

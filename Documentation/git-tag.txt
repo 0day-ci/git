@@ -103,7 +103,7 @@ as `--contains` is provided. See the documentation for each of those
 options for details.
 +
 When determining whether to use a pager, `pager.tag.list` is considered
-before `pager.tag`.
+before `pager.tag`. If neither is set, the default is to use a pager.
 See linkgit:git-config[1].
 
 --sort=<key>::
