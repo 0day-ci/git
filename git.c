@@ -283,6 +283,12 @@ static int handle_alias(int *argcp, const char ***argv)
  */
 #define NEED_WORK_TREE		(1<<3)
 #define SUPPORT_SUPER_PREFIX	(1<<4)
+/*
+ * Ignore the `pager.<cmd>`-configuration, instead giving the builtin
+ * the chance to handle it and possibly more fine-grained
+ * configurations (`pager.<cmd>.<subcmd>`).
+ */
+#define IGNORE_PAGER_CONFIG	(1<<5)
 
 struct cmd_struct {
 	const char *cmd;
@@ -306,7 +312,8 @@ static int run_builtin(struct cmd_struct *p, int argc, const char **argv)
 			prefix = setup_git_directory_gently(&nongit_ok);
 		}
 
-		if (use_pager == -1 && p->option & (RUN_SETUP | RUN_SETUP_GENTLY))
+		if (use_pager == -1 && p->option & (RUN_SETUP | RUN_SETUP_GENTLY) &&
+		    !(p->option & IGNORE_PAGER_CONFIG))
 			use_pager = check_pager_config(p->cmd);
 		if (use_pager == -1 && p->option & USE_PAGER)
 			use_pager = 1;
@@ -543,11 +550,14 @@ static void execv_dashed_external(const char **argv)
 {
 	struct child_process cmd = CHILD_PROCESS_INIT;
 	int status;
+	struct cmd_struct *builtin;
 
 	if (get_super_prefix())
 		die("%s doesn't support --super-prefix", argv[0]);
 
-	if (use_pager == -1)
+	builtin = get_builtin(argv[0]);
+	if (use_pager == -1 &&
+	    !(builtin && builtin->option & IGNORE_PAGER_CONFIG))
 		use_pager = check_pager_config(argv[0]);
 	commit_pager_choice();
 

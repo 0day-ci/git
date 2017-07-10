@@ -46,6 +46,12 @@ where options is the bitwise-or of:
 
 	The builtin supports --super-prefix.
 
+`IGNORE_PAGER_CONFIG`::
+
+	Ignore the `pager.<cmd>`-configuration in git.c, instead
+	giving the builtin the chance to handle it and possibly
+	more fine-grained configurations (`pager.<cmd>.<subcmd>`).
+
 . Add `builtin/foo.o` to `BUILTIN_OBJS` in `Makefile`.
 
 Additionally, if `foo` is a new command, there are 3 more things to do:
