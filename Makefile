@@ -1015,6 +1015,9 @@ endif
 ifdef SANITIZE
 BASIC_CFLAGS += -fsanitize=$(SANITIZE) -fno-sanitize-recover=$(SANITIZE)
 BASIC_CFLAGS += -fno-omit-frame-pointer
+ifeq ($(SANITIZE),undefined)
+BASIC_CFLAGS += -DNO_UNALIGNED_LOADS
+endif
 endif
 
 ifndef sysconfdir
