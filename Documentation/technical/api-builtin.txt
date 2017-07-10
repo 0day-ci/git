@@ -42,6 +42,10 @@ where options is the bitwise-or of:
 	on bare repositories.
 	This only makes sense when `RUN_SETUP` is also set.
 
+`SUPPORT_SUPER_PREFIX`::
+
+	The builtin supports --super-prefix.
+
 . Add `builtin/foo.o` to `BUILTIN_OBJS` in `Makefile`.
 
 Additionally, if `foo` is a new command, there are 3 more things to do:
