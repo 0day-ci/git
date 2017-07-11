@@ -3398,6 +3398,17 @@ void diff_setup(struct diff_options *options)
 	if (diff_indent_heuristic)
 		DIFF_XDL_SET(options, INDENT_HEURISTIC);
 
+	if (!diff_order_file_cfg) {
+		struct stat st;
+		int c = lstat(".gitorderfile", &st);
+		if (c == 0 && S_ISREG(st.st_mode))
+			diff_order_file_cfg = ".gitorderfile";
+		else if (c < 0 && errno == ENOENT)
+			; /* File does not exist. no preset. */
+		else
+			die_errno("stat '.gitorderfile'");
+	}
+
 	options->orderfile = diff_order_file_cfg;
 
 	if (diff_no_prefix) {
