@@ -1123,6 +1123,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 			setup_git_env();
 		}
 	}
+	the_repository->index = &the_index;
 
 	strbuf_release(&dir);
 	strbuf_release(&gitdir);
