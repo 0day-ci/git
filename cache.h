@@ -2029,4 +2029,6 @@ void sleep_millisec(int millisec);
  */
 void safe_create_dir(const char *dir, int share);
 
+extern int read_external_symref(struct strbuf *from, struct strbuf *out);
+
 #endif /* CACHE_H */

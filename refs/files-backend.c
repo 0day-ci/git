@@ -713,6 +713,16 @@ stat_ref:
 		goto out;
 	}
 
+	if (starts_with(buf, "repo:")) {
+		if (read_external_symref(&sb_contents, referent)) {
+			*type |= REF_ISBROKEN;
+			ret = -1;
+			goto out;
+		}
+		*type |= REF_ISSYMREF;
+		ret = 0;
+	}
+
 	/*
 	 * Please note that FETCH_HEAD has additional
 	 * data after the sha.

@@ -2037,3 +2037,43 @@ int submodule_to_gitdir(struct strbuf *buf, const char *submodule)
 cleanup:
 	return ret;
 }
+
+int read_external_symref(struct strbuf *from, struct strbuf *out)
+{
+	struct child_process cp = CHILD_PROCESS_INIT;
+	const char *repo, *gitlink;
+	int hint, code;
+	struct strbuf **split = strbuf_split(from, 0);
+	struct strbuf cmd_out = STRBUF_INIT;
+
+	if (!split[0] || !split[1])
+		return -1;
+
+	repo = split[0]->buf + 5; /* skip 'repo:' */
+	gitlink = split[1]->buf;
+
+	argv_array_pushl(&cp.args,
+			"ignored-first-arg",
+			"-C", repo,
+			"ls-tree", "-z", "HEAD", "--", gitlink, NULL);
+
+	/*
+	 * 17 accounts for '160000 commit ',
+	 * the \t before path and trailing \0.
+	 */
+	hint = 17 + GIT_SHA1_HEXSZ + split[1]->len;
+	code = capture_command(&cp, &cmd_out, hint);
+
+	strbuf_release(split[0]);
+	strbuf_release(split[1]);
+
+	if (!code) {
+		strbuf_reset(out);
+		strbuf_add(out, cmd_out.buf + strlen("160000 commit "),
+			   GIT_SHA1_HEXSZ);
+	} else
+		return -1;
+
+	return 0;
+}
+
