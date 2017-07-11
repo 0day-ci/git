@@ -32,6 +32,7 @@
 #include "gpg-interface.h"
 #include "sequencer.h"
 #include "string-list.h"
+#include "message-validator.h"
 
 #define DEFAULT_TWOHEAD (1<<0)
 #define DEFAULT_OCTOPUS (1<<1)
@@ -773,7 +774,7 @@ static void prepare_to_commit(struct commit_list *remoteheads)
 	}
 	read_merge_msg(&msg);
 	strbuf_stripspace(&msg, 0 < option_edit);
-	if (!msg.len)
+	if (!msg.len || message_is_empty(&msg, 0))
 		abort_commit(remoteheads, _("Empty commit message."));
 	strbuf_release(&merge_msg);
 	strbuf_addbuf(&merge_msg, &msg);

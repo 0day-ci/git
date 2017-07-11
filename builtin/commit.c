@@ -34,6 +34,7 @@
 #include "notes-utils.h"
 #include "mailmap.h"
 #include "sigchain.h"
+#include "message-validator.h"
 
 static const char * const builtin_commit_usage[] = {
 	N_("git commit [<options>] [--] <pathspec>..."),
@@ -981,41 +982,11 @@ static int prepare_to_commit(const char *index_file, const char *prefix,
 	return 1;
 }
 
-static int rest_is_empty(struct strbuf *sb, int start)
-{
-	int i, eol;
-	const char *nl;
-
-	/* Check if the rest is just whitespace and Signed-of-by's. */
-	for (i = start; i < sb->len; i++) {
-		nl = memchr(sb->buf + i, '\n', sb->len - i);
-		if (nl)
-			eol = nl - sb->buf;
-		else
-			eol = sb->len;
-
-		if (strlen(sign_off_header) <= eol - i &&
-		    starts_with(sb->buf + i, sign_off_header)) {
-			i = eol;
-			continue;
-		}
-		while (i < eol)
-			if (!isspace(sb->buf[i++]))
-				return 0;
-	}
-
-	return 1;
-}
-
-/*
- * Find out if the message in the strbuf contains only whitespace and
- * Signed-off-by lines.
- */
-static int message_is_empty(struct strbuf *sb)
+static int is_empty(struct strbuf *sb)
 {
 	if (cleanup_mode == CLEANUP_NONE && sb->len)
 		return 0;
-	return rest_is_empty(sb, 0);
+	return message_is_empty(sb, 0);
 }
 
 /*
@@ -1037,7 +1008,7 @@ static int template_untouched(struct strbuf *sb)
 	if (!skip_prefix(sb->buf, tmpl.buf, &start))
 		start = sb->buf;
 	strbuf_release(&tmpl);
-	return rest_is_empty(sb, start - sb->buf);
+	return message_is_empty(sb, start - sb->buf);
 }
 
 static const char *find_author_by_nickname(const char *name)
@@ -1754,7 +1725,7 @@ int cmd_commit(int argc, const char **argv, const char *prefix)
 		fprintf(stderr, _("Aborting commit; you did not edit the message.\n"));
 		exit(1);
 	}
-	if (message_is_empty(&sb) && !allow_empty_message) {
+	if (is_empty(&sb) && !allow_empty_message) {
 		rollback_index_files();
 		fprintf(stderr, _("Aborting commit due to empty commit message.\n"));
 		exit(1);
