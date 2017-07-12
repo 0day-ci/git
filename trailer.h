@@ -1,10 +1,32 @@
 #ifndef TRAILER_H
 #define TRAILER_H
 
+enum action_where {
+	WHERE_END,
+	WHERE_AFTER,
+	WHERE_BEFORE,
+	WHERE_START
+};
+enum action_if_exists {
+	EXISTS_ADD_IF_DIFFERENT_NEIGHBOR,
+	EXISTS_ADD_IF_DIFFERENT,
+	EXISTS_ADD,
+	EXISTS_REPLACE,
+	EXISTS_DO_NOTHING
+};
+enum action_if_missing {
+	MISSING_ADD,
+	MISSING_DO_NOTHING
+};
+
 struct trailer_opts {
 	int in_place;
 	int trim_empty;
 };
+
+int set_where(enum action_where *item, const char *value);
+int set_if_exists(enum action_if_exists *item, const char *value);
+int set_if_missing(enum action_if_missing *item, const char *value);
 
 struct trailer_info {
 	/*
