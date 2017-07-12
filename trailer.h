@@ -1,6 +1,11 @@
 #ifndef TRAILER_H
 #define TRAILER_H
 
+struct trailer_opts {
+	int in_place;
+	int trim_empty;
+};
+
 struct trailer_info {
 	/*
 	 * True if there is a blank line before the location pointed to by
@@ -22,7 +27,7 @@ struct trailer_info {
 	size_t trailer_nr;
 };
 
-void process_trailers(const char *file, int in_place, int trim_empty,
+void process_trailers(const char *file, struct trailer_opts *opts,
 		      struct string_list *trailers);
 
 void trailer_info_get(struct trailer_info *info, const char *str);
