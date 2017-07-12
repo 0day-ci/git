@@ -2,12 +2,14 @@
 #define TRAILER_H
 
 enum action_where {
+	WHERE_DEFAULT,
 	WHERE_END,
 	WHERE_AFTER,
 	WHERE_BEFORE,
 	WHERE_START
 };
 enum action_if_exists {
+	EXISTS_DEFAULT,
 	EXISTS_ADD_IF_DIFFERENT_NEIGHBOR,
 	EXISTS_ADD_IF_DIFFERENT,
 	EXISTS_ADD,
@@ -15,6 +17,7 @@ enum action_if_exists {
 	EXISTS_DO_NOTHING
 };
 enum action_if_missing {
+	MISSING_DEFAULT,
 	MISSING_ADD,
 	MISSING_DO_NOTHING
 };
@@ -22,6 +25,9 @@ enum action_if_missing {
 struct trailer_opts {
 	int in_place;
 	int trim_empty;
+	enum action_where where;
+	enum action_if_exists if_exists;
+	enum action_if_missing if_missing;
 };
 
 int set_where(enum action_where *item, const char *value);

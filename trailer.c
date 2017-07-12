@@ -549,14 +549,36 @@ static int git_trailer_config(const char *conf_key, const char *value, void *cb)
 	return 0;
 }
 
-static void ensure_configured(void)
+static void apply_config_overrides(struct conf_info *conf, struct trailer_opts *opts)
 {
+	if (!opts)
+		return;
+	if (opts->where != WHERE_DEFAULT)
+		conf->where = opts->where;
+	if (opts->if_exists != EXISTS_DEFAULT)
+		conf->if_exists = opts->if_exists;
+	if (opts->if_missing != MISSING_DEFAULT)
+		conf->if_missing = opts->if_missing;
+}
+
+static void ensure_configured(struct trailer_opts *opts)
+{
+	struct arg_item *item;
+	struct list_head *pos;
+
 	if (configured)
 		return;
 
 	/* Default config must be setup first */
 	git_config(git_trailer_default_config, NULL);
+	apply_config_overrides(&default_conf_info, opts);
+
 	git_config(git_trailer_config, NULL);
+	list_for_each(pos, &conf_head) {
+		item = list_entry(pos, struct arg_item, list);
+		apply_config_overrides(&item->conf, opts);
+	}
+
 	configured = 1;
 }
 
@@ -977,7 +999,7 @@ void process_trailers(const char *file, struct trailer_opts *opts,
 	int trailer_end;
 	FILE *outfile = stdout;
 
-	ensure_configured();
+	ensure_configured(opts);
 
 	read_input_file(&sb, file);
 
@@ -1013,7 +1035,7 @@ void trailer_info_get(struct trailer_info *info, const char *str)
 	size_t nr = 0, alloc = 0;
 	char **last = NULL;
 
-	ensure_configured();
+	ensure_configured(NULL);
 
 	patch_start = find_patch_start(str);
 	trailer_end = find_trailer_end(str, patch_start);

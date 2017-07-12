@@ -80,6 +80,22 @@ OPTIONS
 	trailer to the input messages. See the description of this
 	command.
 
+--where <placement>::
+	Specify where all new trailers will be added.  This option
+	overrides all configuration variables.
+
+--if-exists <action>::
+	Specify what action will be performed when there is already at
+	least one trailer with the same <token> in the message.  This
+	option applies to all '--trailer' options and overrides all
+	configuration variables.
+
+--if-missing <action>::
+	Specify what action will be performed when there is no other
+	trailer with the same <token> in the message.  This option
+	applies to all '--trailer' options and overrides all
+	configuration variables.
+
 CONFIGURATION VARIABLES
 -----------------------
 
