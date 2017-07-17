@@ -113,6 +113,15 @@ struct fmt_merge_msg_opts {
 extern int fmt_merge_msg(struct strbuf *in, struct strbuf *out,
 			 struct fmt_merge_msg_opts *);
 
+/**
+ * If a builtin has DELAY_PAGER_CONFIG set, the builtin should call this early
+ * when it wishes to respect the `pager.foo`-config. The `cmd` is the name of
+ * the builtin, e.g., "foo". If a paging-choice has already been setup, this
+ * does nothing. The default in `def` should be 0 for "pager off", 1 for "pager
+ * on" or -1 for "punt".
+ */
+extern void setup_auto_pager(const char *cmd, int def);
+
 extern int is_builtin(const char *s);
 
 extern int cmd_add(int argc, const char **argv, const char *prefix);
