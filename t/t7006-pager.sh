@@ -201,7 +201,7 @@ test_expect_success TTY 'git tag -a respects --paginate' '
 	test -e paginated.out
 '
 
-test_expect_failure TTY 'git tag as alias ignores pager.tag with -a' '
+test_expect_success TTY 'git tag as alias ignores pager.tag with -a' '
 	# git-tag will be launched as a dashed external, which
 	# 1) is the source of a potential bug, and
 	# 2) is why we use test_config and not -c.
