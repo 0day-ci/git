@@ -51,9 +51,13 @@
  *	on bare repositories.
  *	This only makes sense when `RUN_SETUP` is also set.
  *
+ * `SUPPORT_SUPER_PREFIX`::
+ *
+ *	The builtin supports `--super-prefix`.
+ *
  * . Add `builtin/foo.o` to `BUILTIN_OBJS` in `Makefile`.
  *
- * Additionally, if `foo` is a new command, there are 3 more things to do:
+ * Additionally, if `foo` is a new command, there are 4 more things to do:
  *
  * . Add tests to `t/` directory.
  *
