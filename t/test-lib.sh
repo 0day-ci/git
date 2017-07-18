@@ -727,6 +727,11 @@ test_done () {
 		EOF
 	fi
 
+	if test_have_prereq GPG
+	then
+		GNUPGHOME="$TRASH_DIRECTORY/gpghome" gpgconf --kill all
+	fi
+
 	if test "$test_fixed" != 0
 	then
 		say_color error "# $test_fixed known breakage(s) vanished; please update test(s)"
