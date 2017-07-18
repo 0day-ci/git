@@ -10,6 +10,8 @@ then
 	'gpg (GnuPG) 1.0.6'*)
 		say "Your version of gpg (1.0.6) is too buggy for testing"
 		;;
+	'gpg (GnuPG) 2.1'*)
+		GNUPGHOME="$(pwd)/gpghome" gpgconf --kill all ;&
 	*)
 		# Available key info:
 		# * Type DSA and Elgamal, size 2048 bits, no expiration date,
