@@ -2920,20 +2920,19 @@ static int sha1_loose_object_info(const unsigned char *sha1,
 
 	/*
 	 * If we don't care about type or size, then we don't
-	 * need to look inside the object at all. Note that we
-	 * do not optimize out the stat call, even if the
-	 * caller doesn't care about the disk-size, since our
-	 * return value implicitly indicates whether the
-	 * object even exists.
+	 * need to look inside the object at all. We only check
+	 * for its existence.
 	 */
 	if (!oi->typep && !oi->typename && !oi->sizep && !oi->contentp) {
-		const char *path;
-		struct stat st;
-		if (stat_sha1_file(sha1, &st, &path) < 0)
-			return -1;
-		if (oi->disk_sizep)
+		if (oi->disk_sizep) {
+			const char *path;
+			struct stat st;
+			if (stat_sha1_file(sha1, &st, &path) < 0)
+				return -1;
 			*oi->disk_sizep = st.st_size;
-		return 0;
+			return 0;
+		}
+		return has_loose_object(sha1) ? 0 : -1;
 	}
 
 	map = map_sha1_file(sha1, &mapsize);
