@@ -4,6 +4,7 @@
 #include "tree.h"
 #include "commit.h"
 #include "tag.h"
+#include "promised-object.h"
 
 static struct object **obj_hash;
 static int nr_objs, obj_hash_size;
@@ -141,6 +142,7 @@ void *create_object(const unsigned char *sha1, void *o)
 	struct object *obj = o;
 
 	obj->parsed = 0;
+	obj->promised = 0;
 	obj->flags = 0;
 	hashcpy(obj->oid.hash, sha1);
 
@@ -276,6 +278,23 @@ struct object *parse_object(const struct object_id *oid)
 			free(buffer);
 		return obj;
 	}
+	return NULL;
+}
+
+struct object *parse_or_promise_object(const struct object_id *oid)
+{
+	enum object_type type;
+
+	if (has_object_file(oid))
+		return parse_object(oid);
+
+	if (is_promised_object(oid, &type, NULL)) {
+		struct object *obj = lookup_unknown_object(oid->hash);
+		obj->promised = 1;
+		obj->type = type;
+		return obj;
+	}
+
 	return NULL;
 }
 

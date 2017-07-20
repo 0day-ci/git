@@ -15,6 +15,7 @@
 #include "progress.h"
 #include "streaming.h"
 #include "decorate.h"
+#include "promised-object.h"
 
 #define REACHABLE 0x0001
 #define SEEN      0x0002
@@ -44,6 +45,7 @@ static int name_objects;
 #define ERROR_REACHABLE 02
 #define ERROR_PACK 04
 #define ERROR_REFS 010
+#define ERROR_PROMISED_OBJECT 011
 
 static const char *describe_object(struct object *obj)
 {
@@ -447,7 +449,7 @@ static int fsck_handle_ref(const char *refname, const struct object_id *oid,
 {
 	struct object *obj;
 
-	obj = parse_object(oid);
+	obj = parse_or_promise_object(oid);
 	if (!obj) {
 		error("%s: invalid sha1 pointer %s", refname, oid_to_hex(oid));
 		errors_found |= ERROR_REACHABLE;
@@ -603,7 +605,7 @@ static int fsck_cache_tree(struct cache_tree *it)
 		fprintf(stderr, "Checking cache tree\n");
 
 	if (0 <= it->entry_count) {
-		struct object *obj = parse_object(&it->oid);
+		struct object *obj = parse_or_promise_object(&it->oid);
 		if (!obj) {
 			error("%s: invalid sha1 pointer in cache-tree",
 			      oid_to_hex(&it->oid));
@@ -641,6 +643,12 @@ static int mark_packed_for_connectivity(const struct object_id *oid,
 					struct packed_git *pack,
 					uint32_t pos,
 					void *data)
+{
+	mark_object_for_connectivity(oid);
+	return 0;
+}
+
+static int mark_have_promised_object(const struct object_id *oid, void *data)
 {
 	mark_object_for_connectivity(oid);
 	return 0;
@@ -701,6 +709,11 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 
 	git_config(fsck_config, NULL);
 
+	if (fsck_promised_objects()) {
+		error("Errors found in promised object list");
+		errors_found |= ERROR_PROMISED_OBJECT;
+	}
+
 	fsck_head_link();
 	if (connectivity_only) {
 		for_each_loose_object(mark_loose_for_connectivity, NULL, 0);
@@ -738,6 +751,7 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 			stop_progress(&progress);
 		}
 	}
+	for_each_promised_object(mark_have_promised_object, NULL);
 
 	heads = 0;
 	for (i = 0; i < argc; i++) {

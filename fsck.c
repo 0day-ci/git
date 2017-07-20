@@ -460,8 +460,10 @@ int fsck_walk(struct object *obj, void *data, struct fsck_options *options)
 	if (!obj)
 		return -1;
 
-	if (obj->type == OBJ_NONE)
-		parse_object(&obj->oid);
+	if (!obj->parsed && !obj->promised)
+		parse_or_promise_object(&obj->oid);
+	if (obj->promised)
+		return 0;
 
 	switch (obj->type) {
 	case OBJ_BLOB:

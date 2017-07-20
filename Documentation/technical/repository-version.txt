@@ -86,3 +86,9 @@ for testing format-1 compatibility.
 When the config key `extensions.preciousObjects` is set to `true`,
 objects in the repository MUST NOT be deleted (e.g., by `git-prune` or
 `git repack -d`).
+
+`promisedObjects`
+~~~~~~~~~~~~~~~~~
+
+(Explain this - basically a string containing a command to be run
+whenever a missing object needs to be fetched.)

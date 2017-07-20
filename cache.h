@@ -853,10 +853,12 @@ extern int grafts_replace_parents;
 #define GIT_REPO_VERSION 0
 #define GIT_REPO_VERSION_READ 1
 extern int repository_format_precious_objects;
+extern char *repository_format_promised_objects;
 
 struct repository_format {
 	int version;
 	int precious_objects;
+	char *promised_objects;
 	int is_bare;
 	char *work_tree;
 	struct string_list unknown_extensions;

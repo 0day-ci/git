@@ -46,7 +46,17 @@ struct object_array {
  * The object type is stored in 3 bits.
  */
 struct object {
+	/*
+	 * Set if this object is parsed. If set, "type" is populated and this
+	 * object can be casted to "struct commit" or an equivalent.
+	 */
 	unsigned parsed : 1;
+	/*
+	 * Set if this object is not in the repo but is promised. If set,
+	 * "type" is populated, but this object cannot be casted to "struct
+	 * commit" or an equivalent.
+	 */
+	unsigned promised : 1;
 	unsigned type : TYPE_BITS;
 	unsigned flags : FLAG_BITS;
 	struct object_id oid;
@@ -103,6 +113,15 @@ struct object *parse_object_or_die(const struct object_id *oid, const char *name
  * of buffer and the caller should not free() it.
  */
 struct object *parse_object_buffer(const struct object_id *oid, enum object_type type, unsigned long size, void *buffer, int *eaten_p);
+
+/*
+ * Returns the object, having parsed it if possible. In the returned object,
+ * either "parsed" or "promised" will be set.
+ *
+ * Returns NULL if the object is missing and not promised, or if the object is
+ * corrupt.
+ */
+struct object *parse_or_promise_object(const struct object_id *oid);
 
 /** Returns the object, with potentially excess memory allocated. **/
 struct object *lookup_unknown_object(const unsigned  char *sha1);
