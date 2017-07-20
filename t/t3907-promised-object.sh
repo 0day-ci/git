@@ -38,4 +38,36 @@ test_expect_success '...but fails again with GIT_IGNORE_PROMISED_OBJECTS' '
 	unset GIT_IGNORE_PROMISED_OBJECTS
 '
 
+test_expect_success 'sha1_object_info_extended (through git cat-file)' '
+	test_create_repo server &&
+	test_commit -C server 1 1.t abcdefgh &&
+	HASH=$(git hash-object server/1.t) &&
+
+	test_create_repo client &&
+	test_must_fail git -C client cat-file -p "$HASH"
+'
+
+test_expect_success '...succeeds if it is a promised object' '
+	printf "%s03%016x" "$HASH" "$(wc -c <server/1.t)" |
+		hex_pack >client/.git/objects/promised &&
+	git -C client config core.repositoryformatversion 1 &&
+	git -C client config extensions.promisedobjects \
+		"\"$TEST_DIRECTORY/t3907/read-object\" \"$(pwd)/server/.git\"" &&
+	git -C client cat-file -p "$HASH"
+'
+
+test_expect_success 'cat-file --batch-all-objects with promised objects' '
+	rm -rf client &&
+	test_create_repo client &&
+	git -C client config core.repositoryformatversion 1 &&
+	git -C client config extensions.promisedobjects \
+		"\"$TEST_DIRECTORY/t3907/read-object\" \"$(pwd)/server/.git\"" &&
+	printf "%s03%016x" "$HASH" "$(wc -c <server/1.t)" |
+		hex_pack >client/.git/objects/promised &&
+
+	# Verify that the promised object is printed
+	git -C client cat-file --batch --batch-all-objects | tee out |
+		grep abcdefgh
+'
+
 test_done

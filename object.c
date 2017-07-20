@@ -285,7 +285,8 @@ struct object *parse_or_promise_object(const struct object_id *oid)
 {
 	enum object_type type;
 
-	if (has_object_file(oid))
+	if (has_object_file_with_flags(oid, OBJECT_INFO_SKIP_CACHED |
+					    OBJECT_INFO_IGNORE_PROMISES))
 		return parse_object(oid);
 
 	if (is_promised_object(oid, &type, NULL)) {

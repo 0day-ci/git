@@ -2,6 +2,7 @@
 #define PROMISED_OBJECT_H
 
 #include "cache.h"
+#include "sha1-array.h"
 
 /*
  * Returns 1 if oid is the name of a promised object. For non-blobs, 0 is
@@ -18,5 +19,16 @@ int for_each_promised_object(each_promised_object_fn, void *);
  * objects is valid.
  */
 int fsck_promised_objects(void);
+
+/*
+ * If any of the given objects are promised objects, invokes
+ * core.promisedobjectcommand with those objects and returns the number of
+ * objects requested. No check is made as to whether the invocation actually
+ * populated the repository with the promised objects.
+ *
+ * If none of the given objects are promised objects, this function does not
+ * invoke anything and returns 0.
+ */
+int request_promised_objects(const struct oid_array *oids);
 
 #endif
