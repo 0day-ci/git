@@ -2221,33 +2221,23 @@ LOCALIZED_SH += t/t0200/test.sh
 LOCALIZED_PERL += t/t0200/test.perl
 endif
 
-## Note that this is meant to be run only by the localization coordinator
-## under a very controlled condition, i.e. (1) it is to be run in a
-## Git repository (not a tarball extract), (2) any local modifications
-## will be lost.
 ## Gettext tools cannot work with our own custom PRItime type, so
-## we replace PRItime with PRIuMAX.  We need to update this to
-## PRIdMAX if we switch to a signed type later.
+## we use a hacked version of xgettext to replace PRItime with PRIuMAX.
+## We need to update this to PRIdMAX if we switch to a signed type later.
 
-po/git.pot: $(GENERATED_H) FORCE
-	# All modifications will be reverted at the end, so we do not
-	# want to have any local change.
-	git diff --quiet HEAD && git diff --quiet --cached
+check-xgettext:
+	@if ! $(XGETTEXT) --version | grep -q "PRItime tweak v1"; then \
+		echo >&2 "Error: must use a hacked version of xgettext, which can convert PRItime macro as we need."; \
+		echo >&2 "Error: download it from https://github.com/jiangxin/gettext"; \
+		exit 1; \
+	fi
 
-	@for s in $(LOCALIZED_C) $(LOCALIZED_SH) $(LOCALIZED_PERL); \
-	do \
-		sed -e 's|PRItime|PRIuMAX|g' <"$$s" >"$$s+" && \
-		cat "$$s+" >"$$s" && rm "$$s+"; \
-	done
-
+po/git.pot: check-xgettext $(GENERATED_H) FORCE
 	$(QUIET_XGETTEXT)$(XGETTEXT) -o$@+ $(XGETTEXT_FLAGS_C) $(LOCALIZED_C)
 	$(QUIET_XGETTEXT)$(XGETTEXT) -o$@+ --join-existing $(XGETTEXT_FLAGS_SH) \
 		$(LOCALIZED_SH)
 	$(QUIET_XGETTEXT)$(XGETTEXT) -o$@+ --join-existing $(XGETTEXT_FLAGS_PERL) \
 		$(LOCALIZED_PERL)
-
-	# Reverting the munged source, leaving only the updated $@
-	git reset --hard
 	mv $@+ $@
 
 .PHONY: pot
@@ -2737,6 +2727,7 @@ check-builtins::
 .PHONY: coverage coverage-clean coverage-compile coverage-test coverage-report
 .PHONY: coverage-untested-functions cover_db cover_db_html
 .PHONY: coverage-clean-results
+.PHONY: check-xgettext
 
 coverage:
 	$(MAKE) coverage-test
