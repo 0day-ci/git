@@ -331,6 +331,8 @@ advice.*::
 	commitBeforeMerge::
 		Advice shown when linkgit:git-merge[1] refuses to
 		merge to avoid overwriting local changes.
+	commitMsg::
+		Advices shown in the commit message template.
 	resolveConflict::
 		Advice shown by various commands when conflicts
 		prevent the operation from being performed.

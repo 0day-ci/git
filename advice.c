@@ -10,6 +10,7 @@ int advice_push_needs_force = 1;
 int advice_status_hints = 1;
 int advice_status_u_option = 1;
 int advice_commit_before_merge = 1;
+int advice_commit_msg = 1;
 int advice_resolve_conflict = 1;
 int advice_implicit_identity = 1;
 int advice_detached_head = 1;
@@ -31,6 +32,7 @@ static struct {
 	{ "statushints", &advice_status_hints },
 	{ "statusuoption", &advice_status_u_option },
 	{ "commitbeforemerge", &advice_commit_before_merge },
+	{ "commitmsg", &advice_commit_msg },
 	{ "resolveconflict", &advice_resolve_conflict },
 	{ "implicitidentity", &advice_implicit_identity },
 	{ "detachedhead", &advice_detached_head },
