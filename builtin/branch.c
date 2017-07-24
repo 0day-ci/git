@@ -474,6 +474,10 @@ static void rename_branch(const char *oldname, const char *newname, int force)
 			die(_("Invalid branch name: '%s'"), oldname);
 	}
 
+	/* Check for existence of oldref before proceeding */
+	if(!ref_exists(oldref.buf))
+		die(_("Branch '%s' does not exist."), oldname);
+
 	/*
 	 * A command like "git branch -M currentbranch currentbranch" cannot
 	 * cause the worktree to become inconsistent with HEAD, so allow it.
