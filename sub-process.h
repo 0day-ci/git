@@ -18,6 +18,11 @@ struct subprocess_entry {
 	struct child_process process;
 };
 
+struct subprocess_capability {
+	const char *name;
+	unsigned int flag;
+};
+
 /* subprocess functions */
 
 extern int cmd2process_cmp(const void *unused_cmp_data,
@@ -40,6 +45,19 @@ static inline struct child_process *subprocess_get_child_process(
 {
 	return &entry->process;
 }
+
+/*
+ * Perform the handshake to a long-running process as described in the
+ * gitattributes documentation using the given requested versions and
+ * capabilities. The "versions" and "capabilities" parameters are arrays
+ * terminated by a 0 or blank struct.
+ */
+int subprocess_handshake(struct subprocess_entry *entry,
+			 const char *welcome_prefix,
+			 int *versions,
+			 int *chosen_version,
+			 struct subprocess_capability *capabilities,
+			 unsigned int *supported_capabilities);
 
 /*
  * Helper function that will read packets looking for "status=<foo>"

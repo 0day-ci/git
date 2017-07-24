@@ -105,3 +105,97 @@ int subprocess_start(struct hashmap *hashmap, struct subprocess_entry *entry, co
 	hashmap_add(hashmap, entry);
 	return 0;
 }
+
+int subprocess_handshake(struct subprocess_entry *entry,
+			 const char *welcome_prefix,
+			 int *versions,
+			 int *chosen_version,
+			 struct subprocess_capability *capabilities,
+			 unsigned int *supported_capabilities) {
+	int version_scratch;
+	unsigned int capabilities_scratch;
+	struct child_process *process = &entry->process;
+	int i;
+	char *line;
+	const char *p;
+
+	if (!chosen_version)
+		chosen_version = &version_scratch;
+	if (!supported_capabilities)
+		supported_capabilities = &capabilities_scratch;
+
+	sigchain_push(SIGPIPE, SIG_IGN);
+
+	if (packet_write_fmt_gently(process->in, "%sclient\n",
+				    welcome_prefix)) {
+		error("Could not write client identification");
+		goto error;
+	}
+	for (i = 0; versions[i]; i++) {
+		if (packet_write_fmt_gently(process->in, "version=%d\n",
+					    versions[i])) {
+			error("Could not write requested version");
+			goto error;
+		}
+	}
+	if (packet_flush_gently(process->in))
+		goto error;
+
+	if (!(line = packet_read_line(process->out, NULL)) ||
+	    !skip_prefix(line, welcome_prefix, &p) ||
+	    strcmp(p, "server")) {
+		error("Unexpected line '%s', expected %sserver",
+		      line ? line : "<flush packet>", welcome_prefix);
+		goto error;
+	}
+	if (!(line = packet_read_line(process->out, NULL)) ||
+	    !skip_prefix(line, "version=", &p) ||
+	    strtol_i(p, 10, chosen_version)) {
+		error("Unexpected line '%s', expected version",
+		      line ? line : "<flush packet>");
+		goto error;
+	}
+	for (i = 0; versions[i]; i++) {
+		if (versions[i] == *chosen_version)
+			goto version_found;
+	}
+	error("Version %d not supported", *chosen_version);
+	goto error;
+version_found:
+	if ((line = packet_read_line(process->out, NULL))) {
+		error("Unexpected line '%s', expected flush", line);
+		goto error;
+	}
+
+	for (i = 0; capabilities[i].name; i++) {
+		if (packet_write_fmt_gently(process->in, "capability=%s\n",
+					    capabilities[i].name)) {
+			error("Could not write requested capability");
+			goto error;
+		}
+	}
+	if (packet_flush_gently(process->in))
+		goto error;
+
+	while ((line = packet_read_line(process->out, NULL))) {
+		if (!skip_prefix(line, "capability=", &p))
+			continue;
+
+		for (i = 0; capabilities[i].name; i++) {
+			if (!strcmp(p, capabilities[i].name)) {
+				*supported_capabilities |= capabilities[i].flag;
+				goto capability_found;
+			}
+		}
+		warning("external filter requested unsupported filter capability '%s'",
+			p);
+capability_found:
+		;
+	}
+
+	sigchain_pop(SIGPIPE);
+	return 0;
+error:
+	sigchain_pop(SIGPIPE);
+	return 1;
+}
