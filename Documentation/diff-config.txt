@@ -200,7 +200,7 @@ diff.algorithm::
 +
 
 diff.wsErrorHighlight::
-	A comma separated list of `old`, `new`, `context`, that
+	A comma separated list of `old`, `new`, `context` and `none`, that
 	specifies how whitespace errors on lines are highlighted
 	with `color.diff.whitespace`.  Can be overridden by the
 	command line option `--ws-error-highlight=<kind>`

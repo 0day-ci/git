@@ -302,7 +302,7 @@ ifndef::git-format-patch[]
 --ws-error-highlight=<kind>::
 	Highlight whitespace errors on lines specified by <kind>
 	in the color specified by `color.diff.whitespace`.  <kind>
-	is a comma separated list of `old`, `new`, `context`.  When
+	is a comma separated list of `old`, `new`, `context` and `none`.  When
 	this option is not given, only whitespace errors in `new`
 	lines are highlighted.  E.g. `--ws-error-highlight=new,old`
 	highlights whitespace errors on both deleted and added lines.
