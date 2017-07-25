@@ -3,10 +3,38 @@
 # Prime rerere database from existing merge commits
 
 me=rerere-train
-USAGE="$me rev-list-args"
 
 SUBDIRECTORY_OK=Yes
-OPTIONS_SPEC=
+OPTS_SPEC="\
+$me [--overwrite] <rev-list-args>
+--
+h,help        show the help
+o,overwrite   overwrite any existing rerere cache
+"
+eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
+
+overwrite=0
+
+while test $# -gt 0
+do
+	opt="$1"
+	case "$opt" in
+	-o)
+		overwrite=1
+		shift
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		break
+		exit 1
+		;;
+	esac
+done
+
 . "$(git --exec-path)/git-sh-setup"
 require_work_tree
 cd_to_toplevel
@@ -33,6 +61,10 @@ do
 	then
 		# Cleanly merges
 		continue
+	fi
+	if [ $overwrite == 1 ]
+	then
+		git rerere forget .
 	fi
 	if test -s "$GIT_DIR/MERGE_RR"
 	then
