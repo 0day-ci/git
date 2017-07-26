@@ -1164,10 +1164,12 @@ $(unstaged_advice)"
 			die "$(gettext "Error trying to find the author identity to amend commit")"
 		if test -n "$amend_head"
 		then
-			test -n "$amend_ok" ||
-			die "$(gettext "\
-You have uncommitted changes in your working tree. Please commit them
-first and then run 'git rebase --continue' again.")"
+			test -n "$amend_ok" || {
+				gpg_sign_opt_quoted=${gpg_sign_opt:+$(git rev-parse --sq-quote "$gpg_sign_opt")}
+				die "$(gettext "\
+Unable to commit changes as HEAD has changed since git rebase stopped.")
+$(staged_advice)"
+			}
 			do_with_author git commit --amend --no-verify -F "$msg" -e \
 				${gpg_sign_opt:+"$gpg_sign_opt"} ||
 				die "$(gettext "Could not commit staged changes.")"

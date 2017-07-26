@@ -2214,12 +2214,24 @@ static int commit_staged_changes(struct replay_opts *opts)
 		if (get_sha1_hex(rev.buf, to_amend))
 			return error(_("invalid contents: '%s'"),
 				rebase_path_amend());
-		if (hashcmp(head, to_amend))
-			return error(_("\nYou have uncommitted changes in your "
-				       "working tree. Please, commit them\n"
-				       "first and then run 'git rebase "
-				       "--continue' again."));
+		if (hashcmp(head, to_amend)) {
+			const char *gpg_opt = gpg_sign_opt_quoted(opts);
 
+			fprintf(stderr, _(
+"Unable to commit changes as HEAD has changed since git rebase stopped.\n"
+"If you wish to squash the changes into the last commit, run:\n"
+"\n"
+"  git commit --amend %s\n"
+"\n"
+"If they are meant to go into a new commit, run:\n"
+"\n"
+"  git commit %s\n"
+"\n"
+"In both cases, once you're done, continue with:\n"
+"\n"
+"  git rebase --continue\n"), gpg_opt, gpg_opt);
+			return -1;
+		}
 		strbuf_release(&rev);
 		flags |= AMEND_MSG;
 	}
