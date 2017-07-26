@@ -14,7 +14,6 @@ test_expect_success 'setup' '
 
 	git checkout -b topic HEAD^ &&
 	test_commit "commit-new-file-F2-on-topic-branch" F2 22 &&
-
 	git checkout master
 '
 
@@ -39,6 +38,40 @@ test_expect_success 'non-interactive rebase --continue works with touched file' 
 	test-chmtime =-60 F1 &&
 	git rebase --continue
 '
+
+reset () {
+	rm -fr .git/rebase-* &&
+	git reset --hard commit-new-file-F2-on-topic-branch &&
+	git checkout master
+}
+
+test_autostage () {
+	action=$1
+
+	test_expect_success "rebase $action --continue --autostage stages changes" '
+		reset &&
+		test_must_fail git rebase $action --onto master master topic &&
+		echo "Resolved" >F2 &&
+		git rebase --continue --autostage
+'
+
+	test_expect_success "rebase $action --continue --autostage fails when there are merge markers (1)" '
+		reset &&
+		test_must_fail git rebase $action --onto master master topic &&
+		test_must_fail git rebase --continue --autostage
+'
+
+	test_expect_success "rebase $action --continue --autostage  fails when there are merge markers (2)" '
+		reset &&
+		test_must_fail git rebase $action --onto master master topic &&
+		git reset -- F2 &&
+		test_must_fail git rebase --continue --autostage
+	'
+}
+
+test_autostage
+test_autostage -i
+test_autostage -m
 
 test_expect_success 'non-interactive rebase --continue with rerere enabled' '
 	test_config rerere.enabled true &&
