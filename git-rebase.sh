@@ -9,7 +9,7 @@ OPTIONS_STUCKLONG=t
 OPTIONS_SPEC="\
 git rebase [-i] [options] [--exec <cmd>] [--onto <newbase>] [<upstream>] [<branch>]
 git rebase [-i] [options] [--exec <cmd>] [--onto <newbase>] --root [<branch>]
-git-rebase --continue | --abort | --skip | --edit-todo
+git-rebase --continue [--autostage] | --abort | --skip | --edit-todo
 --
  Available options are
 v,verbose!         display a diffstat of what changed upstream
@@ -32,6 +32,7 @@ verify             allow pre-rebase hook to run
 rerere-autoupdate  allow rerere to update index with resolved conflicts
 root!              rebase all reachable commits up to the root(s)
 autosquash         move commits that begin with squash!/fixup! under -i
+a,autostage        add unstaged changes to the index when continuing
 committer-date-is-author-date! passed to 'git am'
 ignore-date!       passed to 'git am'
 signoff            passed to 'git am'
@@ -69,6 +70,7 @@ merge_dir="$GIT_DIR"/rebase-merge
 apply_dir="$GIT_DIR"/rebase-apply
 verbose=
 diffstat=
+autostage=false
 test "$(git config --bool rebase.stat)" = true && diffstat=t
 autostash="$(git config --bool rebase.autostash || echo false)"
 fork_point=auto
@@ -213,6 +215,67 @@ run_pre_rebase_hook () {
 	fi
 }
 
+check_autostage () {
+	# If the user has already staged files that contain whitespace
+	# errors or merge markers then we want ignore them so rebase
+	# --continue behaves consistency with and without --autostage
+	git diff-index --diff-filter=U --cached --name-only -z HEAD |
+		xargs -0 git diff-index --check HEAD -- &&
+	git diff-files --diff-filter=MA --check &&
+	git add -u ||
+		exit $?
+}
+
+autostage_advice () {
+	gettext "\
+Unable to continue rebasing as there are unstaged changes.
+Please stage or reset the changes before continuing with:
+
+  git rebase --continue
+
+or run:
+
+  git rebase --continue --autostage
+
+to stage them automatically.
+"
+}
+
+check_unstaged () {
+	git update-index --ignore-submodules --refresh >/dev/null
+	if ! git diff-files --quiet --ignore-submodules
+	then
+		if test $autostage = true
+		then
+			check_autostage
+		else
+			die "$(autostage_advice)"
+		fi
+	fi
+}
+
+parse_continue () {
+	action=continue
+	shift
+	while test $# != 0
+	do
+		case "$1" in
+		--autostage)
+			autostage=true
+			;;
+		--no-autostage)
+			autostage=false
+			;;
+		--)
+			;;
+		*)
+			usage
+			;;
+		esac
+	shift
+	done
+}
+
 test -f "$apply_dir"/applying &&
 	die "$(gettext "It looks like git-am is in progress. Cannot rebase.")"
 
@@ -243,7 +306,10 @@ do
 	--verify)
 		ok_to_skip_pre_rebase=
 		;;
-	--continue|--skip|--abort|--quit|--edit-todo)
+	--continue)
+		parse_continue "$@"
+		;;
+	--skip|--abort|--quit|--edit-todo)
 		test $total_argc -eq 2 || usage
 		action=${1##--}
 		;;
@@ -374,12 +440,6 @@ continue)
 	# Sanity check
 	git rev-parse --verify HEAD >/dev/null ||
 		die "$(gettext "Cannot read HEAD")"
-	git update-index --ignore-submodules --refresh &&
-	git diff-files --quiet --ignore-submodules || {
-		echo "$(gettext "You must edit all merge conflicts and then
-mark them as resolved using git add")"
-		exit 1
-	}
 	read_basic_state
 	run_specific_rebase
 	;;

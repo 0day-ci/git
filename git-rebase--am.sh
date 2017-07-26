@@ -17,6 +17,7 @@ git_rebase__am () {
 
 case "$action" in
 continue)
+	check_unstaged
 	git am --resolved --resolvemsg="$resolvemsg" \
 		${gpg_sign_opt:+"$gpg_sign_opt"} &&
 	move_to_original_branch

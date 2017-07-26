@@ -16,6 +16,7 @@ read_state () {
 continue_merge () {
 	test -d "$state_dir" || die "$state_dir directory does not exist"
 
+	check_unstaged
 	unmerged=$(git ls-files -u)
 	if test -n "$unmerged"
 	then

@@ -1069,6 +1069,7 @@ git_rebase__interactive () {
 
 case "$action" in
 continue)
+	check_unstaged
 	if test ! -d "$rewritten"
 	then
 		exec git rebase--helper ${force_rebase:+--no-ff} --continue
