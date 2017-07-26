@@ -70,7 +70,7 @@ merge_dir="$GIT_DIR"/rebase-merge
 apply_dir="$GIT_DIR"/rebase-apply
 verbose=
 diffstat=
-autostage=false
+autostage=$(git config --bool --get rebase.continue.autostage || echo false)
 test "$(git config --bool rebase.stat)" = true && diffstat=t
 autostash="$(git config --bool rebase.autostash || echo false)"
 fork_point=auto

@@ -67,6 +67,21 @@ test_autostage () {
 		git reset -- F2 &&
 		test_must_fail git rebase --continue --autostage
 	'
+
+	test_expect_success "rebase.continue.autostage rebase $action works" '
+		reset &&
+		test_must_fail git rebase $action --onto master master topic &&
+		echo "Resolved" >F2 &&
+		git -c rebase.continue.autostage=true rebase --continue
+'
+
+	test_expect_success "rebase $action --continue --no-autostage works" '
+		reset &&
+		test_must_fail git rebase $action --onto master master topic &&
+		echo "Resolved" >F2 &&
+		test_must_fail git -c rebase.continue.autostage=true rebase --continue --no-autostage
+'
+
 }
 
 test_autostage
