@@ -1056,6 +1056,42 @@ The possible behaviours are: ignore, warn, error.")"
 	fi
 }
 
+unstaged_advice () {
+	gpg_sign_opt_quoted=${gpg_sign_opt:+$(git rev-parse --sq-quote "$gpg_sign_opt")}
+	eval_gettext "\
+If you wish to squash the unstaged changes into the last commit, run:
+
+  git add -u
+  git commit --amend \$gpg_sign_opt_quoted
+
+If they are meant to go into a new commit, run:
+
+  git add -u
+  git commit \$gpg_sign_opt_quoted
+
+In both cases, once you're done, continue with:
+
+  git rebase --continue
+"
+}
+
+staged_advice () {
+	gpg_sign_opt_quoted=${gpg_sign_opt:+$(git rev-parse --sq-quote "$gpg_sign_opt")}
+	eval_gettext "\
+If you wish to squash the staged changes into the last commit, run:
+
+  git commit --amend \$gpg_sign_opt_quoted
+
+If they are meant to go into a new commit, run:
+
+  git commit \$gpg_sign_opt_quoted
+
+In both cases, once you're done, continue with:
+
+  git rebase --continue
+"
+}
+
 # The whole contents of this file is run by dot-sourcing it from
 # inside a shell function.  It used to be that "return"s we see
 # below were not inside any function, and expected to return
@@ -1067,9 +1103,50 @@ The possible behaviours are: ignore, warn, error.")"
 # here, and immediately call it after defining it.
 git_rebase__interactive () {
 
+amend_head='' amend_ok=''
 case "$action" in
 continue)
-	check_unstaged
+	test -f "$amend" &&
+		amend_head=$(cat "$amend") &&
+		test $amend_head = $(git rev-parse HEAD) &&
+		amend_ok=1
+	git update-index --refresh --ignore-submodules >/dev/null
+	git diff-files --quiet --ignore-submodules
+	unstaged=$?
+	if ! test -f "$author_script"
+	then
+		if test $unstaged = 1
+		then
+			die "$(gettext "Not expecting unstaged changes.")
+$(unstaged_advice)"
+		elif ! git diff-index --cached --quiet --ignore-submodules HEAD --
+		then
+			die "$(gettext "Not expecting staged changes.")
+$(staged_advice)"
+		fi
+	fi
+	if test $unstaged = 1 && test $autostage = true
+	then
+		if test -n "$amend_head" && test -z "$amend_ok"
+		then
+			die "$(gettext "\
+Unable to commit changes as HEAD has changed since git rebase stopped.")
+$(unstaged_advice)"
+		else
+			check_autostage
+		fi
+	elif test $unstaged = 1
+	then
+		if test -n "$amend_head" && test -z "$amend_ok"
+		then
+			die "$(gettext "\
+Unable to continue rebasing as there are unstaged changes and
+HEAD has changed since git rebase stopped.")
+$(unstaged_advice)"
+		else
+			die "$(autostage_advice)"
+		fi
+	fi
 	if test ! -d "$rewritten"
 	then
 		exec git rebase--helper ${force_rebase:+--no-ff} --continue
@@ -1083,31 +1160,11 @@ continue)
 		rm "$GIT_DIR"/CHERRY_PICK_HEAD ||
 		die "$(gettext "Could not remove CHERRY_PICK_HEAD")"
 	else
-		if ! test -f "$author_script"
-		then
-			gpg_sign_opt_quoted=${gpg_sign_opt:+$(git rev-parse --sq-quote "$gpg_sign_opt")}
-			die "$(eval_gettext "\
-You have staged changes in your working tree.
-If these changes are meant to be
-squashed into the previous commit, run:
-
-  git commit --amend \$gpg_sign_opt_quoted
-
-If they are meant to go into a new commit, run:
-
-  git commit \$gpg_sign_opt_quoted
-
-In both cases, once you're done, continue with:
-
-  git rebase --continue
-")"
-		fi
 		. "$author_script" ||
 			die "$(gettext "Error trying to find the author identity to amend commit")"
-		if test -f "$amend"
+		if test -n "$amend_head"
 		then
-			current_head=$(git rev-parse --verify HEAD)
-			test "$current_head" = $(cat "$amend") ||
+			test -n "$amend_ok" ||
 			die "$(gettext "\
 You have uncommitted changes in your working tree. Please commit them
 first and then run 'git rebase --continue' again.")"
@@ -1126,7 +1183,6 @@ first and then run 'git rebase --continue' again.")"
 		record_in_rewritten "$(cat "$state_dir"/stopped-sha)"
 	fi
 
-	require_clean_work_tree "rebase"
 	do_rest
 	return 0
 	;;
