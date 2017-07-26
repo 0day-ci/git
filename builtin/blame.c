@@ -7,6 +7,7 @@
 
 #include "cache.h"
 #include "config.h"
+#include "color.h"
 #include "builtin.h"
 #include "commit.h"
 #include "diff.h"
@@ -283,11 +284,14 @@ static void found_guilty_entry(struct blame_entry *ent, void *data)
 }
 
 static const char *format_time(timestamp_t time, const char *tz_str,
-			       int show_raw_time)
+			       int show_raw_time, const char *color,
+			       const char *reset)
 {
 	static struct strbuf time_buf = STRBUF_INIT;
 
 	strbuf_reset(&time_buf);
+	if (color)
+		strbuf_addstr(&time_buf, color);
 	if (show_raw_time) {
 		strbuf_addf(&time_buf, "%"PRItime" %s", time, tz_str);
 	}
@@ -307,6 +311,8 @@ static const char *format_time(timestamp_t time, const char *tz_str,
 		     time_width++)
 			strbuf_addch(&time_buf, ' ');
 	}
+	if (reset)
+		strbuf_addstr(&time_buf, reset);
 	return time_buf.buf;
 }
 
@@ -319,7 +325,8 @@ static const char *format_time(timestamp_t time, const char *tz_str,
 #define OUTPUT_SHOW_SCORE      0100
 #define OUTPUT_NO_AUTHOR       0200
 #define OUTPUT_SHOW_EMAIL	0400
-#define OUTPUT_LINE_PORCELAIN 01000
+#define OUTPUT_LINE_PORCELAIN	01000
+#define OUTPUT_SHOW_HIGHLIGHT	02000
 
 static void emit_porcelain_details(struct blame_origin *suspect, int repeat)
 {
@@ -367,19 +374,62 @@ static void emit_porcelain(struct blame_scoreboard *sb, struct blame_entry *ent,
 		putchar('\n');
 }
 
-static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int opt)
+static void emit_other(struct blame_scoreboard *sb,
+		       struct blame_entry *ent,
+		       struct blame_entry *prev,
+		       int opt,
+		       timestamp_t min_t,
+		       timestamp_t max_t)
 {
 	int cnt;
 	const char *cp;
 	struct blame_origin *suspect = ent->suspect;
-	struct commit_info ci;
+	struct commit_info ci, prev_ci;
 	char hex[GIT_MAX_HEXSZ + 1];
 	int show_raw_time = !!(opt & OUTPUT_RAW_TIMESTAMP);
+	int prev_same_field = 0;
+	const char *use_color, *reset_color = GIT_COLOR_RESET;
+	const char *date_color = NULL;
 
 	get_commit_info(suspect->commit, &ci, 1);
 	oid_to_hex_r(hex, &suspect->commit->object.oid);
 
 	cp = blame_nth_line(sb, ent->lno);
+
+	commit_info_init(&prev_ci);
+	if ((opt & OUTPUT_SHOW_HIGHLIGHT) && prev) {
+		get_commit_info(prev->suspect->commit, &prev_ci, 1);
+		if ((opt & OUTPUT_SHOW_SCORE) && ent->score == prev->score)
+			prev_same_field |= OUTPUT_SHOW_SCORE;
+		if ((opt & OUTPUT_SHOW_NAME) && prev->suspect && !strcmp(suspect->path, prev->suspect->path))
+			prev_same_field |= OUTPUT_SHOW_NAME;
+		if ((opt & OUTPUT_SHOW_NUMBER) &&
+		    ent->s_lno == prev->s_lno + prev->num_lines - 1)
+			prev_same_field |= OUTPUT_SHOW_NUMBER;
+		if (!(opt & OUTPUT_NO_AUTHOR)) {
+			if (((opt & OUTPUT_SHOW_EMAIL) &&
+			     !strcmp(ci.author_mail.buf, prev_ci.author_mail.buf)) ||
+			    !strcmp(ci.author.buf, prev_ci.author.buf))
+				prev_same_field |= OUTPUT_NO_AUTHOR;
+		}
+	}
+	if (opt & OUTPUT_SHOW_HIGHLIGHT) {
+		if (max_t == min_t) {
+			date_color = GIT_COLOR_NORMAL;
+		} else {
+			float score = 1.0 * (ci.author_time - min_t);
+			score /= (1.0 * (max_t - min_t));
+			if (score > 0.95)
+				date_color = GIT_COLOR_BOLD_YELLOW;
+			else if (score > 0.8)
+				date_color = GIT_COLOR_RED;
+			else if (score > 0.5)
+				date_color = GIT_COLOR_NORMAL;
+			else
+				date_color = GIT_COLOR_DARK;
+		}
+	}
+
 	for (cnt = 0; cnt < ent->num_lines; cnt++) {
 		char ch;
 		int length = (opt & OUTPUT_LONG_OBJECT_NAME) ? GIT_SHA1_HEXSZ : abbrev;
@@ -392,8 +442,12 @@ static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int
 				putchar('^');
 			}
 		}
+		use_color = GIT_COLOR_NORMAL;
+		if ((opt & OUTPUT_SHOW_HIGHLIGHT) && cnt > 0)
+			use_color = GIT_COLOR_DARK;
 
-		printf("%.*s", length, hex);
+		printf("%s%.*s%s", use_color, length, hex, reset_color);
+
 		if (opt & OUTPUT_ANNOTATE_COMPAT) {
 			const char *name;
 			if (opt & OUTPUT_SHOW_EMAIL)
@@ -402,20 +456,36 @@ static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int
 				name = ci.author.buf;
 			printf("\t(%10s\t%10s\t%d)", name,
 			       format_time(ci.author_time, ci.author_tz.buf,
-					   show_raw_time),
+					   show_raw_time, NULL, NULL),
 			       ent->lno + 1 + cnt);
 		} else {
-			if (opt & OUTPUT_SHOW_SCORE)
-				printf(" %*d %02d",
+			if (opt & OUTPUT_SHOW_SCORE) {
+				use_color = GIT_COLOR_NORMAL;
+				if ((opt & OUTPUT_SHOW_HIGHLIGHT) &&
+				    (cnt > 0 || prev_same_field & OUTPUT_SHOW_SCORE))
+					use_color = GIT_COLOR_DARK;
+				printf(" %s%*d %02d%s", use_color,
 				       max_score_digits, ent->score,
-				       ent->suspect->refcnt);
-			if (opt & OUTPUT_SHOW_NAME)
-				printf(" %-*.*s", longest_file, longest_file,
-				       suspect->path);
-			if (opt & OUTPUT_SHOW_NUMBER)
-				printf(" %*d", max_orig_digits,
-				       ent->s_lno + 1 + cnt);
-
+				       ent->suspect->refcnt, reset_color);
+			}
+			if (opt & OUTPUT_SHOW_NAME) {
+				use_color = GIT_COLOR_NORMAL;
+				if ((opt & OUTPUT_SHOW_HIGHLIGHT) &&
+				    (cnt > 0 || prev_same_field & OUTPUT_SHOW_NAME))
+					use_color = GIT_COLOR_DARK;
+				printf(" %s%-*.*s%s", use_color, longest_file,
+						      longest_file,
+						      suspect->path,
+						      reset_color);
+			}
+			if (opt & OUTPUT_SHOW_NUMBER) {
+				use_color = GIT_COLOR_NORMAL;
+				if ((opt & OUTPUT_SHOW_HIGHLIGHT) &&
+				    (cnt > 0 || prev_same_field & OUTPUT_SHOW_NUMBER))
+					use_color = GIT_COLOR_DARK;
+				printf(" %s%*d%s", use_color, max_orig_digits,
+				       ent->s_lno + 1 + cnt, reset_color);
+			}
 			if (!(opt & OUTPUT_NO_AUTHOR)) {
 				const char *name;
 				int pad;
@@ -423,12 +493,21 @@ static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int
 					name = ci.author_mail.buf;
 				else
 					name = ci.author.buf;
+
+				use_color = GIT_COLOR_NORMAL;
+				if ((opt & OUTPUT_SHOW_HIGHLIGHT) &&
+				    (cnt > 0 || prev_same_field & OUTPUT_NO_AUTHOR))
+					use_color = GIT_COLOR_DARK;
+
 				pad = longest_author - utf8_strwidth(name);
-				printf(" (%s%*s %10s",
-				       name, pad, "",
-				       format_time(ci.author_time,
-						   ci.author_tz.buf,
-						   show_raw_time));
+				printf(" %s(%s%*s%s", use_color,
+						      name, pad, "",
+						      reset_color);
+				printf(" %10s", format_time(ci.author_time,
+							    ci.author_tz.buf,
+							    show_raw_time,
+							    date_color,
+							    reset_color));
 			}
 			printf(" %*d) ",
 			       max_digits, ent->lno + 1 + cnt);
@@ -448,7 +527,8 @@ static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int
 
 static void output(struct blame_scoreboard *sb, int option)
 {
-	struct blame_entry *ent;
+	struct blame_entry *ent, *prev = NULL;
+	timestamp_t min_t = TIME_MAX, max_t = 0;
 
 	if (option & OUTPUT_PORCELAIN) {
 		for (ent = sb->ent; ent; ent = ent->next) {
@@ -466,11 +546,24 @@ static void output(struct blame_scoreboard *sb, int option)
 		}
 	}
 
+	if (option & OUTPUT_SHOW_HIGHLIGHT) {
+		/* find oldest and youngest date for timestamp coloring */
+		struct commit_info ci;
+		for (ent = sb->ent; ent; ent = ent->next) {
+			get_commit_info(ent->suspect->commit, &ci, 1);
+			if (ci.author_time < min_t)
+				min_t = ci.author_time;
+			if (ci.author_time > max_t)
+				max_t = ci.author_time;
+		}
+	}
+
 	for (ent = sb->ent; ent; ent = ent->next) {
 		if (option & OUTPUT_PORCELAIN)
 			emit_porcelain(sb, ent, option);
 		else {
-			emit_other(sb, ent, option);
+			emit_other(sb, ent, prev, option, min_t, max_t);
+			prev = ent;
 		}
 	}
 }
@@ -681,6 +774,7 @@ int cmd_blame(int argc, const char **argv, const char *prefix)
 		OPT_BIT('s', NULL, &output_option, N_("Suppress author name and timestamp (Default: off)"), OUTPUT_NO_AUTHOR),
 		OPT_BIT('e', "show-email", &output_option, N_("Show author email instead of name (Default: off)"), OUTPUT_SHOW_EMAIL),
 		OPT_BIT('w', NULL, &xdl_opts, N_("Ignore whitespace differences"), XDF_IGNORE_WHITESPACE),
+		OPT_BIT('h', "highlights", &output_option, N_("darken redundancy from previous line; highlight dates (Default: off)"), OUTPUT_SHOW_HIGHLIGHT),
 
 		/*
 		 * The following two options are parsed by parse_revision_opt()
