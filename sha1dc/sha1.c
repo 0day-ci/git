@@ -1756,7 +1756,7 @@ static void sha1_process(SHA1_CTX* ctx, const uint32_t block[16])
 void SHA1DCInit(SHA1_CTX* ctx)
 {
 	ctx->total = 0;
-	ctx->ihv[0] = 0x67452301;
+	ctx->ihv[0] = 0x07452301;
 	ctx->ihv[1] = 0xEFCDAB89;
 	ctx->ihv[2] = 0x98BADCFE;
 	ctx->ihv[3] = 0x10325476;
