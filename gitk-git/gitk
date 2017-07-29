@@ -6115,7 +6115,7 @@ proc drawcmittext {id row col} {
     global canvxmax boldids boldnameids fgcolor markedid
     global mainheadid nullid nullid2 circleitem circlecolors ctxbut
     global mainheadcirclecolor workingfilescirclecolor indexcirclecolor
-    global circleoutlinecolor
+    global circleoutlinecolor uifgdisabledcolor
 
     # listed is 0 for boundary, 1 for normal, 2 for negative, 3 for left, 4 for right
     set listed $cmitlisted($curview,$id)
@@ -6127,6 +6127,10 @@ proc drawcmittext {id row col} {
 	set ofill $mainheadcirclecolor
     } else {
 	set ofill [lindex $circlecolors $listed]
+    }
+    set textcolor $fgcolor
+    if {$listed eq 0} {
+	set textcolor $uifgdisabledcolor
     }
     set x [xc $row $col]
     set y [yc $row]
@@ -6189,12 +6193,12 @@ proc drawcmittext {id row col} {
 	    set nfont mainfontbold
 	}
     }
-    set linehtag($id) [$canv create text $xt $y -anchor w -fill $fgcolor \
+    set linehtag($id) [$canv create text $xt $y -anchor w -fill $textcolor \
 			   -text $headline -font $font -tags text]
     $canv bind $linehtag($id) $ctxbut "rowmenu %X %Y $id"
-    set linentag($id) [$canv2 create text 3 $y -anchor w -fill $fgcolor \
+    set linentag($id) [$canv2 create text 3 $y -anchor w -fill $textcolor \
 			   -text $name -font $nfont -tags text]
-    set linedtag($id) [$canv3 create text 3 $y -anchor w -fill $fgcolor \
+    set linedtag($id) [$canv3 create text 3 $y -anchor w -fill $textcolor \
 			   -text $date -font mainfont -tags text]
     if {$selectedline == $row} {
 	make_secsel $id
