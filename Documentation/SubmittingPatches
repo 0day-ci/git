@@ -386,6 +386,10 @@ Know the status of your patch after submission
   tell you if your patch is merged in pu if you rebase on top of
   master).
 
+* If you made your change in a separate branch (<branch>) you can use
+  'git cherry master <branch>' to see if the change has been merged
+  into master.
+
 * Read the Git mailing list, the maintainer regularly posts messages
   entitled "What's cooking in git.git" and "What's in git.git" giving
   the status of various proposed changes.
