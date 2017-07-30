@@ -293,7 +293,7 @@ then you just add a line saying
 
         Signed-off-by: Random J Developer <random@developer.example.org>
 
-This line can be automatically added by Git if you run the git-commit
+This line can be automatically added by Git if you run the 'git commit'
 command with the -s option.
 
 Notice that you can place your own Signed-off-by: line when
@@ -366,7 +366,7 @@ suggests to the contributors:
      spend their time to improve your patch.  Go back to step (2).
 
  (4) The list forms consensus that the last round of your patch is
-     good.  Send it to the maintainer and cc the list.
+     good. Send it to the maintainer and cc the list.
 
  (5) A topic branch is created with the patch and is merged to 'next',
      and cooked further and eventually graduates to 'master'.
