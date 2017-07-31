@@ -1,0 +1,125 @@
+git-splice(1)
+=============
+
+NAME
+----
+git-splice - Splice commits into/out of current branch
+
+SYNOPSIS
+--------
+[verse]
+'git splice' <insertion point> <cherry pick range>
+'git splice' <insertion point> \-- <cherry pick range args ...>
+'git splice' [-r|--root] <remove range> [<cherry pick range>]
+'git splice' [-r|--root] <remove range args ...> \-- [<cherry pick range args ...>]
+'git splice' (--abort | --continue | --in-progress)
+
+DESCRIPTION
+-----------
+Non-interactively splice branch by removing a range of commits from
+within the current branch, and/or cherry-picking a range of commits
+into the current branch.
+
+<remove range> specifies the range of commits to remove from the
+current branch, and <cherry-pick-range> specifies the range to insert
+at the point where <remove-range> previously existed, or just after
+<insertion-point>.
+
+<insertion point> is a commit-ish in the standard format accepted
+by linkgit:git-rev-parse[1].
+
+<remove range> and <cherry pick range> are single shell words
+specifying commit ranges in the standard format accepted by
+linkgit:git-rev-list[1], e.g.
+
+    A..B
+    A...B
+    A^!   (just commit A)
+
+It is possible to pass multi-word specifications for both the removal
+and insertion ranges, in which case they are passed to
+linkgit:git-rev-list[1] to calculate the commits to remove or
+cherry-pick.  For this you need to terminate <remove range args> with
+`--` to indicate that the multi-word form of parameters is being used.
+
+When the `--root` option is present, a removal range can be specified
+as a commit-ish in the standard format accepted by
+linkgit:git-rev-parse[1], in which case the commit-ish is treated as a
+range.  This makes it possible to remove or replace root
+(i.e. parentless) commits.
+
+Currently git-splice assumes that all commits being operated on have a
+single parent; removal and insertion of merge commits is not supported.
+
+N.B. Obviously this command rewrites history!  As with
+linkgit:git-rebase[1], you should be aware of all the implications of
+history rewriting before using it.  (And actually this command is just
+a glorified wrapper around linkgit:git-cherry-pick[1] and
+linkgit:git-rebase[1] in interactive mode.)
+
+OPTIONS
+-------
+
+-r::
+--root::
+	Treat (each) removal range argument as a commit-ish, and
+	remove all its ancestors.
+
+--abort::
+	Abort an in-progress splice.
+
+--continue::
+	Resume an in-progress splice.
+
+--in-progress::
+	Exit 0 if and only if a splice is in progress.
+
+EXAMPLES
+--------
+
+`git splice A..B`::
+
+	Remove commits A..B (i.e. excluding A) from the current branch.
+
+`git splice A^!`::
+
+	Remove commit A from the current branch.
+
+`git splice --root A`::
+
+	Remove commit A and all its ancestors (including the root commit)
+	from the current branch.
+
+`git splice A..B C..D`::
+
+	Remove commits A..B from the current branch, and cherry-pick
+	commits C..D at the same point.
+
+`git splice A C..D`::
+
+	Cherry-pick commits C..D, splicing them in just after commit A.
+
+`git splice --since=11am --grep="foo" --`::
+
+	Remove all commits since 11am this morning mentioning "foo".
+
+`git splice --abort`::
+
+	Abort a splice which failed during cherry-pick or rebase.
+
+`git splice --continue`::
+
+	Resume a splice after manually fixing conflicts caused by
+	cherry-pick or rebase.
+
+`git splice --in-progress && git splice --abort`::
+
+	Abort if there is a splice in progress.
+
+SEE ALSO
+--------
+linkgit:git-rebase[1], linkgit:git-cherry-pick[1]
+
+GIT
+---
+Part of the linkgit:git[1] suite

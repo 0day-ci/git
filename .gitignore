@@ -150,6 +150,7 @@
 /git-show-branch
 /git-show-index
 /git-show-ref
+/git-splice
 /git-stage
 /git-stash
 /git-status
