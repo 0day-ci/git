@@ -386,4 +386,16 @@ test_expect_success 'New CRLF file gets LF in repo' '
 	test_cmp alllf alllf2
 '
 
+test_expect_success 'CRLF in repo, apply with autocrlf=true' '
+	git config core.autocrlf false &&
+	printf "1\r\n2\r\n" >crlf &&
+	git add crlf &&
+	git commit -m "commit crlf with crlf" &&
+	git config core.autocrlf true &&
+	printf "1\r\n2\r\n\r\n\r\n\r\n" >crlf &&
+	git diff >patch &&
+	git checkout -- . &&
+	git apply patch
+'
+
 test_done
