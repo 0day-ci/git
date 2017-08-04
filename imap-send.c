@@ -926,6 +926,32 @@ static int auth_cram_md5(struct imap_store *ctx, struct imap_cmd *cmd, const cha
 	return 0;
 }
 
+static char* imap_escape_password(const char *passwd)
+{
+	const unsigned passwd_len = strlen(passwd);
+	char *escaped = xmalloc(2 * passwd_len + 1);
+	const char *passwd_cur = passwd;
+	char *escaped_cur = escaped;
+
+	do {
+		char *next = strchr(passwd_cur, '\\');
+
+		if (!next) {
+			strcpy(escaped_cur, passwd_cur);
+		} else {
+			int len = next - passwd_cur + 1;
+
+			memcpy(escaped_cur, passwd_cur, len);
+			escaped_cur += len;
+			next++;
+			*(escaped_cur++) = '\\';
+		}
+		passwd_cur = next;
+	} while(passwd_cur);
+
+	return escaped;
+}
+
 static struct imap_store *imap_open_store(struct imap_server_conf *srvc, char *folder)
 {
 	struct credential cred = CREDENTIAL_INIT;
@@ -1090,7 +1116,7 @@ static struct imap_store *imap_open_store(struct imap_server_conf *srvc, char *f
 			if (!srvc->user)
 				srvc->user = xstrdup(cred.username);
 			if (!srvc->pass)
-				srvc->pass = xstrdup(cred.password);
+				srvc->pass = imap_escape_password(cred.password);
 		}
 
 		if (srvc->auth_method) {
