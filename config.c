@@ -928,7 +928,7 @@ ssize_t git_config_ssize_t(const char *name, const char *value)
 	return ret;
 }
 
-int git_parse_maybe_bool(const char *value)
+static int git_parse_maybe_bool_text(const char *value)
 {
 	if (!value)
 		return 1;
@@ -945,9 +945,14 @@ int git_parse_maybe_bool(const char *value)
 	return -1;
 }
 
+int git_parse_maybe_bool(const char *value)
+{
+	return git_parse_maybe_bool_text(value);
+}
+
 int git_config_maybe_bool(const char *name, const char *value)
 {
-	int v = git_parse_maybe_bool(value);
+	int v = git_parse_maybe_bool_text(value);
 	if (0 <= v)
 		return v;
 	if (git_parse_int(value, &v))
@@ -957,7 +962,7 @@ int git_config_maybe_bool(const char *name, const char *value)
 
 int git_config_bool_or_int(const char *name, const char *value, int *is_bool)
 {
-	int v = git_parse_maybe_bool(value);
+	int v = git_parse_maybe_bool_text(value);
 	if (0 <= v) {
 		*is_bool = 1;
 		return v;
