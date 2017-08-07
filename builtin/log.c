@@ -60,7 +60,7 @@ static int auto_decoration_style(void)
 
 static int parse_decoration_style(const char *var, const char *value)
 {
-	switch (git_config_maybe_bool(var, value)) {
+	switch (git_parse_maybe_bool(value)) {
 	case 1:
 		return DECORATE_SHORT_REFS;
 	case 0:
@@ -821,7 +821,7 @@ static int git_format_config(const char *var, const char *value, void *cb)
 		return 0;
 	}
 	if (!strcmp(var, "format.from")) {
-		int b = git_config_maybe_bool(var, value);
+		int b = git_parse_maybe_bool(value);
 		free(from);
 		if (b < 0)
 			from = xstrdup(value);

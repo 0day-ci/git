@@ -232,7 +232,7 @@ static struct submodule *lookup_or_create_by_name(struct submodule_cache *cache,
 static int parse_fetch_recurse(const char *opt, const char *arg,
 			       int die_on_error)
 {
-	switch (git_config_maybe_bool(opt, arg)) {
+	switch (git_parse_maybe_bool(arg)) {
 	case 1:
 		return RECURSE_SUBMODULES_ON;
 	case 0:
@@ -277,7 +277,7 @@ int option_fetch_parse_recurse_submodules(const struct option *opt,
 static int parse_update_recurse(const char *opt, const char *arg,
 				int die_on_error)
 {
-	switch (git_config_maybe_bool(opt, arg)) {
+	switch (git_parse_maybe_bool(arg)) {
 	case 1:
 		return RECURSE_SUBMODULES_ON;
 	case 0:
@@ -297,7 +297,7 @@ int parse_update_recurse_submodules_arg(const char *opt, const char *arg)
 static int parse_push_recurse(const char *opt, const char *arg,
 			       int die_on_error)
 {
-	switch (git_config_maybe_bool(opt, arg)) {
+	switch (git_parse_maybe_bool(arg)) {
 	case 1:
 		/* There's no simple "on" value when pushing */
 		if (die_on_error)
