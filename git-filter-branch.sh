@@ -540,6 +540,9 @@ if [ "$filter_tag_name" ]; then
 			new_sha1=$( ( printf 'object %s\ntype commit\ntag %s\n' \
 						"$new_sha1" "$new_ref"
 				git cat-file tag "$ref" |
+				awk '/^tagger/	{ tagged=1 }
+				     /^$/	{ if (!tagged && !done) { print "tagger Unknown <unknown@example.com> 0 +0000" } ; done=1 }
+				     //		{ print }' |
 				sed -n \
 				    -e '1,/^$/{
 					  /^object /d
