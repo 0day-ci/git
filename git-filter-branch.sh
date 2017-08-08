@@ -86,7 +86,7 @@ USAGE="[--setup <command>] [--env-filter <command>]
 	[--parent-filter <command>] [--msg-filter <command>]
 	[--commit-filter <command>] [--tag-name-filter <command>]
 	[--subdirectory-filter <directory>] [--original <namespace>]
-	[-d <directory>] [-f | --force]
+	[-d <directory>] [-f | --force] [--state-branch <branch>]
 	[--] [<rev-list options>...]"
 
 OPTIONS_SPEC=
@@ -106,6 +106,7 @@ filter_msg=cat
 filter_commit=
 filter_tag_name=
 filter_subdir=
+state_branch=
 orig_namespace=refs/original/
 force=
 prune_empty=
@@ -181,6 +182,9 @@ do
 	--original)
 		orig_namespace=$(expr "$OPTARG/" : '\(.*[^/]\)/*$')/
 		;;
+	--state-branch)
+		state_branch="$OPTARG"
+		;;
 	*)
 		usage
 		;;
@@ -251,6 +255,20 @@ export GIT_INDEX_FILE
 
 # map old->new commit ids for rewriting parents
 mkdir ../map || die "Could not create map/ directory"
+
+if [ -n "$state_branch" ] ; then
+	state_commit=`git show-ref -s "$state_branch"`
+	if [ -n "$state_commit" ] ; then
+		echo "Populating map from $state_branch ($state_commit)" 1>&2
+		git show "$state_commit":filter.map |
+		    perl -n -e 'm/(.*):(.*)/ or die;
+				open F, ">../map/$1" or die;
+				print F "$2" or die;
+				close(F) or die'
+	else
+		echo "Branch $state_branch does not exist. Will create" 1>&2
+	fi
+fi
 
 # we need "--" only if there are no path arguments in $@
 nonrevs=$(git rev-parse --no-revs "$@") || exit
@@ -542,6 +560,25 @@ if [ "$filter_tag_name" ]; then
 		git update-ref "refs/tags/$new_ref" "$new_sha1" ||
 			die "Could not write tag $new_ref"
 	done
+fi
+
+if [ -n "$state_branch" ] ; then
+	echo "Saving rewrite state to $state_branch" 1>&2
+	STATE_BLOB=$(ls ../map |
+	    perl -n -e 'chomp();
+			open F, "<../map/$_" or die;
+			chomp($f = <F>); print "$_:$f\n";' |
+	    git hash-object -w --stdin )
+	STATE_TREE=$(/bin/echo -e "100644 blob $STATE_BLOB\tfilter.map" | git mktree)
+	STATE_PARENT=$(git show-ref -s "$state_branch")
+	unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_AUTHOR_DATE
+	unset GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_COMMITTER_DATE
+	if [ -n "$STATE_PARENT" ] ; then
+	    STATE_COMMIT=$(/bin/echo "Sync" | git commit-tree "$STATE_TREE" -p "$STATE_PARENT")
+	else
+	    STATE_COMMIT=$(/bin/echo "Sync" | git commit-tree "$STATE_TREE" )
+	fi
+	git update-ref "$state_branch" "$STATE_COMMIT"
 fi
 
 cd "$orig_dir"
