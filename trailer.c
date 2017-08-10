@@ -164,13 +164,15 @@ static void print_tok_val(FILE *outfile, const char *tok, const char *val)
 		fprintf(outfile, "%s%c %s\n", tok, separators[0], val);
 }
 
-static void print_all(FILE *outfile, struct list_head *head, int trim_empty)
+static void print_all(FILE *outfile, struct list_head *head,
+		      const struct process_trailer_options *opts)
 {
 	struct list_head *pos;
 	struct trailer_item *item;
 	list_for_each(pos, head) {
 		item = list_entry(pos, struct trailer_item, list);
-		if (!trim_empty || strlen(item->value) > 0)
+		if ((!opts->trim_empty || strlen(item->value) > 0) &&
+		    (!opts->only_trailers || item->token))
 			print_tok_val(outfile, item->token, item->value);
 	}
 }
@@ -897,9 +899,10 @@ static int process_input_file(FILE *outfile,
 	trailer_info_get(&info, str);
 
 	/* Print lines before the trailers as is */
-	fwrite(str, 1, info.trailer_start - str, outfile);
+	if (outfile)
+		fwrite(str, 1, info.trailer_start - str, outfile);
 
-	if (!info.blank_line_before_trailer)
+	if (outfile && !info.blank_line_before_trailer)
 		fprintf(outfile, "\n");
 
 	for (i = 0; i < info.trailer_nr; i++) {
@@ -986,18 +989,20 @@ void process_trailers(const char *file,
 		outfile = create_in_place_tempfile(file);
 
 	/* Print the lines before the trailers */
-	trailer_end = process_input_file(outfile, sb.buf, &head);
+	trailer_end = process_input_file(opts->only_trailers ? NULL : outfile,
+					 sb.buf, &head);
 
 	process_command_line_args(&arg_head, trailers);
 
 	process_trailers_lists(&head, &arg_head);
 
-	print_all(outfile, &head, opts->trim_empty);
+	print_all(outfile, &head, opts);
 
 	free_all(&head);
 
 	/* Print the lines after the trailers as is */
-	fwrite(sb.buf + trailer_end, 1, sb.len - trailer_end, outfile);
+	if (!opts->only_trailers)
+		fwrite(sb.buf + trailer_end, 1, sb.len - trailer_end, outfile);
 
 	if (opts->in_place)
 		if (rename_tempfile(&trailers_tempfile, file))
