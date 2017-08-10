@@ -88,6 +88,11 @@ OPTIONS
 	from the command-line or by following configured `trailer.*`
 	rules.
 
+--normalize::
+	Normalize trailer output so that trailers appear exactly one per
+	line, with any existing whitespace continuation folded into a
+	single line.
+
 CONFIGURATION VARIABLES
 -----------------------
 
