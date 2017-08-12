@@ -33,9 +33,13 @@ enum apply_verbosity {
 #define APPLY_SYMLINK_GOES_AWAY 01
 #define APPLY_SYMLINK_IN_RESULT 02
 
+
+#define APPLY_FLAGS_CR_AT_EOL   (1<<0)
+
 struct apply_state {
 	const char *prefix;
 	int prefix_length;
+	int flags;
 
 	/* These are lock_file related */
 	struct lock_file *lock_file;
