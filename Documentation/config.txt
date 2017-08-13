@@ -221,7 +221,8 @@ boolean::
 		is taken as true.
 
        false;; Boolean false can be spelled as `no`, `off`,
-		`false`, or `0`.
+		`false`, `0`, no value (but still with `=`) or the
+		empty string.
 +
 When converting value to the canonical form using `--bool` type
 specifier; 'git config' will ensure that the output is "true" or
