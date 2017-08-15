@@ -134,15 +134,16 @@ int register_commit_graft(struct commit_graft *graft, int ignore_dups)
 	return 0;
 }
 
-struct commit_graft *read_graft_line(char *buf, int len)
+struct commit_graft *read_graft_line(struct strbuf *line)
 {
 	/* The format is just "Commit Parent1 Parent2 ...\n" */
-	int i;
+	int i, len;
+	char *buf = line->buf;
 	struct commit_graft *graft = NULL;
 	const int entry_size = GIT_SHA1_HEXSZ + 1;
 
-	while (len && isspace(buf[len-1]))
-		buf[--len] = '\0';
+	strbuf_rtrim(line);
+	len = line->len;
 	if (buf[0] == '#' || buf[0] == '\0')
 		return NULL;
 	if ((len + 1) % entry_size)
@@ -174,7 +175,7 @@ static int read_graft_file(const char *graft_file)
 		return -1;
 	while (!strbuf_getwholeline(&buf, fp, '\n')) {
 		/* The format is just "Commit Parent1 Parent2 ...\n" */
-		struct commit_graft *graft = read_graft_line(buf.buf, buf.len);
+		struct commit_graft *graft = read_graft_line(&buf);
 		if (!graft)
 			continue;
 		if (register_commit_graft(graft, 1))
