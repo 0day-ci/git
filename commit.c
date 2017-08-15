@@ -111,6 +111,7 @@ static int commit_graft_pos(const unsigned char *sha1)
 
 void free_commit_graft(struct commit_graft *graft)
 {
+	oid_array_clear(&graft->parents);
 	free(graft);
 }
 
@@ -139,35 +140,37 @@ int register_commit_graft(struct commit_graft *graft, int ignore_dups)
 	return 0;
 }
 
+static int parse_next_oid_hex(const char *buf, struct object_id *oid, const char **end)
+{
+	while (isspace(buf[0]))
+		buf++;
+	return parse_oid_hex(buf, oid, end);
+}
+
 struct commit_graft *read_graft_line(struct strbuf *line)
 {
 	/* The format is just "Commit Parent1 Parent2 ...\n" */
-	int i, len;
-	char *buf = line->buf;
 	struct commit_graft *graft = NULL;
-	const int entry_size = GIT_SHA1_HEXSZ + 1;
+	struct object_id oid;
+	const char *tail = NULL;
 
 	strbuf_rtrim(line);
-	len = line->len;
-	if (buf[0] == '#' || buf[0] == '\0')
+	if (line->buf[0] == '#' || line->len == 0)
 		return NULL;
-	if ((len + 1) % entry_size)
+	graft = xmalloc(sizeof(*graft));
+	memset(graft, 0, sizeof(*graft));
+	if (parse_oid_hex(line->buf, &graft->oid, &tail))
 		goto bad_graft_data;
-	i = (len + 1) / entry_size - 1;
-	graft = xmalloc(st_add(sizeof(*graft), st_mult(GIT_SHA1_RAWSZ, i)));
-	graft->nr_parent = i;
-	if (get_oid_hex(buf, &graft->oid))
+	while (!parse_next_oid_hex(tail, &oid, &tail))
+		oid_array_append(&graft->parents, &oid);
+	if (tail[0] != '\0')
 		goto bad_graft_data;
-	for (i = GIT_SHA1_HEXSZ; i < len; i += entry_size) {
-		if (buf[i] != ' ')
-			goto bad_graft_data;
-		if (get_sha1_hex(buf + i + 1, graft->parent[i/entry_size].hash))
-			goto bad_graft_data;
-	}
+	graft->nr_parent = graft->parents.nr;
+
 	return graft;
 
 bad_graft_data:
-	error("bad graft data: %s", buf);
+	error("bad graft data: %s", line->buf);
 	free_commit_graft(graft);
 	return NULL;
 }
@@ -363,7 +366,7 @@ int parse_commit_buffer(struct commit *item, const void *buffer, unsigned long s
 		int i;
 		struct commit *new_parent;
 		for (i = 0; i < graft->nr_parent; i++) {
-			new_parent = lookup_commit(&graft->parent[i]);
+			new_parent = lookup_commit(&graft->parents.oid[i]);
 			if (!new_parent)
 				continue;
 			pptr = &commit_list_insert(new_parent, pptr)->next;

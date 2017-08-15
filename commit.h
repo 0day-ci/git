@@ -243,7 +243,7 @@ void sort_in_topological_order(struct commit_list **, enum rev_sort_order);
 struct commit_graft {
 	struct object_id oid;
 	int nr_parent; /* < 0 if shallow commit */
-	struct object_id parent[FLEX_ARRAY]; /* more */
+	struct oid_array parents;
 };
 typedef int (*each_commit_graft_fn)(const struct commit_graft *, void *);
 

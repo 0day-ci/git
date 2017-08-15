@@ -33,6 +33,7 @@ int register_shallow(const struct object_id *oid)
 		xmalloc(sizeof(struct commit_graft));
 	struct commit *commit = lookup_commit(oid);
 
+	memset(graft, 0, sizeof(*graft));
 	oidcpy(&graft->oid, oid);
 	graft->nr_parent = -1;
 	if (commit && commit->object.parsed)
