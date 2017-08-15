@@ -1040,7 +1040,6 @@ static void convert_attrs(struct conv_attrs *ca, const char *path)
 		ca->crlf_action = git_path_check_crlf(ccheck + 4);
 		if (ca->crlf_action == CRLF_UNDEFINED)
 			ca->crlf_action = git_path_check_crlf(ccheck + 0);
-		ca->attr_action = ca->crlf_action;
 		ca->ident = git_path_check_ident(ccheck + 1);
 		ca->drv = git_path_check_convert(ccheck + 2);
 		if (ca->crlf_action != CRLF_BINARY) {
@@ -1058,6 +1057,7 @@ static void convert_attrs(struct conv_attrs *ca, const char *path)
 	} else {
 		ca->drv = NULL;
 		ca->crlf_action = CRLF_UNDEFINED;
+		ca->attr_action = CRLF_UNDEFINED;
 		ca->ident = 0;
 	}
 	if (ca->crlf_action == CRLF_TEXT)
