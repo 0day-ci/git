@@ -153,7 +153,19 @@ static inline void strbuf_setlen(struct strbuf *sb, size_t len)
 /**
  * Empty the buffer by setting the size of it to zero.
  */
+#ifdef GIT_THREAD_SANITIZER
+#define strbuf_reset(sb)						\
+	do {								\
+		struct strbuf *_sb = sb; 				\
+		_sb->len = 0;						\
+		if (_sb->buf == strbuf_slopbuf)				\
+			assert(!strbuf_slopbuf[0]);			\
+		else							\
+			_sb->buf[0] = '\0';				\
+	} while (0)
+#else
 #define strbuf_reset(sb)  strbuf_setlen(sb, 0)
+#endif
 
 
 /**
