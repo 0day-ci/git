@@ -1033,6 +1033,9 @@ BASIC_CFLAGS += -fno-omit-frame-pointer
 ifneq ($(filter undefined,$(SANITIZERS)),)
 BASIC_CFLAGS += -DNO_UNALIGNED_LOADS
 endif
+ifneq ($(filter thread,$(SANITIZERS)),)
+BASIC_CFLAGS += -DGIT_THREAD_SANITIZER
+endif
 endif
 
 ifndef sysconfdir
