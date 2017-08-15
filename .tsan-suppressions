@@ -1,0 +1,12 @@
+# Suppressions for ThreadSanitizer (tsan).
+#
+# This file is used by setting the environment variable TSAN_OPTIONS to, e.g.,
+# "suppressions=$(pwd)/.tsan-suppressions". Observe that relative paths such as
+# ".tsan-suppressions" might not work.
+#
+# These suppressions can be, e.g., that a static variable is written to and it
+# is always the same value being written, so it doesn't really matter that two
+# or more such writes race.
+
+race:^want_color$
+race:^transfer_debug$
