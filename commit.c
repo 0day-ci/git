@@ -109,15 +109,20 @@ static int commit_graft_pos(const unsigned char *sha1)
 			commit_graft_sha1_access);
 }
 
+void free_commit_graft(struct commit_graft *graft)
+{
+	free(graft);
+}
+
 int register_commit_graft(struct commit_graft *graft, int ignore_dups)
 {
 	int pos = commit_graft_pos(graft->oid.hash);
 
 	if (0 <= pos) {
 		if (ignore_dups)
-			free(graft);
+			free_commit_graft(graft);
 		else {
-			free(commit_graft[pos]);
+			free_commit_graft(commit_graft[pos]);
 			commit_graft[pos] = graft;
 		}
 		return 1;
@@ -163,7 +168,7 @@ struct commit_graft *read_graft_line(struct strbuf *line)
 
 bad_graft_data:
 	error("bad graft data: %s", buf);
-	free(graft);
+	free_commit_graft(graft);
 	return NULL;
 }
 
