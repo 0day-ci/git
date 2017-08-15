@@ -1755,7 +1755,7 @@ static int grep_source_1(struct grep_opt *opt, struct grep_source *gs, int colle
 		}
 		if (hit) {
 			count++;
-			if (opt->status_only)
+			if (!opt->unmatch_name_only && opt->status_only)
 				return 1;
 			if (opt->name_only) {
 				show_name(opt, gs->name);
@@ -1820,13 +1820,14 @@ static int grep_source_1(struct grep_opt *opt, struct grep_source *gs, int colle
 	if (collect_hits)
 		return 0;
 
-	if (opt->status_only)
-		return 0;
 	if (opt->unmatch_name_only) {
 		/* We did not see any hit, so we want to show this */
-		show_name(opt, gs->name);
+		if (!opt->status_only)
+			show_name(opt, gs->name);
 		return 1;
 	}
+	if (opt->status_only)
+		return 0;
 
 	xdiff_clear_find_func(&xecfg);
 	opt->priv = NULL;
