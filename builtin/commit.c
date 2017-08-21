@@ -981,7 +981,7 @@ static int rest_is_empty(struct strbuf *sb, int start)
 	int i, eol;
 	const char *nl;
 
-	/* Check if the rest is just whitespace and Signed-off-by's. */
+	/* Check if the rest is just whitespace */
 	for (i = start; i < sb->len; i++) {
 		nl = memchr(sb->buf + i, '\n', sb->len - i);
 		if (nl)
@@ -989,11 +989,6 @@ static int rest_is_empty(struct strbuf *sb, int start)
 		else
 			eol = sb->len;
 
-		if (strlen(sign_off_header) <= eol - i &&
-		    starts_with(sb->buf + i, sign_off_header)) {
-			i = eol;
-			continue;
-		}
 		while (i < eol)
 			if (!isspace(sb->buf[i++]))
 				return 0;
@@ -1003,8 +998,7 @@ static int rest_is_empty(struct strbuf *sb, int start)
 }
 
 /*
- * Find out if the message in the strbuf contains only whitespace and
- * Signed-off-by lines.
+ * Find out if the message in the strbuf contains only whitespace
  */
 static int message_is_empty(struct strbuf *sb)
 {
