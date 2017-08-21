@@ -26,7 +26,7 @@ You are currently in the middle of a merge that has not been fully completed.  Y
 	set parents [list]
 	if {[catch {
 			set fd [git_read cat-file commit $curHEAD]
-			fconfigure $fd -encoding binary -translation lf
+			fconfigure $fd -encoding utf-8 -translation lf
 			# By default commits are assumed to be in utf-8
 			set enc utf-8
 			while {[gets $fd line] > 0} {
