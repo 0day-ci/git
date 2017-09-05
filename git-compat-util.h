@@ -1169,4 +1169,11 @@ static inline int is_missing_file_error(int errno_)
 
 extern int cmd_main(int, const char **);
 
+#ifdef SUPPRESS_ANNOTATED_LEAKS
+extern void unleak_memory(const void *ptr, size_t len);
+#define UNLEAK(var) unleak_memory(&(var), sizeof(var));
+#else
+#define UNLEAK(var)
+#endif
+
 #endif

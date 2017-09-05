@@ -241,3 +241,16 @@ NORETURN void BUG(const char *fmt, ...)
 	va_end(ap);
 }
 #endif
+
+void unleak_memory(const void *ptr, size_t len)
+{
+	static struct suppressed_leak_root {
+		struct suppressed_leak_root *next;
+		char data[FLEX_ARRAY];
+	} *suppressed_leaks;
+	struct suppressed_leak_root *root;
+
+	FLEX_ALLOC_MEM(root, data, ptr, len);
+	root->next = suppressed_leaks;
+	suppressed_leaks = root;
+}
