@@ -433,7 +433,8 @@ DEVELOPER_CFLAGS = -Werror \
 	-Wpointer-arith \
 	-Wstrict-prototypes \
 	-Wunused \
-	-Wvla
+	-Wvla \
+	-DDEVELOPER
 LDFLAGS =
 ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS)
 ALL_LDFLAGS = $(LDFLAGS)

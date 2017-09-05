@@ -403,6 +403,12 @@ static void parse_options_check(const struct option *opts)
 		if (opts->argh &&
 		    strcspn(opts->argh, " _") != strlen(opts->argh))
 			err |= optbug(opts, "multi-word argh should use dash to separate words");
+#if DEVELOPER
+		if ((opts->flags & PARSE_OPT_ERR_NEGATED) &&
+		    !strcmp("no-", opts->long_name))
+			BUG("Get %s fixed! double negation possible",
+			    opts->long_name);
+#endif
 	}
 	if (err)
 		exit(128);
