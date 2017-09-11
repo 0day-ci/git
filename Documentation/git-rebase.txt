@@ -782,10 +782,11 @@ case" recovery too!
 
 BUGS
 ----
-The todo list presented by `--preserve-merges --interactive` does not
-represent the topology of the revision graph.  Editing commits and
-rewording their commit messages should work fine, but attempts to
-reorder commits tend to produce counterintuitive results.
+Be careful when combining the `-i` / `--interactive` and `-p` /
+`--preserve-merges` options.  Reordering commits will drop commits from the
+main line. This is because the todo list does not represent the topology of the
+revision graph in this case.  However, editing commits and rewording their
+commit messages 'should' work fine.
 
 For example, an attempt to rearrange
 ------------
