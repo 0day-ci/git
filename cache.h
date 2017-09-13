@@ -445,6 +445,13 @@ static inline enum object_type object_type(unsigned int mode)
 #define GIT_QUARANTINE_ENVIRONMENT "GIT_QUARANTINE_PATH"
 
 /*
+ * Environment variable used in handshaking the wire protocol.
+ * Contains a colon ':' separated list of keys with optional values
+ * 'key[=value]'.  Presence of unknown keys must be tolerated.
+ */
+#define GIT_PROTOCOL_ENVIRONMENT "GIT_PROTOCOL"
+
+/*
  * This environment variable is expected to contain a boolean indicating
  * whether we should or should not treat:
  *
