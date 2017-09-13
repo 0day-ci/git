@@ -11,6 +11,7 @@
 #include "string-list.h"
 #include "sha1-array.h"
 #include "transport.h"
+#include "protocol.h"
 
 static char *server_capabilities;
 static const char *parse_feature_value(const char *, const char *, int *);
@@ -141,6 +142,27 @@ struct ref **get_remote_heads(int in, char *src_buf, size_t src_len,
 				  PACKET_READ_CHOMP_NEWLINE);
 		if (len < 0)
 			die_initial_contact(saw_response);
+
+		/* Only check for version information on first response */
+		if (!saw_response) {
+			switch (determine_protocol_version_client(buffer)) {
+			case protocol_v1:
+				/*
+				 * First pkt-line contained the version string.
+				 * Continue on to process the ref advertisement.
+				 */
+				continue;
+			case protocol_v0:
+				/*
+				 * Server is speaking protocol v0 and sent a
+				 * ref so we need to process it.
+				 */
+				break;
+			default:
+				die("server is speaking an unknown protocol");
+				break;
+			}
+		}
 
 		if (!len)
 			break;
