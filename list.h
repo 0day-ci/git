@@ -26,6 +26,12 @@
 #define LIST_H	1
 
 /*
+ * A most-recently-used ordered version of the packed_git list, which can
+ * be iterated instead of packed_git (and marked via mru_mark).
+ */
+extern struct mru packed_git_mru
+
+/*
  * The definitions of this file are adopted from those which can be
  * found in the Linux kernel headers to enable people familiar with the
  * latter find their way in these sources as well.
