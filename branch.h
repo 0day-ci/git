@@ -24,8 +24,8 @@
  *     that start_name is a tracking branch for (if any).
  */
 void create_branch(const char *name, const char *start_name,
-		   int force, int reflog,
-		   int clobber_head_ok, int quiet, enum branch_track track);
+		   int force, int clobber_head_ok,
+		   int reflog, int quiet, enum branch_track track);
 
 /*
  * Validates that the requested branch may be created, returning the
