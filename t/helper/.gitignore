@@ -13,6 +13,7 @@
 /test-index-version
 /test-lazy-init-name-hash
 /test-line-buffer
+/test-list-objects
 /test-match-trees
 /test-mergesort
 /test-mktemp
