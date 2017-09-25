@@ -1285,7 +1285,7 @@ int cmd_checkout(int argc, const char **argv, const char *prefix)
 		opts.branch_exists =
 			validate_branch_creation(opts.new_branch, &buf,
 						!opts.new_branch_force,
-						!!opts.new_branch_force);
+						!!opts.new_branch_force, 0);
 
 		strbuf_release(&buf);
 	}
