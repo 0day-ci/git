@@ -2181,9 +2181,8 @@ static int has_racy_timestamp(struct index_state *istate)
 void update_index_if_able(struct index_state *istate, struct lock_file *lockfile)
 {
 	if ((istate->cache_changed || has_racy_timestamp(istate)) &&
-	    verify_index(istate) &&
-	    write_locked_index(istate, lockfile, COMMIT_LOCK))
-		rollback_lock_file(lockfile);
+	    verify_index(istate))
+		write_locked_index(istate, lockfile, COMMIT_LOCK);
 }
 
 static int do_write_index(struct index_state *istate, struct tempfile *tempfile,
@@ -2497,7 +2496,8 @@ int write_locked_index(struct index_state *istate, struct lock_file *lock,
 	    (istate->cache_changed & ~EXTMASK)) {
 		if (si)
 			hashclr(si->base_sha1);
-		return do_write_locked_index(istate, lock, flags);
+		ret = do_write_locked_index(istate, lock, flags);
+		goto out;
 	}
 
 	if (getenv("GIT_TEST_SPLIT_INDEX")) {
@@ -2513,7 +2513,7 @@ int write_locked_index(struct index_state *istate, struct lock_file *lock,
 	if (new_shared_index) {
 		ret = write_shared_index(istate, lock, flags);
 		if (ret)
-			return ret;
+			goto out;
 	}
 
 	ret = write_split_index(istate, lock, flags);
@@ -2522,6 +2522,9 @@ int write_locked_index(struct index_state *istate, struct lock_file *lock,
 	if (!ret && !new_shared_index)
 		freshen_shared_index(sha1_to_hex(si->base_sha1), 1);
 
+out:
+	if (flags & COMMIT_LOCK)
+		rollback_lock_file(lock);
 	return ret;
 }
 
