@@ -44,3 +44,15 @@ expression E1, E2;
 @@
 - strbuf_addstr(E1, real_path(E2));
 + strbuf_add_real_path(E1, E2);
+
+@@
+expression sb, buf, len;
+@@
+- strbuf_addf(sb, "%.*s", len, buf)
++ strbuf_add(sb, buf, len)
+
+@@
+expression sb, buf, len;
+@@
+- strbuf_addf(sb, "%.*s", (int)(len), buf)
++ strbuf_add(sb, buf, len)
