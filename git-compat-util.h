@@ -111,7 +111,12 @@
 #endif
 
 #define MSB(x, bits) ((x) & TYPEOF(x)(~0ULL << (bitsizeof(x) - (bits))))
-#define HAS_MULTI_BITS(i)  ((i) & ((i) - 1))  /* checks if an integer has more than 1 bit set */
+
+/* Checks if an integer has more than 1 bit set. */
+#define HAS_MULTI_BITS(i)  ((i) & ((i) - 1))
+
+/* Checks if an integer has precisely 1 bit set. */
+#define HAS_SINGLE_BIT(i)  ((i) && !HAS_MULTI_BITS(i))
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 

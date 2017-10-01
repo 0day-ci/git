@@ -2342,14 +2342,14 @@ static int do_write_locked_index(struct index_state *istate, struct lock_file *l
 	int ret = do_write_index(istate, lock->tempfile, 0);
 	if (ret)
 		return ret;
-	assert((flags & (COMMIT_LOCK | CLOSE_LOCK)) !=
-	       (COMMIT_LOCK | CLOSE_LOCK));
+	assert(HAS_SINGLE_BIT(flags & (COMMIT_LOCK | CLOSE_LOCK)));
 	if (flags & COMMIT_LOCK)
 		return commit_locked_index(lock);
-	else if (flags & CLOSE_LOCK)
-		return close_lock_file_gently(lock);
-	else
-		return ret;
+	/*
+	 * Otherwise it's CLOSE_LOCK. The lockfile already happens
+	 * to have been closed, but let's be specific.
+	 */
+	return close_lock_file_gently(lock);
 }
 
 static int write_split_index(struct index_state *istate,
