@@ -617,6 +617,8 @@ extern int read_index_unmerged(struct index_state *);
  * adjust its permissions and rename it into place, then write the
  * split index to the lockfile. If the temporary file for the shared
  * index cannot be created, fall back to the normal case.
+ *
+ * With `CLOSE_LOCK`, the lock will be neither committed nor rolled back.
  */
 extern int write_locked_index(struct index_state *, struct lock_file *lock, unsigned flags);
 
