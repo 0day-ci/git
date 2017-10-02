@@ -77,7 +77,7 @@ static struct used_atom {
 		struct align align;
 		struct {
 			enum {
-				RR_REF, RR_TRACK, RR_TRACKSHORT, RR_REMOTE_NAME
+				RR_REF, RR_TRACK, RR_TRACKSHORT, RR_REMOTE_NAME, RR_REMOTE_REF
 			} option;
 			struct refname_atom refname;
 			unsigned int nobracket : 1;
@@ -160,6 +160,8 @@ static void remote_ref_atom_parser(const struct ref_format *format, struct used_
 			atom->u.remote_ref.nobracket = 1;
 		else if (!strcmp(s, "remote-name"))
 			atom->u.remote_ref.option = RR_REMOTE_NAME;
+		else if (!strcmp(s, "remote-ref"))
+			atom->u.remote_ref.option = RR_REMOTE_REF;
 		else {
 			atom->u.remote_ref.option = RR_REF;
 			refname_atom_parser_internal(&atom->u.remote_ref.refname,
@@ -1258,6 +1260,14 @@ static void fill_remote_ref_details(struct used_atom *atom, const char *refname,
 			remote_for_branch(branch, &explicit);
 		if (explicit)
 			*s = xstrdup(remote);
+		else
+			*s = "";
+	} else if (atom->u.remote_ref.option == RR_REMOTE_REF) {
+		int explicit, for_push = starts_with(atom->name, "push");
+		const char *merge = remote_ref_for_branch(branch, for_push,
+							  &explicit);
+		if (explicit)
+			*s = xstrdup(merge);
 		else
 			*s = "";
 	} else
