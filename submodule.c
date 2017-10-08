@@ -796,8 +796,8 @@ static int check_has_commit(const struct object_id *oid, void *data)
 		cb->result = 0;
 		return 0;
 	default:
-		die(_("submodule entry '%s' (%s) is a %s, not a commit"),
-		    cb->path, oid_to_hex(oid), typename(type));
+		die(_("submodule entry '%s' (%s) is not a commit"),
+		    cb->path, oid_to_hex(oid));
 	}
 }
 
