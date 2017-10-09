@@ -111,6 +111,24 @@ extern void connect_work_tree_and_git_dir(const char *work_tree, const char *git
  */
 int submodule_to_gitdir(struct strbuf *buf, const char *submodule);
 
+/**
+ * Move the HEAD and content of the active submodule at 'path' from object id
+ * 'old' to 'new'.
+ *
+ * Updates the submodule at 'path' and files in its work tree to commit
+ * 'new'. The commit previously pointed to by the submodule is named by
+ * 'old'. This updates the submodule's HEAD, index, and work tree but
+ * does not touch its gitlink entry in the superproject.
+ *
+ * If the submodule did not previously exist, then 'old' should be NULL.
+ * Similarly, if the submodule is to be removed, 'new' should be NULL.
+ *
+ * If updating the submodule would cause local changes to be overwritten,
+ * then instead of updating the submodule, this function prints an error
+ * message and returns -1.
+ *
+ * If the submodule is not active, this does nothing and returns 0.
+ */
 #define SUBMODULE_MOVE_HEAD_DRY_RUN (1<<0)
 #define SUBMODULE_MOVE_HEAD_FORCE   (1<<1)
 extern int submodule_move_head(const char *path,

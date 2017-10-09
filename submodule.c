@@ -1506,11 +1506,6 @@ static void submodule_reset_index(const char *path)
 		die("could not reset submodule index");
 }
 
-/**
- * Moves a submodule at a given path from a given head to another new head.
- * For edge cases (a submodule coming into existence or removing a submodule)
- * pass NULL for old or new respectively.
- */
 int submodule_move_head(const char *path,
 			 const char *old,
 			 const char *new,
