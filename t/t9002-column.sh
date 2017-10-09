@@ -2,6 +2,7 @@
 
 test_description='git column'
 . ./test-lib.sh
+. "$TEST_DIRECTORY"/lib-terminal.sh
 
 test_expect_success 'setup' '
 	cat >lista <<\EOF
@@ -177,4 +178,16 @@ EOF
 	test_cmp expected actual
 '
 
+test_expect_success TTY '20 columns, mode auto, pager' '
+	cat >expected <<\EOF &&
+one    seven
+two    eight
+three  nine
+four   ten
+five   eleven
+six
+EOF
+	test_terminal env PAGER="cat|cat" git column --mode=auto <lista >actual &&
+	test_cmp expected actual
+'
 test_done
