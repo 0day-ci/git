@@ -726,6 +726,49 @@ test_must_be_empty () {
 	fi
 }
 
+# Call test_has_trailer with the arguments:
+# [-C <directory>] <object> <token> [<value>]
+# where <object> is an object name as described in gitrevisions(7),
+# <token> is a trailer token (e.g. 'Signed-off-by'), and
+# <value> is an optional value (e.g. 'A U Thor <author@example.com>').
+# test_has_trailer returns success if the specified trailer is found
+# in the object content.  If <value> is unset, any value will match.
+#
+# Both <token> and <value> are basic regular expressions.
+#
+# If the first argument is "-C", the second argument is used as a path for
+# the git invocations.
+test_has_trailer () {
+	INDIR=
+	case "$1" in
+	-C)
+		INDIR="$2"
+		shift 2 || error "<directory> not specified"
+		;;
+	esac
+	INDIR="${INDIR:+${INDIR}/}"
+	OBJECT="$1"
+	shift || error "<object> not specified"
+	TOKEN="$1"
+	shift || error "<token> not specified"
+	SEP=':'  # FIXME: read from trailer.separators?
+	CONTENT="$(git ${INDIR:+ -C "${INDIR}"} cat-file -p "${OBJECT}")" || error "object ${OBJECT} not found${INDIR:+ in ${INDIR}}"
+	PATTERN="^${TOKEN}${SEP}"
+	if test 0 -lt "$#"
+	then
+		VALUE="$1"
+		PATTERN="${PATTERN} *${VALUE}$"
+	fi
+	if (echo "${CONTENT}" | grep -q "${PATTERN}")
+	then
+		printf "%s found in:\n%s\n" "${PATTERN}" "${CONTENT}"
+		return 0
+	else
+		printf "%s not found in:\n%s\n" "${PATTERN}" "${CONTENT}"
+		return 1
+	fi
+}
+
 # Tests that its two parameters refer to the same revision
 test_cmp_rev () {
 	git rev-parse --verify "$1" >expect.rev &&

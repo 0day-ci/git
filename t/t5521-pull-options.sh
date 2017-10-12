@@ -165,4 +165,44 @@ test_expect_success 'git pull --allow-unrelated-histories' '
 	)
 '
 
+test_expect_success 'git pull does not add a sign-off line' '
+	test_when_finished "rm -fr src dst" &&
+	git init src &&
+	test_commit -C src one &&
+	git clone src dst &&
+	test_commit -C src two &&
+	git -C dst pull --no-ff &&
+	! test_has_trailer -C dst HEAD Signed-off-by
+'
+
+test_expect_success 'git pull --no-signoff does not add sign-off line' '
+	test_when_finished "rm -fr src dst" &&
+	git init src &&
+	test_commit -C src one &&
+	git clone src dst &&
+	test_commit -C src two &&
+	git -C dst pull --no-signoff --no-ff &&
+	! test_has_trailer -C dst HEAD Signed-off-by
+'
+
+test_expect_success 'git pull --signoff add a sign-off line' '
+	test_when_finished "rm -fr src dst" &&
+	git init src &&
+	test_commit -C src one &&
+	git clone src dst &&
+	test_commit -C src two &&
+	git -C dst pull --signoff --no-ff &&
+	test_has_trailer -C dst HEAD Signed-off-by "$GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL>"
+'
+
+test_expect_success 'git pull --no-signoff flag cancels --signoff flag' '
+	test_when_finished "rm -fr src dst actual" &&
+	git init src &&
+	test_commit -C src one &&
+	git clone src dst &&
+	test_commit -C src two &&
+	git -C dst pull --signoff --no-signoff --no-ff &&
+	! test_has_trailer -C dst HEAD Signed-off-by
+'
+
 test_done
