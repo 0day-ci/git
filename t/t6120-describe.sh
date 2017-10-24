@@ -340,4 +340,20 @@ test_expect_success ULIMIT_STACK_SIZE 'describe works in a deep repo' '
 	test_cmp expect actual
 '
 
+test_expect_success 'describe --contains for light before annotated' '
+	test_tick &&
+	git commit --allow-empty -m First &&
+	test_tick &&
+	git commit --allow-empty -m Second &&
+	test_tick &&
+	git commit --allow-empty -m Third &&
+	test_tick &&
+	git tag light-before-annotated HEAD^ &&
+	test_tick &&
+	git tag -a -m annotated annotated-after-light
+
+'
+
+check_describe light-before-annotated~1 --contains light-before-annotated~1
+
 test_done
