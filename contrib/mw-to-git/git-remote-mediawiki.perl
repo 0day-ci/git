@@ -1334,7 +1334,9 @@ sub get_mw_namespace_id {
 	my $id;
 
 	if (!defined $ns) {
-		print {*STDERR} "No such namespace ${name} on MediaWiki.\n";
+		my @namespaces = sort keys %namespace_id;
+		for (@namespaces) { s/ /_/g; }
+		print {*STDERR} "No such namespace ${name} on MediaWiki, known namespaces: @namespaces\n";
 		$ns = {is_namespace => 0};
 		$namespace_id{$name} = $ns;
 	}
