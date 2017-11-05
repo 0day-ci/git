@@ -99,7 +99,7 @@ foo.bar= ...`) sets `foo.bar` to the empty string which `git config
 -p::
 --paginate::
 	Pipe all output into 'less' (or if set, $PAGER) if standard
-	output is a terminal.  This overrides the `pager.<cmd>`
+	output is a terminal.  This overrides the `pager.<cmd>[.*]`
 	configuration options (see the "Configuration Mechanism" section
 	below).
 

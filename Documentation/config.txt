@@ -2460,6 +2460,23 @@ pager.<cmd>::
 	or `--no-pager` is specified on the command line, it takes
 	precedence over this option.  To disable pagination for all
 	commands, set `core.pager` or `GIT_PAGER` to `cat`.
++
+This is a less flexible alternative to `pager.<cmd>.command` and
+`pager.<cmd>.enable`. Using it with a boolean does the same as using
+`pager.<cmd>.enable`. Using it with a command does the same as using
+`pager.<cmd>.command` and `pager.<cmd>.enable=true`.
+
+pager.<cmd>.command::
+	Specifies the pager to use for the subcommand.
+	Whether the pager should be used is configured using
+	`pager.<cmd>.enable` or `pager.<cmd>=<boolean>`.
+
+pager.<cmd>.enable::
+	A boolean which turns on or off pagination of the output of a
+	particular Git subcommand when writing to a tty. If `--paginate`
+	or `--no-pager` is specified on the command line, it takes
+	precedence over this option.  To disable pagination for all
+	commands, set `core.pager` or `GIT_PAGER` to `cat`.
 
 pretty.<name>::
 	Alias for a --pretty= format string, as specified in

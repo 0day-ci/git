@@ -206,6 +206,11 @@ static int pager_command_config(const char *var, const char *value, void *vdata)
 			free(data->value);
 			data->value = xstrdup(value);
 		}
+	} else if (!strcmp(remainder, ".command")) {
+		free(data->value);
+		data->value = xstrdup(value);
+	} else if (!strcmp(remainder, ".enable")) {
+		data->want = git_config_bool(var, value);
 	}
 
 	return 0;

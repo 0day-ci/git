@@ -588,4 +588,77 @@ test_expect_success 'command with underscores does not complain' '
 	test_cmp expect actual
 '
 
+test_expect_success 'setup' '
+	sane_unset PAGER GIT_PAGER GIT_PAGER_IN_USE &&
+	test_unconfig core.pager &&
+
+	git rev-list HEAD >rev-list &&
+	sed "s/^/foo:/" rev-list >expect &&
+
+	PAGER="cat >paginated.out" &&
+	export PAGER &&
+
+	test_unconfig pager.log &&
+	test_unconfig pager.rev-list
+'
+
+test_expect_success TTY 'configuration with .enable works' '
+	rm -f paginated.out &&
+	test_terminal git -c pager.log.enable=false log &&
+	! test -e paginated.out
+'
+
+test_expect_success TTY '--paginate overrides .enable+.command' '
+	rm -f paginated.out &&
+	test_terminal git -c pager.log.command=bad -c pager.log.enable=false \
+			  --paginate log &&
+	test -e paginated.out
+'
+
+test_expect_success TTY '--no-pager overrides .enable' '
+	rm -f paginated.out &&
+	test_terminal git -c pager.rev-list.enable --no-pager rev-list HEAD &&
+	! test -e paginated.out
+'
+
+test_expect_success TTY '.enable discards non-boolean' '
+	test_must_fail git -c pager.log.enable=bad log
+'
+
+test_expect_success TTY 'configuration remembers .command as .enable flips' '
+	>actual &&
+	test_terminal git -c pager.rev-list.command="sed s/^/foo:/ >actual" \
+			  -c pager.rev-list.enable=false \
+			  -c pager.rev-list.enable \
+			  rev-list HEAD &&
+	test_cmp expect actual
+'
+
+test_expect_success TTY 'configuration remembers old-style command as .enable flips' '
+	>actual &&
+	test_terminal git -c pager.rev-list="sed s/^/foo:/ >actual" \
+			  -c pager.rev-list.enable=false \
+			  -c pager.rev-list.enable \
+			  rev-list HEAD &&
+	test_cmp expect actual
+'
+
+test_expect_success TTY 'old-style config can override .enable' '
+	>actual &&
+	test_terminal git -c pager.rev-list.command="sed s/^/foo:/ >actual" \
+			  -c pager.rev-list.enable=false \
+			  -c pager.rev-list \
+			  rev-list HEAD &&
+	test_cmp expect actual
+'
+
+test_expect_success TTY 'old style config can override .command+.enable' '
+	>actual &&
+	test_terminal git -c pager.rev-list.command=bad \
+			  -c pager.rev-list.enable=false \
+			  -c pager.rev-list="sed s/^/foo:/ >actual" \
+			  rev-list HEAD &&
+	test_cmp expect actual
+'
+
 test_done
