@@ -117,6 +117,24 @@ test_expect_success TTY 'git config uses a pager if configured to' '
 	test -e paginated.out
 '
 
+test_expect_success TTY 'configuration remembers pager across boolean changes' '
+	echo paging >expected &&
+	test_unconfig pager.config &&
+	test_terminal git -c pager.config="echo paging" \
+			  -c pager.config=false \
+			  -c pager.config \
+			  config --list >actual &&
+	test_cmp expected actual
+'
+
+test_expect_success TTY '--paginate does not respect inactivated pager' '
+	rm -f paginated.out &&
+	test_terminal git -c pager.config=bad \
+			  -c pager.config=false \
+			  --paginate config --list &&
+	test -e paginated.out
+'
+
 test_expect_success TTY 'configuration can enable pager (from subdir)' '
 	rm -f paginated.out &&
 	mkdir -p subdir &&
