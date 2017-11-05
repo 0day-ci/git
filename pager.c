@@ -191,14 +191,19 @@ struct pager_command_config_data {
 static int pager_command_config(const char *var, const char *value, void *vdata)
 {
 	struct pager_command_config_data *data = vdata;
-	const char *cmd;
+	const char *cmd, *remainder;
 
-	if (skip_prefix(var, "pager.", &cmd) && !strcmp(cmd, data->cmd)) {
+	if (!skip_prefix(var, "pager.", &cmd) ||
+	    !skip_prefix(cmd, data->cmd, &remainder))
+		return 0;
+
+	if (!*remainder) {
 		int b = git_parse_maybe_bool(value);
 		if (b >= 0)
 			data->want = b;
 		else {
 			data->want = 1;
+			free(data->value);
 			data->value = xstrdup(value);
 		}
 	}
