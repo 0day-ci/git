@@ -625,6 +625,13 @@ test_expect_success TTY '.enable discards non-boolean' '
 	test_must_fail git -c pager.log.enable=bad log
 '
 
+test_expect_success TTY 'configuration with .command turns on paging' '
+	>actual &&
+	test_terminal git -c pager.rev-list.command="sed s/^/foo:/ >actual" \
+			  rev-list HEAD &&
+	test_cmp expect actual
+'
+
 test_expect_success TTY 'configuration remembers .command as .enable flips' '
 	>actual &&
 	test_terminal git -c pager.rev-list.command="sed s/^/foo:/ >actual" \

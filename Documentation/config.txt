@@ -2470,6 +2470,8 @@ pager.<cmd>.command::
 	Specifies the pager to use for the subcommand.
 	Whether the pager should be used is configured using
 	`pager.<cmd>.enable` or `pager.<cmd>=<boolean>`.
+	Implies `pager.<cmd>.enable=true` unless `pager.<cmd>.enable`
+	or `pager.<cmd>` have already been given.
 
 pager.<cmd>.enable::
 	A boolean which turns on or off pagination of the output of a
