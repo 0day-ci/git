@@ -271,7 +271,7 @@ The '..' (two-dot) Range Notation::
  for commits that are reachable from r2 excluding those that are reachable
  from r1 by '{caret}r1 r2' and it can be written as 'r1..r2'.
 
-The '...' (three dot) Symmetric Difference Notation::
+The '...' (three-dot) Symmetric Difference Notation::
  A similar notation 'r1\...r2' is called symmetric difference
  of 'r1' and 'r2' and is defined as
  'r1 r2 --not $(git merge-base --all r1 r2)'.
@@ -284,6 +284,15 @@ did I do since I forked from the origin branch?"  Similarly, '..origin'
 is a shorthand for 'HEAD..origin' and asks "What did the origin do since
 I forked from them?"  Note that '..' would mean 'HEAD..HEAD' which is an
 empty range that is both reachable and unreachable from HEAD.
+
+However, there are instances where '<sha1>...' is *not*
+equivalent to '<sha1>...HEAD'.  See the "RAW OUTPUT FORMAT"
+section of linkgit:git-diff[1]: the three-dot notations used
+there are simply continuation indications for the abbreviated
+SHA-1 values.  The ones encountered there are usually
+associated with file/index/tree contents rather than with commit
+objects, and the range operators described above are only
+applicable to commit objects (i.e., 'r1' and 'r2').
 
 Other <rev>{caret} Parent Shorthand Notations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
