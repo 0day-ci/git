@@ -4,6 +4,8 @@
 #include "git-compat-util.h"
 #include "strbuf.h"
 
+#define TRACE_KEY_PREFIX "GIT_TRACE"
+
 struct trace_key {
 	const char * const key;
 	int fd;
@@ -11,7 +13,10 @@ struct trace_key {
 	unsigned int  need_close : 1;
 };
 
-#define TRACE_KEY_INIT(name) { "GIT_TRACE_" #name, 0, 0, 0 }
+#define TRACE_KEY_INIT(name) { TRACE_KEY_PREFIX "_" #name, 0, 0, 0 }
+
+extern struct trace_key trace_default_key;
+extern struct trace_key trace_perf_key;
 
 extern void trace_repo_setup(const char *prefix);
 extern int trace_want(struct trace_key *key);
@@ -77,24 +82,49 @@ extern void trace_performance_since(uint64_t start, const char *format, ...);
  * comma, but this is non-standard.
  */
 
-#define trace_printf(...) \
-	trace_printf_key_fl(TRACE_CONTEXT, __LINE__, NULL, __VA_ARGS__)
+#define trace_pass(key) ((key)->fd || !(key)->initialized)
 
-#define trace_printf_key(key, ...) \
-	trace_printf_key_fl(TRACE_CONTEXT, __LINE__, key, __VA_ARGS__)
+#define trace_printf(...)						    \
+	do {								    \
+		if (trace_pass(&trace_default_key))			    \
+			trace_printf_key_fl(TRACE_CONTEXT, __LINE__,        \
+					    &trace_default_key,__VA_ARGS__);\
+	} while(0)
 
-#define trace_argv_printf(argv, ...) \
-	trace_argv_printf_fl(TRACE_CONTEXT, __LINE__, argv, __VA_ARGS__)
+#define trace_printf_key(key, ...)					    \
+	do {								    \
+		if (trace_pass(key))					    \
+			trace_printf_key_fl(TRACE_CONTEXT, __LINE__, key,   \
+					    __VA_ARGS__);		    \
+	} while(0)
 
-#define trace_strbuf(key, data) \
-	trace_strbuf_fl(TRACE_CONTEXT, __LINE__, key, data)
+#define trace_argv_printf(argv, ...)					    \
+	do {								    \
+		if (trace_pass(&trace_default_key))			    \
+		       trace_argv_printf_fl(TRACE_CONTEXT, __LINE__,	    \
+					    argv, __VA_ARGS__);		    \
+	} while(0)
 
-#define trace_performance(nanos, ...) \
-	trace_performance_fl(TRACE_CONTEXT, __LINE__, nanos, __VA_ARGS__)
+#define trace_strbuf(key, data)						    \
+	do {								    \
+		if (trace_pass(key))					    \
+			trace_strbuf_fl(TRACE_CONTEXT, __LINE__, key, data);\
+	} while(0)
 
-#define trace_performance_since(start, ...) \
-	trace_performance_fl(TRACE_CONTEXT, __LINE__, getnanotime() - (start), \
-			     __VA_ARGS__)
+#define trace_performance(nanos, ...)					    \
+	do {								    \
+		if (trace_pass(key))					    \
+			trace_performance_fl(TRACE_CONTEXT, __LINE__, nanos,\
+					     __VA_ARGS__);  		    \
+	} while(0)
+
+#define trace_performance_since(start, ...)				    \
+	do {								    \
+		if (trace_pass(&trace_perf_key))			    \
+			trace_performance_fl(TRACE_CONTEXT, __LINE__,       \
+					     getnanotime() - (start),	    \
+					     __VA_ARGS__);		    \
+	} while(0)
 
 /* backend functions, use non-*fl macros instead */
 __attribute__((format (printf, 4, 5)))
