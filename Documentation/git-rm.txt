@@ -50,11 +50,6 @@ OPTIONS
         Allow recursive removal when a leading directory name is
         given.
 
-\--::
-	This option can be used to separate command-line options from
-	the list of files, (useful when filenames might be mistaken
-	for command-line options).
-
 --cached::
 	Use this option to unstage and remove paths only from the index.
 	Working tree files, whether modified or not, will be

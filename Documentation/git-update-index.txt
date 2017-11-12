@@ -201,9 +201,6 @@ will remove the intended effect of the option.
 	`--untracked-cache` used to imply `--test-untracked-cache` but
 	this option would enable the extension unconditionally.
 
-\--::
-	Do not interpret any more arguments as options.
-
 <file>::
 	Files to act on.
 	Note that files beginning with '.' are discarded. This includes

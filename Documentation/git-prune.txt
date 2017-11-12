@@ -42,9 +42,6 @@ OPTIONS
 --verbose::
 	Report all removed objects.
 
-\--::
-	Do not interpret any more arguments as options.
-
 --expire <time>::
 	Only expire loose objects older than <time>.
 

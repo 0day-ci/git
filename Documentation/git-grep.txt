@@ -282,10 +282,6 @@ providing this option will cause it to die.
 	Instead of searching tracked files in the working tree, search
 	blobs in the given trees.
 
-\--::
-	Signals the end of options; the rest of the parameters
-	are <pathspec> limiters.
-
 <pathspec>...::
 	If given, limit the search to paths matching at least one pattern.
 	Both leading paths match and glob(7) patterns are supported.

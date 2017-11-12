@@ -171,9 +171,6 @@ Both the <eolinfo> in the index ("i/<eolinfo>")
 and in the working tree ("w/<eolinfo>") are shown for regular files,
 followed by the  ("attr/<eolattr>").
 
-\--::
-	Do not interpret any more arguments as options.
-
 <file>::
 	Files to show. If no files are given all files which match the other
 	specified criteria are shown.

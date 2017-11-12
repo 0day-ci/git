@@ -334,9 +334,6 @@ changes to tracked files.
 	Countermand `commit.gpgSign` configuration variable that is
 	set to force each and every commit to be signed.
 
-\--::
-	Do not interpret any more arguments as options.
-
 <file>...::
 	When files are given on the command line, the command
 	commits the contents of the named files, without

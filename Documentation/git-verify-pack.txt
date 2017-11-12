@@ -33,9 +33,6 @@ OPTIONS
 	Do not verify the pack contents; only show the histogram of delta
 	chain length.  With `--verbose`, list of objects is also shown.
 
-\--::
-	Do not interpret any more arguments as options.
-
 OUTPUT FORMAT
 -------------
 When specifying the -v option the format used is:
