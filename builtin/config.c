@@ -261,9 +261,12 @@ static int get_value(const char *key_, const char *regex_)
 
 	if (values.nr == 0 && default_value) {
 		if(types == TYPE_INT || types == TYPE_BOOL || types == TYPE_BOOL_OR_INT || types == TYPE_PATH ) {
-			char* xstr = normalize_value(key, default_value);
-			fwrite(xstr, 1, strlen(xstr), stdout);
-			fwrite("\n", 1, 1, stdout);
+			if(strlen(default_value)) {
+				char* xstr = normalize_value(key, default_value);
+				fwrite(xstr, 1, strlen(xstr), stdout);
+				fwrite("\n", 1, 1, stdout);
+				ret = 0;
+			}
 		}
 	}
 	free(values.items);
