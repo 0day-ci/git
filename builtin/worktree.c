@@ -1,4 +1,5 @@
 #include "cache.h"
+#include "checkout.h"
 #include "config.h"
 #include "builtin.h"
 #include "dir.h"
@@ -341,6 +342,7 @@ static int add(int ac, const char **av, const char *prefix)
 	const char *new_branch_force = NULL;
 	char *path;
 	const char *branch;
+	int dwim_new_branch = 0;
 	struct option options[] = {
 		OPT__FORCE(&opts.force, N_("checkout <branch> even if already checked out in other worktree")),
 		OPT_STRING('b', NULL, &opts.new_branch, N_("branch"),
@@ -350,6 +352,7 @@ static int add(int ac, const char **av, const char *prefix)
 		OPT_BOOL(0, "detach", &opts.detach, N_("detach HEAD at named commit")),
 		OPT_BOOL(0, "checkout", &opts.checkout, N_("populate the new working tree")),
 		OPT_BOOL(0, "lock", &opts.keep_locked, N_("keep the new working tree locked")),
+		OPT_BOOL(0, "guess", &dwim_new_branch, N_("checkout upstream branch if there's a unique match")),
 		OPT_END()
 	};
 
@@ -363,6 +366,7 @@ static int add(int ac, const char **av, const char *prefix)
 
 	path = prefix_filename(prefix, av[0]);
 	branch = ac < 2 ? "HEAD" : av[1];
+	dwim_new_branch = ac < 2 ? dwim_new_branch : 0;
 
 	if (!strcmp(branch, "-"))
 		branch = "@{-1}";
@@ -387,13 +391,21 @@ static int add(int ac, const char **av, const char *prefix)
 	}
 
 	if (opts.new_branch) {
+		struct object_id oid;
+		const char *remote;
 		struct child_process cp = CHILD_PROCESS_INIT;
+
+		remote = unique_tracking_name(opts.new_branch, &oid);
+
 		cp.git_cmd = 1;
 		argv_array_push(&cp.args, "branch");
 		if (opts.force_new_branch)
 			argv_array_push(&cp.args, "--force");
 		argv_array_push(&cp.args, opts.new_branch);
-		argv_array_push(&cp.args, branch);
+		if (dwim_new_branch && remote)
+			argv_array_push(&cp.args, remote);
+		else
+			argv_array_push(&cp.args, branch);
 		if (run_command(&cp))
 			return -1;
 		branch = opts.new_branch;

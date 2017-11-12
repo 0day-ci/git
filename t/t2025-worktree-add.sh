@@ -6,6 +6,16 @@ test_description='test git worktree add'
 
 . "$TEST_DIRECTORY"/lib-rebase.sh
 
+# Is branch "refs/heads/$1" set to pull from "$2/$3"?
+test_branch_upstream () {
+	printf "%s\n" "$2" "refs/heads/$3" >expect.upstream &&
+	{
+		git config "branch.$1.remote" &&
+		git config "branch.$1.merge"
+	} >actual.upstream &&
+	test_cmp expect.upstream actual.upstream
+}
+
 test_expect_success 'setup' '
 	test_commit init
 '
@@ -312,6 +322,66 @@ test_expect_success 'checkout a branch under bisect' '
 
 test_expect_success 'rename a branch under bisect not allowed' '
 	test_must_fail git branch -M under-bisect bisect-with-new-name
+'
+
+test_expect_success 'git worktree add does not dwim' '
+	test_when_finished rm -rf repo_a &&
+	test_when_finished rm -rf repo_b &&
+	test_when_finished rm -rf foo &&
+	git init repo_a &&
+	(
+		cd repo_a &&
+		test_commit a_master &&
+		git checkout -b foo &&
+		test_commit a_foo
+	) &&
+	git init repo_b &&
+	(
+		cd repo_b &&
+		test_commit b_master &&
+		git remote add repo_a ../repo_a &&
+		git config remote.repo_a.fetch \
+			"+refs/heads/*:refs/remotes/other_a/*" &&
+		git fetch --all &&
+		git worktree add ../foo
+	) &&
+	(
+		cd foo &&
+		! test_branch_upstream foo repo_a foo &&
+		git rev-parse other_a/foo >expect &&
+		git rev-parse foo >actual &&
+		! test_cmp expect actual
+	)
+'
+
+test_expect_success 'git worktree add --guess dwims' '
+	test_when_finished rm -rf repo_a &&
+	test_when_finished rm -rf repo_b &&
+	test_when_finished rm -rf foo &&
+	git init repo_a &&
+	(
+		cd repo_a &&
+		test_commit a_master &&
+		git checkout -b foo &&
+		test_commit a_foo
+	) &&
+	git init repo_b &&
+	(
+		cd repo_b &&
+		test_commit b_master &&
+		git remote add repo_a ../repo_a &&
+		git config remote.repo_a.fetch \
+			"+refs/heads/*:refs/remotes/other_a/*" &&
+		git fetch --all &&
+		git worktree add --guess ../foo
+	) &&
+	(
+		cd foo &&
+		test_branch_upstream foo repo_a foo &&
+		git rev-parse other_a/foo >expect &&
+		git rev-parse foo >actual &&
+		test_cmp expect actual
+	)
 '
 
 test_done
