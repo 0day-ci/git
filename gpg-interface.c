@@ -145,6 +145,20 @@ const char *get_signing_key(void)
 	return git_committer_info(IDENT_STRICT|IDENT_NO_DATE);
 }
 
+/* Strip CR from the CRLF line endings, in case we are on Windows. */
+static void strip_cr(struct strbuf *buffer, size_t bottom) {
+	size_t i, j;
+	for (i = j = bottom; i < buffer->len; i++)
+		if (!(i < buffer->len - 1 &&
+				buffer->buf[i] == '\r' &&
+				buffer->buf[i + 1] == '\n')) {
+			if (i != j)
+				buffer->buf[j] = buffer->buf[i];
+			j++;
+		}
+	strbuf_setlen(buffer, j);
+}
+
 /*
  * Create a detached signature for the contents of "buffer" and append
  * it after "signature"; "buffer" and "signature" can be the same
@@ -155,7 +169,7 @@ int sign_buffer(struct strbuf *buffer, struct strbuf *signature, const char *sig
 {
 	struct child_process gpg = CHILD_PROCESS_INIT;
 	int ret;
-	size_t i, j, bottom;
+	size_t bottom;
 	struct strbuf gpg_status = STRBUF_INIT;
 
 	argv_array_pushl(&gpg.args,
@@ -180,14 +194,7 @@ int sign_buffer(struct strbuf *buffer, struct strbuf *signature, const char *sig
 	if (ret)
 		return error(_("gpg failed to sign the data"));
 
-	/* Strip CR from the line endings, in case we are on Windows. */
-	for (i = j = bottom; i < signature->len; i++)
-		if (signature->buf[i] != '\r') {
-			if (i != j)
-				signature->buf[j] = signature->buf[i];
-			j++;
-		}
-	strbuf_setlen(signature, j);
+	strip_cr(signature, bottom);
 
 	return 0;
 }
@@ -230,6 +237,8 @@ int verify_signed_buffer(const char *payload, size_t payload_size,
 	sigchain_push(SIGPIPE, SIG_IGN);
 	ret = pipe_command(&gpg, payload, payload_size,
 			   gpg_status, 0, gpg_output, 0);
+	strip_cr(gpg_status, 0);
+	strip_cr(gpg_output, 0);
 	sigchain_pop(SIGPIPE);
 
 	delete_tempfile(&temp);
