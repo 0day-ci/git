@@ -55,6 +55,8 @@ static const char *default_value;
 #define TYPE_BOOL_OR_INT (1<<2)
 #define TYPE_PATH (1<<3)
 
+static char *normalize_value(const char *key, const char *value);
+
 static struct option builtin_config_options[] = {
 	OPT_GROUP(N_("Config file location")),
 	OPT_BOOL(0, "global", &use_global_config, N_("use global config file")),
@@ -256,8 +258,15 @@ static int get_value(const char *key_, const char *regex_)
 			fwrite(buf->buf, 1, buf->len, stdout);
 		strbuf_release(buf);
 	}
-	free(values.items);
 
+	if (values.nr == 0 && default_value) {
+		if(types == TYPE_INT || types == TYPE_BOOL || types == TYPE_BOOL_OR_INT || types == TYPE_PATH ) {
+			char* xstr = normalize_value(key, default_value);
+			fwrite(xstr, 1, strlen(xstr), stdout);
+			fwrite("\n", 1, 1, stdout);
+		}
+	}
+	free(values.items);
 free_strings:
 	free(key);
 	if (key_regexp) {
@@ -271,6 +280,7 @@ free_strings:
 
 	return ret;
 }
+
 
 static char *normalize_value(const char *key, const char *value)
 {
