@@ -30,6 +30,7 @@ static int end_null;
 static int respect_includes_opt = -1;
 static struct config_options config_options;
 static int show_origin;
+static const char *default_value;
 
 #define ACTION_GET (1<<0)
 #define ACTION_GET_ALL (1<<1)
@@ -47,6 +48,7 @@ static int show_origin;
 #define ACTION_GET_COLOR (1<<13)
 #define ACTION_GET_COLORBOOL (1<<14)
 #define ACTION_GET_URLMATCH (1<<15)
+#define ACTION_GET_COLORORDEFAULT (1<<16)
 
 #define TYPE_BOOL (1<<0)
 #define TYPE_INT (1<<1)
@@ -80,12 +82,13 @@ static struct option builtin_config_options[] = {
 	OPT_BIT(0, "int", &types, N_("value is decimal number"), TYPE_INT),
 	OPT_BIT(0, "bool-or-int", &types, N_("value is --bool or --int"), TYPE_BOOL_OR_INT),
 	OPT_BIT(0, "path", &types, N_("value is a path (file or directory name)"), TYPE_PATH),
-	OPT_BIT(0, "color", &actions, N_("find the color configured"), ACTION_GET_COLOR),
+	OPT_BIT(0, "color", &actions, N_("find the color configured"), ACTION_GET_COLORORDEFAULT),
 	OPT_GROUP(N_("Other")),
 	OPT_BOOL('z', "null", &end_null, N_("terminate values with NUL byte")),
 	OPT_BOOL(0, "name-only", &omit_values, N_("show variable names only")),
 	OPT_BOOL(0, "includes", &respect_includes_opt, N_("respect include directives on lookup")),
 	OPT_BOOL(0, "show-origin", &show_origin, N_("show origin of config (file, standard input, blob, command line)")),
+	OPT_STRING(0, "default", &default_value, N_("default-value"), N_("sets default for bool/int/path/color when no value is returned from config")),
 	OPT_END(),
 };
 
@@ -329,6 +332,11 @@ static void get_color(const char *var, const char *def_color)
 	}
 
 	fputs(parsed_color, stdout);
+}
+
+static void get_color_default(const char *var)
+{
+	get_color(var, default_value);
 }
 
 static int get_colorbool_found;
@@ -725,6 +733,10 @@ int cmd_config(int argc, const char **argv, const char *prefix)
 	else if (actions == ACTION_GET_COLOR) {
 		check_argc(argc, 1, 2);
 		get_color(argv[0], argv[1]);
+	}
+	else if (actions == ACTION_GET_COLORORDEFAULT) {
+		check_argc(argc, 1, 1);
+		get_color_default(argv[0]);
 	}
 	else if (actions == ACTION_GET_COLORBOOL) {
 		check_argc(argc, 1, 2);
