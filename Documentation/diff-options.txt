@@ -500,6 +500,10 @@ information.
 --pickaxe-regex::
 	Treat the <string> given to `-S` as an extended POSIX regular
 	expression to match.
+--blobfind=<blob-id>::
+	Restrict the output such that one side of the diff
+	matches the given blob-id.
+
 endif::git-format-patch[]
 
 -O<orderfile>::
