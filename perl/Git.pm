@@ -936,6 +936,9 @@ sub parse_mailboxes {
 			$end_of_addr_seen = 0;
 		} elsif ($token =~ /^\(/) {
 			push @comment, $token;
+		} elsif ($token =~ /^\)/) {
+		        my $nested_comment = pop @comment;
+			push @comment, "$nested_comment$token";
 		} elsif ($token eq "<") {
 			push @phrase, (splice @address), (splice @buffer);
 		} elsif ($token eq ">") {

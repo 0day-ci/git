@@ -35,7 +35,8 @@ my @success_list = (q[Jane],
 	q['Jane 'Doe' <jdoe@example.com>],
 	q[Jane@:;\.,()<>Doe <jdoe@example.com>],
 	q[Jane <jdoe@example.com> Doe],
-	q[<jdoe@example.com> Jane Doe]);
+	q[<jdoe@example.com> Jane Doe],
+	q[jdoe@example.com (open list:for thing (foo/bar))]);
 
 my @known_failure_list = (q[Jane\ Doe <jdoe@example.com>],
 	q["Doe, Ja"ne <jdoe@example.com>],
