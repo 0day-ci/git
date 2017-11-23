@@ -796,6 +796,8 @@ int cmd_grep(int argc, const char **argv, const char *prefix)
 			N_("case insensitive matching")),
 		OPT_BOOL('w', "word-regexp", &opt.word_regexp,
 			N_("match patterns only at word boundaries")),
+		OPT_INTEGER('M', "max-line-len", &opt.max_line_length,
+			N_("ignore lines longer than <n>")),
 		OPT_SET_INT('a', "text", &opt.binary,
 			N_("process binary files as text"), GREP_BINARY_TEXT),
 		OPT_SET_INT('I', NULL, &opt.binary,

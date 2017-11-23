@@ -766,6 +766,11 @@ test_expect_success 'grep -W shows no trailing empty lines' '
 	test_cmp expected actual
 '
 
+test_expect_success 'grep skips long lines' '
+	git grep -M18 -W include >actual &&
+	test_cmp expected actual
+'
+
 cat >expected <<EOF
 hello.c=	printf("Hello world.\n");
 hello.c:	return 0;

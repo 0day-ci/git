@@ -10,6 +10,7 @@ SYNOPSIS
 --------
 [verse]
 'git grep' [-a | --text] [-I] [--textconv] [-i | --ignore-case] [-w | --word-regexp]
+	   [-M | --max-line-len <num>]
 	   [-v | --invert-match] [-h|-H] [--full-name]
 	   [-E | --extended-regexp] [-G | --basic-regexp]
 	   [-P | --perl-regexp]
@@ -126,6 +127,10 @@ OPTIONS
 	Match the pattern only at word boundary (either begin at the
 	beginning of a line, or preceded by a non-word character; end at
 	the end of a line or followed by a non-word character).
+
+-M<num>::
+--max-line-len<num>::
+	Match the pattern only for line shorter or equal to this length.
 
 -v::
 --invert-match::

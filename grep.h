@@ -151,6 +151,7 @@ struct grep_opt {
 	int null_following_name;
 	int color;
 	int max_depth;
+	int max_line_length;
 	int funcname;
 	int funcbody;
 	int extended_regexp_option;

@@ -36,6 +36,7 @@ void init_grep_defaults(void)
 	opt->relative = 1;
 	opt->pathname = 1;
 	opt->max_depth = -1;
+	opt->max_line_length = -1;
 	opt->pattern_type_option = GREP_PATTERN_TYPE_UNSPECIFIED;
 	color_set(opt->color_context, "");
 	color_set(opt->color_filename, "");
@@ -151,6 +152,7 @@ void grep_init(struct grep_opt *opt, const char *prefix)
 	opt->pattern_type_option = def->pattern_type_option;
 	opt->linenum = def->linenum;
 	opt->max_depth = def->max_depth;
+	opt->max_line_length = def->max_line_length;
 	opt->pathname = def->pathname;
 	opt->relative = def->relative;
 	opt->output = def->output;
@@ -1273,6 +1275,8 @@ static int match_line(struct grep_opt *opt, char *bol, char *eol,
 	struct grep_pat *p;
 	regmatch_t match;
 
+	if (opt->max_line_length > 0 && eol-bol > opt->max_line_length)
+		return 0;
 	if (opt->extended)
 		return match_expr(opt, bol, eol, ctx, collect_hits);
 
