@@ -281,7 +281,7 @@ static struct rpc_service *select_service(struct strbuf *hdr, const char *name)
  * hit max_request_buffer we die (we'd rather reject a
  * maliciously large request than chew up infinite memory).
  */
-static ssize_t read_request(int fd, unsigned char **out)
+static ssize_t read_request_eof(int fd, unsigned char **out)
 {
 	size_t len = 0, alloc = 8192;
 	unsigned char *buf = xmalloc(alloc);
@@ -316,6 +316,76 @@ static ssize_t read_request(int fd, unsigned char **out)
 			alloc = max_request_buffer;
 		REALLOC_ARRAY(buf, alloc);
 	}
+}
+
+/*
+ * replacement for original read_request, now renamed to read_request_eof,
+ * honoring given content_length (req_len),
+ * provided by new wrapper function read_request
+ */
+static ssize_t read_request_fix_len(int fd, size_t req_len, unsigned char **out)
+{
+	unsigned char *buf = NULL;
+	size_t len = 0;
+
+	/* check request size */
+	if (max_request_buffer < req_len) {
+		die("request was larger than our maximum size (%lu);"
+			    " try setting GIT_HTTP_MAX_REQUEST_BUFFER",
+			    max_request_buffer);
+	}
+
+	if (req_len <= 0) {
+		*out = NULL;
+		return 0;
+	}
+
+	/* allocate buffer */
+	buf = xmalloc(req_len);
+
+
+	while (1) {
+		ssize_t cnt;
+
+		cnt = read_in_full(fd, buf + len, req_len - len);
+		if (cnt < 0) {
+			free(buf);
+			return -1;
+		}
+
+		/* partial read from read_in_full means we hit EOF */
+		len += cnt;
+		if (len < req_len) {
+			/* TODO request incomplete?? */
+			/* maybe just remove this block and condition along with the loop, */
+			/* if read_in_full is prooven reliable */
+			*out = buf;
+			return len;
+		} else {
+			/* request complete */
+			*out = buf;
+			return len;
+			
+		}
+	}
+}
+
+/**
+ * wrapper function, whcih determines based on CONTENT_LENGTH value,
+ * to
+ * - use old behaviour of read_request, to read until EOF
+ * => read_request_eof(...)
+ * - just read CONTENT_LENGTH-bytes, when provided
+ * => read_request_fix_len(...)
+ */
+static ssize_t read_request(int fd, unsigned char **out)
+{
+	/* get request size */
+	ssize_t req_len = git_env_ssize_t("CONTENT_LENGTH", -1);
+	if (req_len < 0)
+		return read_request_eof(fd, out);
+	else
+		return read_request_fix_len(fd, req_len, out);
 }
 
 static void inflate_request(const char *prog_name, int out, int buffer_input)

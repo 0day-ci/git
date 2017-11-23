@@ -1525,6 +1525,14 @@ unsigned long git_env_ulong(const char *k, unsigned long val)
 	return val;
 }
 
+ssize_t git_env_ssize_t(const char *k, ssize_t val)
+{
+	const char *v = getenv(k);
+	if (v && !git_parse_ssize_t(v, &val))
+		die("failed to parse %s", k);
+	return val;
+}
+
 int git_config_system(void)
 {
 	return !git_env_bool("GIT_CONFIG_NOSYSTEM", 0);
