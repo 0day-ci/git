@@ -598,4 +598,10 @@ test_expect_success ':only and :unfold work together' '
 	test_cmp expect actual
 '
 
+test_expect_success 'unterminated alignment formatting' '
+	git log -n1 --format="%<(42" >actual &&
+	echo "%<(42" >expected &&
+	test_cmp expected actual
+'
+
 test_done
