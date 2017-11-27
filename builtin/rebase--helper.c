@@ -15,7 +15,8 @@ int cmd_rebase__helper(int argc, const char **argv, const char *prefix)
 	int keep_empty = 0;
 	enum {
 		CONTINUE = 1, ABORT, MAKE_SCRIPT, SHORTEN_SHA1S, EXPAND_SHA1S,
-		CHECK_TODO_LIST, SKIP_UNNECESSARY_PICKS, REARRANGE_SQUASH
+		CHECK_TODO_LIST, SKIP_UNNECESSARY_PICKS, REARRANGE_SQUASH,
+		ADD_EXEC
 	} command = 0;
 	struct option options[] = {
 		OPT_BOOL(0, "ff", &opts.allow_ff, N_("allow fast-forward")),
@@ -36,6 +37,8 @@ int cmd_rebase__helper(int argc, const char **argv, const char *prefix)
 			N_("skip unnecessary picks"), SKIP_UNNECESSARY_PICKS),
 		OPT_CMDMODE(0, "rearrange-squash", &command,
 			N_("rearrange fixup/squash lines"), REARRANGE_SQUASH),
+		OPT_CMDMODE(0, "add-exec", &command,
+			N_("insert exec commands in todo list"), ADD_EXEC),
 		OPT_END()
 	};
 
@@ -64,5 +67,7 @@ int cmd_rebase__helper(int argc, const char **argv, const char *prefix)
 		return !!skip_unnecessary_picks();
 	if (command == REARRANGE_SQUASH && argc == 1)
 		return !!rearrange_squash();
+	if (command == ADD_EXEC && argc == 2)
+		return !!add_exec_commands(argv[1]);
 	usage_with_options(builtin_rebase_helper_usage, options);
 }
