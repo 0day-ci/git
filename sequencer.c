@@ -795,6 +795,13 @@ static const char *command_to_string(const enum todo_command command)
 	die("Unknown command: %d", command);
 }
 
+static const char command_to_char(const enum todo_command command)
+{
+	if (command < TODO_COMMENT && todo_command_info[command].c)
+		return todo_command_info[command].c;
+	return -1;
+}
+
 static int is_noop(const enum todo_command command)
 {
 	return TODO_NOOP <= command;
@@ -1242,15 +1249,16 @@ static int parse_insn_line(struct todo_item *item, const char *bol, char *eol)
 		return 0;
 	}
 
-	for (i = 0; i < TODO_COMMENT; i++)
+	for (i = 0; i < TODO_COMMENT; i++) {
 		if (skip_prefix(bol, todo_command_info[i].str, &bol)) {
 			item->command = i;
 			break;
-		} else if (bol[1] == ' ' && *bol == todo_command_info[i].c) {
+		} else if (bol[1] == ' ' && *bol == command_to_char(i)) {
 			bol++;
 			item->command = i;
 			break;
 		}
+	}
 	if (i >= TODO_COMMENT)
 		return -1;
 
@@ -2443,8 +2451,8 @@ void append_signoff(struct strbuf *msgbuf, int ignore_footer, unsigned flag)
 	strbuf_release(&sob);
 }
 
-int sequencer_make_script(int keep_empty, FILE *out,
-		int argc, const char **argv)
+int sequencer_make_script(int keep_empty, int abbreviate_commands, FILE *out,
+			  int argc, const char **argv)
 {
 	char *format = NULL;
 	struct pretty_print_context pp = {0};
@@ -2483,7 +2491,9 @@ int sequencer_make_script(int keep_empty, FILE *out,
 		strbuf_reset(&buf);
 		if (!keep_empty && is_original_commit_empty(commit))
 			strbuf_addf(&buf, "%c ", comment_line_char);
-		strbuf_addf(&buf, "pick %s ", oid_to_hex(&commit->object.oid));
+		strbuf_addf(&buf, "%s %s ",
+			    abbreviate_commands ? "p" : "pick",
+			    oid_to_hex(&commit->object.oid));
 		pretty_print_commit(&pp, commit, &buf);
 		strbuf_addch(&buf, '\n');
 		fputs(buf.buf, out);
@@ -2539,7 +2549,7 @@ int add_exec_commands(const char *command)
 	return 0;
 }
 
-int transform_todo_ids(int shorten_ids)
+int transform_todo_ids(int shorten_ids, int abbreviate_commands)
 {
 	const char *todo_file = rebase_path_todo();
 	struct todo_list todo_list = TODO_LIST_INIT;
@@ -2575,19 +2585,33 @@ int transform_todo_ids(int shorten_ids)
 			todo_list.items[i + 1].offset_in_buf :
 			todo_list.buf.len;
 
-		if (item->command >= TODO_EXEC && item->command != TODO_DROP)
-			fwrite(p, eol - bol, 1, out);
-		else {
+		if (item->command >= TODO_EXEC && item->command != TODO_DROP) {
+			if (!abbreviate_commands || command_to_char(item->command) < 0) {
+				fwrite(p, eol - bol, 1, out);
+			} else {
+				const char *end_of_line = strchrnul(p, '\n');
+				p += strspn(p, " \t"); /* skip whitespace */
+				p += strcspn(p, " \t"); /* skip command */
+				fprintf(out, "%c%.*s\n",
+					command_to_char(item->command),
+					(int)(end_of_line - p), p);
+			}
+		} else {
 			const char *id = shorten_ids ?
 				short_commit_name(item->commit) :
 				oid_to_hex(&item->commit->object.oid);
-			int len;
 
-			p += strspn(p, " \t"); /* left-trim command */
-			len = strcspn(p, " \t"); /* length of command */
-
-			fprintf(out, "%.*s %s %.*s\n",
-				len, p, id, item->arg_len, item->arg);
+			if (abbreviate_commands) {
+				fprintf(out, "%c %s %.*s\n",
+					command_to_char(item->command),
+					id, item->arg_len, item->arg);
+			} else {
+				int len;
+				p += strspn(p, " \t"); /* left-trim command */
+				len = strcspn(p, " \t"); /* length of command */
+				fprintf(out, "%.*s %s %.*s\n",
+					len, p, id, item->arg_len, item->arg);
+			}
 		}
 	}
 	fclose(out);

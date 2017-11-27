@@ -45,11 +45,11 @@ int sequencer_continue(struct replay_opts *opts);
 int sequencer_rollback(struct replay_opts *opts);
 int sequencer_remove_state(struct replay_opts *opts);
 
-int sequencer_make_script(int keep_empty, FILE *out,
+int sequencer_make_script(int keep_empty, int abbreviate_commands, FILE *out,
 		int argc, const char **argv);
 
 int add_exec_commands(const char *command);
-int transform_todo_ids(int shorten_ids);
+int transform_todo_ids(int shorten_ids, int abbreviate_commands);
 int check_todo_list(void);
 int skip_unnecessary_picks(void);
 int rearrange_squash(void);
