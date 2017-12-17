@@ -322,10 +322,9 @@ push_stash () {
 
 		if test $# != 0
 		then
-			git reset -q -- "$@"
-			git ls-files -z --modified -- "$@" |
+			git ls-files -z -- "$@" |
 			git checkout-index -z --force --stdin
-			git clean --force -q -d -- "$@"
+			git diff-index -p HEAD -- "$@" | git apply --index -R
 		else
 			git reset --hard -q
 		fi
