@@ -614,6 +614,7 @@ extern int read_index_preload(struct index_state *, const struct pathspec *paths
 extern int do_read_index(struct index_state *istate, const char *path,
 			 int must_exist); /* for testting only! */
 extern int read_index_from(struct index_state *, const char *path);
+extern int read_index_for_repo(const struct repository *);
 extern int is_index_unborn(struct index_state *);
 extern int read_index_unmerged(struct index_state *);
 

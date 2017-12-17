@@ -20,6 +20,7 @@
 #include "split-index.h"
 #include "utf8.h"
 #include "fsmonitor.h"
+#include "repository.h"
 
 /* Mask for the name length in ce_flags in the on-disk index */
 
@@ -1871,7 +1872,8 @@ static void freshen_shared_index(char *base_sha1_hex, int warn)
 	free(shared_index);
 }
 
-int read_index_from(struct index_state *istate, const char *path)
+static int do_read_index_from(struct index_state *istate, const char *path,
+			      const struct repository *repo)
 {
 	struct split_index *split_index;
 	int ret;
@@ -1896,7 +1898,7 @@ int read_index_from(struct index_state *istate, const char *path)
 		split_index->base = xcalloc(1, sizeof(*split_index->base));
 
 	base_sha1_hex = sha1_to_hex(split_index->base_sha1);
-	base_path = git_path("sharedindex.%s", base_sha1_hex);
+	base_path = repo_git_path(repo, "sharedindex.%s", base_sha1_hex);
 	ret = do_read_index(split_index->base, base_path, 1);
 	if (hashcmp(split_index->base_sha1, split_index->base->sha1))
 		die("broken index, expect %s in %s, got %s",
@@ -1907,6 +1909,16 @@ int read_index_from(struct index_state *istate, const char *path)
 	merge_base_index(istate);
 	post_read_index_from(istate);
 	return ret;
+}
+
+int read_index_for_repo(const struct repository *repo)
+{
+	return do_read_index_from(repo->index, repo->index_file, repo);
+}
+
+int read_index_from(struct index_state *istate, const char *path)
+{
+	return do_read_index_from(istate, path, the_repository);
 }
 
 int is_index_unborn(struct index_state *istate)
