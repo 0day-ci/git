@@ -22,6 +22,7 @@
 #include "packfile.h"
 #include "worktree.h"
 #include "argv-array.h"
+#include "repository.h"
 
 volatile show_early_output_fn_t show_early_output;
 
@@ -1346,15 +1347,18 @@ void add_index_objects_to_pending(struct rev_info *revs, unsigned int flags)
 	worktrees = get_worktrees(0);
 	for (p = worktrees; *p; p++) {
 		struct worktree *wt = *p;
-		struct index_state istate = { NULL };
+		struct repository *repo;
 
+		repo = xmalloc(sizeof(struct repository));
 		if (wt->is_current)
 			continue; /* current index already taken care of */
+		if (repo_worktree_init(repo, wt))
+			BUG("couldn't initialize repository object from worktree");
 
-		if (read_index_from(&istate,
-				    worktree_git_path(wt, "index")) > 0)
-			do_add_index_objects_to_pending(revs, &istate);
-		discard_index(&istate);
+		if (repo_read_index(repo) > 0)
+			do_add_index_objects_to_pending(revs, repo->index);
+		discard_index(repo->index);
+		free(repo);
 	}
 	free_worktrees(worktrees);
 }

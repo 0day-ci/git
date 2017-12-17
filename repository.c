@@ -2,6 +2,7 @@
 #include "repository.h"
 #include "config.h"
 #include "submodule-config.h"
+#include "worktree.h"
 
 /* The main repository */
 static struct repository the_repo = {
@@ -144,6 +145,16 @@ int repo_init(struct repository *repo, const char *gitdir, const char *worktree)
 error:
 	repo_clear(repo);
 	return -1;
+}
+
+/*
+ * Initialize 'repo' based on the provided worktree
+ * Return 0 upon success and a non-zero value upon failure.
+ */
+int repo_worktree_init(struct repository *repo, struct worktree *worktree)
+{
+	return repo_init(repo, get_worktree_git_dir(worktree),
+			 worktree->path);
 }
 
 /*
