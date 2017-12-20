@@ -2095,14 +2095,20 @@ int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 /*
  * Return true when there is anything to report, otherwise false.
  */
-int format_tracking_info(struct branch *branch, struct strbuf *sb)
+int format_tracking_info(struct branch *branch, int no_ahead_behind,
+			 struct strbuf *sb)
 {
 	int ours, theirs;
 	const char *full_base;
 	char *base;
 	int upstream_is_gone = 0;
+	int sti;
 
-	if (stat_tracking_info(branch, &ours, &theirs, &full_base) < 0) {
+	if (no_ahead_behind)
+		sti = stat_tracking_info(branch, NULL, NULL, &full_base);
+	else
+		sti = stat_tracking_info(branch, &ours, &theirs, &full_base);
+	if (sti < 0) {
 		if (!full_base)
 			return 0;
 		upstream_is_gone = 1;
@@ -2116,10 +2122,16 @@ int format_tracking_info(struct branch *branch, struct strbuf *sb)
 		if (advice_status_hints)
 			strbuf_addstr(sb,
 				_("  (use \"git branch --unset-upstream\" to fixup)\n"));
-	} else if (!ours && !theirs) {
+	} else if (!sti) {
 		strbuf_addf(sb,
 			_("Your branch is up to date with '%s'.\n"),
 			base);
+	} else if (no_ahead_behind) {
+		strbuf_addf(sb, _("Your branch is out of date with '%s'.\n"),
+			    base);
+
+		/* TODO Do we need a generic hint here? */
+
 	} else if (!theirs) {
 		strbuf_addf(sb,
 			Q_("Your branch is ahead of '%s' by %d commit.\n",

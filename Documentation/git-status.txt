@@ -139,6 +139,9 @@ ignored, then the directory is not shown, but all contents are shown.
 +
 	In short format with --branch, '[different]' will printed rather
 	than detailed ahead/behind counts.
++
+	In long (normal) format, a simple out of date message will be
+	printed rather than detailed ahead/behind counts.
 
 <pathspec>...::
 	See the 'pathspec' entry in linkgit:gitglossary[7].
