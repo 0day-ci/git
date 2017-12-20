@@ -144,6 +144,9 @@ OPTIONS
 	Use the given <msg> as the commit message.
 	If multiple `-m` options are given, their values are
 	concatenated as separate paragraphs.
++
+Combining the `-m` option and any of `-c`, `-C`, `-F` or `--fixup`
+will result in an error.
 
 -t <file>::
 --template=<file>::
