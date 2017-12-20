@@ -1894,6 +1894,8 @@ static void wt_porcelain_print(struct wt_status *s)
  *                 <eol> ::= NUL when -z,
  *                           LF when NOT -z.
  *
+ * When 'status.noaheadbehind' is true or '--no-ahead-behind'
+ * is given on the command line, the 'branch.ab' line is omitted.
  */
 static void wt_porcelain_v2_print_tracking(struct wt_status *s)
 {
@@ -1933,7 +1935,14 @@ static void wt_porcelain_v2_print_tracking(struct wt_status *s)
 		/* Lookup stats on the upstream tracking branch, if set. */
 		branch = branch_get(branch_name);
 		base = NULL;
-		ab_info = (stat_tracking_info(branch, &nr_ahead, &nr_behind, &base) == 0);
+
+		if (s->no_ahead_behind) {
+			base = branch_get_upstream(branch, NULL);
+			ab_info = 0;
+		} else {
+			ab_info = (stat_tracking_info(branch, &nr_ahead, &nr_behind, &base) == 0);
+		}
+
 		if (base) {
 			base = shorten_unambiguous_ref(base, 0);
 			fprintf(s->fp, "# branch.upstream %s%c", base, eol);

@@ -3164,6 +3164,11 @@ status.submoduleSummary::
 	submodule summary' command, which shows a similar output but does
 	not honor these settings.
 
+status.noaheadbehind::
+	Do not compute ahead/behind counts for a branch relative to its
+	upstream branch.  This can be used to avoid a possibly very
+	expensive computation on extremely large repositories.
+
 stash.showPatch::
 	If this is set to true, the `git stash show` command without an
 	option will show the stash entry in patch form.  Defaults to false.

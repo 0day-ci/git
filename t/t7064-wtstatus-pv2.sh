@@ -390,6 +390,29 @@ test_expect_success 'verify upstream fields in branch header' '
 	)
 '
 
+test_expect_success 'verify --no-ahead-behind omits branch.ab' '
+	git checkout master &&
+	test_when_finished "rm -rf sub_repo" &&
+	git clone . sub_repo &&
+	(
+		## Confirm local master tracks remote master.
+		cd sub_repo &&
+		HUF=$(git rev-parse HEAD) &&
+
+		cat >expect <<-EOF &&
+		# branch.oid $HUF
+		# branch.head master
+		# branch.upstream origin/master
+		EOF
+
+		git status --no-ahead-behind --porcelain=v2 --branch --untracked-files=all >actual &&
+		test_cmp expect actual &&
+
+		git -c status.noaheadbehind=true status --porcelain=v2 --branch --untracked-files=all >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'create and add submodule, submodule appears clean (A. S...)' '
 	git checkout master &&
 	git clone . sub_repo &&

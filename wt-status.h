@@ -86,6 +86,7 @@ struct wt_status {
 	int show_branch;
 	int show_stash;
 	int hints;
+	int no_ahead_behind;
 
 	enum wt_status_format status_format;
 	unsigned char sha1_commit[GIT_MAX_RAWSZ]; /* when not Initial */

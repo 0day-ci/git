@@ -1349,6 +1349,10 @@ static int git_status_config(const char *k, const char *v, void *cb)
 			return error(_("Invalid untracked files mode '%s'"), v);
 		return 0;
 	}
+	if (!strcmp(k, "status.noaheadbehind")) {
+		s->no_ahead_behind = git_config_bool(k, v);
+		return 0;
+	}
 	return git_diff_ui_config(k, v, NULL);
 }
 
@@ -1385,6 +1389,8 @@ int cmd_status(int argc, const char **argv, const char *prefix)
 		  N_("ignore changes to submodules, optional when: all, dirty, untracked. (Default: all)"),
 		  PARSE_OPT_OPTARG, NULL, (intptr_t)"all" },
 		OPT_COLUMN(0, "column", &s.colopts, N_("list untracked files in columns")),
+		OPT_BOOL(0, "no-ahead-behind", &s.no_ahead_behind,
+			 N_("omit branch ahead/behind counts")),
 		OPT_END(),
 	};
 

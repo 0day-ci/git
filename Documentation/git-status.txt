@@ -130,6 +130,13 @@ ignored, then the directory is not shown, but all contents are shown.
 	without options are equivalent to 'always' and 'never'
 	respectively.
 
+--no-ahead-behind::
+	Do not compute ahead/behind counts for the current branch relative
+	to the upstream branch.  This can be used to avoid a possibly very
+	expensive computation on extremely large repositories.
++
+	In porcelain V2 format, the 'branch.ab' line will not be present.
+
 <pathspec>...::
 	See the 'pathspec' entry in linkgit:gitglossary[7].
 
@@ -271,6 +278,9 @@ information about the current branch.
     # branch.ab +<ahead> -<behind>           If upstream is set and
 					     the commit is present.
     ------------------------------------------------------------
+
+If `--no-ahead-behind` is given or 'status.noaheadbehind' is set, the
+'branch.ab' line will not be present.
 
 ### Changed Tracked Entries
 
