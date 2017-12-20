@@ -1427,6 +1427,8 @@ static int same(const struct cache_entry *a, const struct cache_entry *b)
 		return 1;
 	if ((a->ce_flags | b->ce_flags) & CE_CONFLICTED)
 		return 0;
+	if (S_ISGITLINK(b->ce_mode) && should_update_submodules())
+		return !oidcmp(&a->oid, &b->oid) && !is_submodule_modified(b->name, 0);
 	return a->ce_mode == b->ce_mode &&
 	       !oidcmp(&a->oid, &b->oid);
 }
