@@ -136,6 +136,9 @@ ignored, then the directory is not shown, but all contents are shown.
 	expensive computation on extremely large repositories.
 +
 	In porcelain V2 format, the 'branch.ab' line will not be present.
++
+	In short format with --branch, '[different]' will printed rather
+	than detailed ahead/behind counts.
 
 <pathspec>...::
 	See the 'pathspec' entry in linkgit:gitglossary[7].

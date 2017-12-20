@@ -1772,6 +1772,7 @@ static void wt_shortstatus_print_tracking(struct wt_status *s)
 	const char *branch_name;
 	int num_ours, num_theirs;
 	int upstream_is_gone = 0;
+	int sti;
 
 	color_fprintf(s->fp, color(WT_STATUS_HEADER, s), "## ");
 
@@ -1796,7 +1797,11 @@ static void wt_shortstatus_print_tracking(struct wt_status *s)
 
 	color_fprintf(s->fp, branch_color_local, "%s", branch_name);
 
-	if (stat_tracking_info(branch, &num_ours, &num_theirs, &base) < 0) {
+	if (s->no_ahead_behind)
+		sti = stat_tracking_info(branch, NULL, NULL, &base);
+	else
+		sti = stat_tracking_info(branch, &num_ours, &num_theirs, &base);
+	if (sti < 0) {
 		if (!base)
 			goto conclude;
 
@@ -1808,12 +1813,14 @@ static void wt_shortstatus_print_tracking(struct wt_status *s)
 	color_fprintf(s->fp, branch_color_remote, "%s", short_base);
 	free(short_base);
 
-	if (!upstream_is_gone && !num_ours && !num_theirs)
+	if (!upstream_is_gone && !sti)
 		goto conclude;
 
 	color_fprintf(s->fp, header_color, " [");
 	if (upstream_is_gone) {
 		color_fprintf(s->fp, header_color, LABEL(N_("gone")));
+	} else if (s->no_ahead_behind) {
+		color_fprintf(s->fp, header_color, LABEL(N_("different")));
 	} else if (!num_ours) {
 		color_fprintf(s->fp, header_color, LABEL(N_("behind ")));
 		color_fprintf(s->fp, branch_color_remote, "%d", num_theirs);

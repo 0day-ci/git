@@ -2008,9 +2008,12 @@ int ref_newer(const struct object_id *new_oid, const struct object_id *old_oid)
 
 /*
  * Compare a branch with its upstream, and save their differences (number
- * of commits) in *num_ours and *num_theirs. The name of the upstream branch
- * (or NULL if no upstream is defined) is returned via *upstream_name, if it
- * is not itself NULL.
+ * of commits) in *num_ours and *num_theirs.  If either num_ours or num_theirs
+ * are NULL, we skip counting the commits and just return whether they are
+ * different.
+ *
+ * The name of the upstream branch (or NULL if no upstream is defined) is
+ * returned via *upstream_name, if it is not itself NULL.
  *
  * Returns -1 if num_ours and num_theirs could not be filled in (e.g., no
  * upstream defined, or ref does not exist).
@@ -2045,6 +2048,9 @@ int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 	ours = lookup_commit_reference(&oid);
 	if (!ours)
 		return -1;
+
+	if (!num_ours || !num_theirs)
+		return theirs != ours;
 
 	/* are we the same? */
 	if (theirs == ours) {
