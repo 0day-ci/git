@@ -145,8 +145,8 @@ OPTIONS
 	If multiple `-m` options are given, their values are
 	concatenated as separate paragraphs.
 +
-Combining the `-m` option and any of `-c`, `-C`, `-F` or `--fixup`
-will result in an error.
+Combining the `-m` option and any of `-c`, `-C` or `-F` will result in
+an error.
 
 -t <file>::
 --template=<file>::
