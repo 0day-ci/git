@@ -1940,7 +1940,7 @@ static void wt_porcelain_v2_print_tracking(struct wt_status *s)
 			base = branch_get_upstream(branch, NULL);
 			ab_info = 0;
 		} else {
-			ab_info = (stat_tracking_info(branch, &nr_ahead, &nr_behind, &base) == 0);
+			ab_info = (stat_tracking_info(branch, &nr_ahead, &nr_behind, &base) >= 0);
 		}
 
 		if (base) {

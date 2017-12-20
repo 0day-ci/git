@@ -2013,7 +2013,9 @@ int ref_newer(const struct object_id *new_oid, const struct object_id *old_oid)
  * is not itself NULL.
  *
  * Returns -1 if num_ours and num_theirs could not be filled in (e.g., no
- * upstream defined, or ref does not exist), 0 otherwise.
+ * upstream defined, or ref does not exist).
+ * Returns 0 if the commits are the same (the branch is up to date).
+ * Returns 1 if the commits are different (the branch is not up to date).
  */
 int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 		       const char **upstream_name)
@@ -2081,7 +2083,7 @@ int stat_tracking_info(struct branch *branch, int *num_ours, int *num_theirs,
 	clear_commit_marks(theirs, ALL_REV_FLAGS);
 
 	argv_array_clear(&argv);
-	return 0;
+	return 1;
 }
 
 /*
