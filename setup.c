@@ -35,10 +35,10 @@ static int abspath_part_inside_repo(char *path)
 		return -1;
 	wtlen = strlen(work_tree);
 	len = strlen(path);
-	off = offset_1st_component(path);
 
-	/* check if work tree is already the prefix */
-	if (wtlen <= len && !strncmp(path, work_tree, wtlen)) {
+	if (wtlen > len || strncmp(path, work_tree, wtlen))
+		off = offset_1st_component(path);
+	else { /* check if work tree is already the prefix */
 		if (path[wtlen] == '/') {
 			memmove(path, path + wtlen + 1, len - wtlen);
 			return 0;
