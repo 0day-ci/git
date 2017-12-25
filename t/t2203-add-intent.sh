@@ -150,5 +150,20 @@ test_expect_success 'commit: ita entries ignored in empty commit check' '
 	)
 '
 
+test_expect_success 'rename detection finds the right names' '
+	git init rename-detection &&
+	(
+		cd rename-detection &&
+		echo contents > original-file &&
+		git add original-file &&
+		git commit -m first-commit &&
+		mv original-file new-file &&
+		git add -N new-file &&
+		git status --porcelain | grep -v actual >actual &&
+		echo " R original-file -> new-file" >expected &&
+		test_cmp expected actual
+	)
+'
+
 test_done
 

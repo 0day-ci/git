@@ -376,6 +376,8 @@ static void wt_longstatus_print_change_data(struct wt_status *s,
 			strbuf_addch(&extra, ')');
 		}
 		status = d->worktree_status;
+		if (d->worktree_path)
+			one_name = d->worktree_path;
 		break;
 	default:
 		die("BUG: unhandled change_type %d in wt_longstatus_print_change_data",
@@ -432,7 +434,7 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 		struct wt_status_change_data *d;
 
 		p = q->queue[i];
-		it = string_list_insert(&s->change, p->one->path);
+		it = string_list_insert(&s->change, p->two->path);
 		d = it->util;
 		if (!d) {
 			d = xcalloc(1, sizeof(*d));
@@ -459,6 +461,12 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 			/* mode_worktree is zero for a delete. */
 			break;
 
+		case DIFF_STATUS_COPIED:
+		case DIFF_STATUS_RENAMED:
+			d->worktree_path = xstrdup(p->one->path);
+			d->score = p->score * 100 / MAX_SCORE;
+			/* fallthru */
+
 		case DIFF_STATUS_MODIFIED:
 		case DIFF_STATUS_TYPE_CHANGED:
 		case DIFF_STATUS_UNMERGED:
@@ -467,8 +475,8 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 			oidcpy(&d->oid_index, &p->one->oid);
 			break;
 
-		case DIFF_STATUS_UNKNOWN:
-			die("BUG: worktree status unknown???");
+		default:
+			die("BUG: unhandled worktree status '%c'", p->status);
 			break;
 		}
 
@@ -547,6 +555,10 @@ static void wt_status_collect_updated_cb(struct diff_queue_struct *q,
 			 * code will output the stage values directly and not use the
 			 * values in these fields.
 			 */
+			break;
+
+		default:
+			die("BUG: unhandled worktree status '%c'", p->status);
 			break;
 		}
 	}
@@ -1724,8 +1736,10 @@ static void wt_shortstatus_status(struct string_list_item *it,
 	} else {
 		struct strbuf onebuf = STRBUF_INIT;
 		const char *one;
-		if (d->head_path) {
-			one = quote_path(d->head_path, s->prefix, &onebuf);
+
+		one = d->head_path ? d->head_path : d->worktree_path;
+		if (one) {
+			one = quote_path(one, s->prefix, &onebuf);
 			if (*one != '"' && strchr(one, ' ') != NULL) {
 				putchar('"');
 				strbuf_addch(&onebuf, '"');
