@@ -162,5 +162,33 @@ test_expect_success 'commit: ita entries ignored in empty commit check' '
 	)
 '
 
+test_expect_success 'rename detection finds the right names' '
+	git init rename-detection &&
+	(
+		cd rename-detection &&
+		echo contents > first &&
+		git add first &&
+		git commit -m first &&
+		mv first third &&
+		git add -N third &&
+
+		git status | grep -v "^?" >actual.1 &&
+		test_i18ngrep "renamed: *first -> third" actual.1 &&
+
+		git status --porcelain | grep -v "^?" >actual.2 &&
+		cat >expected.2 <<-\EOF &&
+		 R first -> third
+		EOF
+		test_cmp expected.2 actual.2 &&
+
+		oid=12f00e90b6ef79117ce6e650416b8cf517099b78 &&
+		git status --porcelain=v2 | grep -v "^?" >actual.3 &&
+		cat >expected.3 <<-EOF &&
+		2 .R N... 100644 100644 100644 $oid $oid R100 first	third
+		EOF
+		test_cmp expected.3 actual.3
+	)
+'
+
 test_done
 

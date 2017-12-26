@@ -376,6 +376,8 @@ static void wt_longstatus_print_change_data(struct wt_status *s,
 			strbuf_addch(&extra, ')');
 		}
 		status = d->worktree_status;
+		if (d->worktree_path)
+			two_name = d->worktree_path;
 		break;
 	default:
 		die("BUG: unhandled change_type %d in wt_longstatus_print_change_data",
@@ -459,6 +461,12 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 			oidcpy(&d->oid_index, &p->one->oid);
 			/* mode_worktree is zero for a delete. */
 			break;
+
+		case DIFF_STATUS_COPIED:
+		case DIFF_STATUS_RENAMED:
+			d->worktree_path = xstrdup(p->two->path);
+			d->worktree_score = p->score * 100 / MAX_SCORE;
+			/* fallthru */
 
 		case DIFF_STATUS_MODIFIED:
 		case DIFF_STATUS_TYPE_CHANGED:
@@ -1712,6 +1720,7 @@ static void wt_shortstatus_status(struct string_list_item *it,
 			 struct wt_status *s)
 {
 	struct wt_status_change_data *d = it->util;
+	const char *from, *to;
 
 	if (d->index_status)
 		color_fprintf(s->fp, color(WT_STATUS_UPDATED, s), "%c", d->index_status);
@@ -1722,15 +1731,30 @@ static void wt_shortstatus_status(struct string_list_item *it,
 	else
 		putchar(' ');
 	putchar(' ');
+
+	if (d->head_path && d->worktree_path)
+		die("BUG: to be addressed in the next patch");
+
+	if (d->head_path) {
+		from = d->head_path;
+		to = it->string;
+	} else if (d->worktree_path) {
+		from = it->string;
+		to = d->worktree_path;
+	} else {
+		from = it->string;
+		to = NULL;
+	}
 	if (s->null_termination) {
-		fprintf(stdout, "%s%c", it->string, 0);
-		if (d->head_path)
-			fprintf(stdout, "%s%c", d->head_path, 0);
+		fprintf(stdout, "%s%c", from, 0);
+		if (to)
+			fprintf(stdout, "%s%c", to, 0);
 	} else {
 		struct strbuf onebuf = STRBUF_INIT;
 		const char *one;
-		if (d->head_path) {
-			one = quote_path(d->head_path, s->prefix, &onebuf);
+
+		if (to) {
+			one = quote_path(from, s->prefix, &onebuf);
 			if (*one != '"' && strchr(one, ' ') != NULL) {
 				putchar('"');
 				strbuf_addch(&onebuf, '"');
@@ -1738,8 +1762,9 @@ static void wt_shortstatus_status(struct string_list_item *it,
 			}
 			printf("%s -> ", one);
 			strbuf_release(&onebuf);
-		}
-		one = quote_path(it->string, s->prefix, &onebuf);
+			one = quote_path(to, s->prefix, &onebuf);
+		} else
+			one = quote_path(from, s->prefix, &onebuf);
 		if (*one != '"' && strchr(one, ' ') != NULL) {
 			putchar('"');
 			strbuf_addch(&onebuf, '"');
@@ -2036,12 +2061,13 @@ static void wt_porcelain_v2_print_changed_entry(
 {
 	struct wt_status_change_data *d = it->util;
 	struct strbuf buf_index = STRBUF_INIT;
-	struct strbuf buf_head = STRBUF_INIT;
+	struct strbuf buf_other = STRBUF_INIT;
 	const char *path_index = NULL;
-	const char *path_head = NULL;
-	char key[3];
+	const char *path_other = NULL;
+	char key[3], status_other;
 	char submodule_token[5];
 	char sep_char, eol_char;
+	int score;
 
 	wt_porcelain_v2_fix_up_changed(it, s);
 	wt_porcelain_v2_submodule_state(d, submodule_token);
@@ -2049,6 +2075,19 @@ static void wt_porcelain_v2_print_changed_entry(
 	key[0] = d->index_status ? d->index_status : '.';
 	key[1] = d->worktree_status ? d->worktree_status : '.';
 	key[2] = 0;
+
+	if (d->head_path && d->worktree_path)
+		die("BUG: to be addressed in the next patch");
+
+	if (d->head_path) {
+		path_other = d->head_path;
+		status_other = d->index_status;
+		score = d->head_score;
+	} else if (d->worktree_path) {
+		path_other = d->worktree_path;
+		status_other = d->worktree_status;
+		score = d->worktree_score;
+	}
 
 	if (s->null_termination) {
 		/*
@@ -2058,7 +2097,6 @@ static void wt_porcelain_v2_print_changed_entry(
 		sep_char = '\0';
 		eol_char = '\0';
 		path_index = it->string;
-		path_head = d->head_path;
 	} else {
 		/*
 		 * Path(s) are C-quoted if necessary. Current path is ALWAYS first.
@@ -2069,17 +2107,17 @@ static void wt_porcelain_v2_print_changed_entry(
 		sep_char = '\t';
 		eol_char = '\n';
 		path_index = quote_path(it->string, s->prefix, &buf_index);
-		if (d->head_path)
-			path_head = quote_path(d->head_path, s->prefix, &buf_head);
+		if (path_other)
+			path_other = quote_path(path_other, s->prefix, &buf_other);
 	}
 
-	if (path_head)
+	if (path_other)
 		fprintf(s->fp, "2 %s %s %06o %06o %06o %s %s %c%d %s%c%s%c",
 				key, submodule_token,
 				d->mode_head, d->mode_index, d->mode_worktree,
 				oid_to_hex(&d->oid_head), oid_to_hex(&d->oid_index),
-				key[0], d->head_score,
-				path_index, sep_char, path_head, eol_char);
+				status_other, score,
+				path_index, sep_char, path_other, eol_char);
 	else
 		fprintf(s->fp, "1 %s %s %06o %06o %06o %s %s %s%c",
 				key, submodule_token,
@@ -2088,7 +2126,7 @@ static void wt_porcelain_v2_print_changed_entry(
 				path_index, eol_char);
 
 	strbuf_release(&buf_index);
-	strbuf_release(&buf_head);
+	strbuf_release(&buf_other);
 }
 
 /*
