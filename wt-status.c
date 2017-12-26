@@ -419,6 +419,47 @@ static char short_submodule_status(struct wt_status_change_data *d)
 	return d->worktree_status;
 }
 
+static struct string_list_item * break_double_rename(
+		struct wt_status *s, struct string_list_item *it,
+		int *status, struct diff_filepair *p)
+{
+	struct wt_status_change_data *d;
+	struct string_list_item *new_it;
+
+	d = it->util;
+	/*
+	 * _collect_index_changes() must have been called or
+	 * d->head_path does not contain a real value.
+	 */
+	if (!d || !d->head_path)
+		return it;
+
+	switch (s->status_format) {
+	case STATUS_FORMAT_SHORT:
+	case STATUS_FORMAT_PORCELAIN:
+	case STATUS_FORMAT_PORCELAIN_V2:
+		break;
+	case STATUS_FORMAT_LONG:
+	case STATUS_FORMAT_NONE:
+		/* this output can handle double renames ok */
+		return it;
+	default:
+		die("BUG: finalize_deferred_config() should have been called");
+	}
+
+	switch (*status) {
+	case DIFF_STATUS_RENAMED:
+		d->worktree_status = DIFF_STATUS_DELETED;
+		/* fallthru */
+	case DIFF_STATUS_COPIED:
+		*status = DIFF_STATUS_ADDED;
+		new_it = string_list_insert(&s->change, p->two->path);
+		return new_it;
+	}
+
+	return it;
+}
+
 static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 					 struct diff_options *options,
 					 void *data)
@@ -433,16 +474,19 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 		struct diff_filepair *p;
 		struct string_list_item *it;
 		struct wt_status_change_data *d;
+		int status;
 
 		p = q->queue[i];
+		status = p->status;
 		it = string_list_insert(&s->change, p->one->path);
+		it = break_double_rename(s, it, &status, p);
 		d = it->util;
 		if (!d) {
 			d = xcalloc(1, sizeof(*d));
 			it->util = d;
 		}
 		if (!d->worktree_status)
-			d->worktree_status = p->status;
+			d->worktree_status = status;
 		if (S_ISGITLINK(p->two->mode)) {
 			d->dirty_submodule = p->two->dirty_submodule;
 			d->new_submodule_commits = !!oidcmp(&p->one->oid,
@@ -451,7 +495,7 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 				d->worktree_status = short_submodule_status(d);
 		}
 
-		switch (p->status) {
+		switch (status) {
 		case DIFF_STATUS_ADDED:
 			d->mode_worktree = p->two->mode;
 			break;
@@ -477,7 +521,7 @@ static void wt_status_collect_changed_cb(struct diff_queue_struct *q,
 			break;
 
 		default:
-			die("BUG: unhandled diff-files status '%c'", p->status);
+			die("BUG: unhandled diff-files status '%c'", status);
 			break;
 		}
 
@@ -710,12 +754,12 @@ static void wt_status_collect_untracked(struct wt_status *s)
 
 void wt_status_collect(struct wt_status *s)
 {
-	wt_status_collect_changes_worktree(s);
-
 	if (s->is_initial)
 		wt_status_collect_changes_initial(s);
 	else
+		/* must be called before _collect_changes_worktree() */
 		wt_status_collect_changes_index(s);
+	wt_status_collect_changes_worktree(s);
 	wt_status_collect_untracked(s);
 }
 
@@ -1733,7 +1777,7 @@ static void wt_shortstatus_status(struct string_list_item *it,
 	putchar(' ');
 
 	if (d->head_path && d->worktree_path)
-		die("BUG: to be addressed in the next patch");
+		die("BUG: break_double_rename() fails to break this pair");
 
 	if (d->head_path) {
 		from = d->head_path;
@@ -2077,7 +2121,7 @@ static void wt_porcelain_v2_print_changed_entry(
 	key[2] = 0;
 
 	if (d->head_path && d->worktree_path)
-		die("BUG: to be addressed in the next patch");
+		die("BUG: break_double_rename() fails to break this pair");
 
 	if (d->head_path) {
 		path_other = d->head_path;

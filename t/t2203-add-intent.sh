@@ -190,5 +190,38 @@ test_expect_success 'rename detection finds the right names' '
 	)
 '
 
+test_expect_success 'double rename detection in status' '
+	git init rename-detection-2 &&
+	(
+		cd rename-detection-2 &&
+		echo contents > first &&
+		git add first &&
+		git commit -m first &&
+		git mv first second &&
+		mv second third &&
+		git add -N third &&
+
+		git status | grep -v "^?" >actual.1 &&
+		test_i18ngrep "renamed: *first -> second" actual.1 &&
+		test_i18ngrep "renamed: *second -> third" actual.1 &&
+
+
+		git status --porcelain | grep -v "^?" >actual.2 &&
+		cat >expected.2 <<-\EOF &&
+		RD first -> second
+		 A third
+		EOF
+		test_cmp expected.2 actual.2 &&
+
+		oid=12f00e90b6ef79117ce6e650416b8cf517099b78 &&
+		git status --porcelain=v2 | grep -v "^?" >actual.3 &&
+		cat >expected.3 <<-EOF &&
+		2 RD N... 100644 100644 000000 $oid $oid R100 second	first
+		1 .A N... 000000 000000 100644 $_z40 $_z40 third
+		EOF
+		test_cmp expected.3 actual.3
+	)
+'
+
 test_done
 
