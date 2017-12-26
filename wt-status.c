@@ -532,7 +532,7 @@ static void wt_status_collect_updated_cb(struct diff_queue_struct *q,
 		case DIFF_STATUS_COPIED:
 		case DIFF_STATUS_RENAMED:
 			d->head_path = xstrdup(p->one->path);
-			d->score = p->score * 100 / MAX_SCORE;
+			d->head_score = p->score * 100 / MAX_SCORE;
 			/* fallthru */
 		case DIFF_STATUS_MODIFIED:
 		case DIFF_STATUS_TYPE_CHANGED:
@@ -2074,7 +2074,7 @@ static void wt_porcelain_v2_print_changed_entry(
 				key, submodule_token,
 				d->mode_head, d->mode_index, d->mode_worktree,
 				oid_to_hex(&d->oid_head), oid_to_hex(&d->oid_index),
-				key[0], d->score,
+				key[0], d->head_score,
 				path_index, sep_char, path_head, eol_char);
 	else
 		fprintf(s->fp, "1 %s %s %06o %06o %06o %s %s %s%c",
