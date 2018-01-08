@@ -173,6 +173,53 @@ test_expect_success 'status.aheadbehind=false status -s -b (diverged from upstre
 '
 
 cat >expect <<\EOF
+On branch b1
+Your branch and 'origin/master' have diverged,
+and have 1 and 1 different commits each, respectively.
+EOF
+
+test_expect_success 'status --long --branch' '
+	(
+		cd test &&
+		git checkout b1 >/dev/null &&
+		git status --long -b | head -3
+	) >actual &&
+	test_i18ncmp expect actual
+'
+
+test_expect_success 'status --long --branch' '
+	(
+		cd test &&
+		git checkout b1 >/dev/null &&
+		git -c status.aheadbehind=true status --long -b | head -3
+	) >actual &&
+	test_i18ncmp expect actual
+'
+
+cat >expect <<\EOF
+On branch b1
+Your branch and 'origin/master' refer to different commits.
+EOF
+
+test_expect_success 'status --long --branch --no-ahead-behind' '
+	(
+		cd test &&
+		git checkout b1 >/dev/null &&
+		git status --long -b --no-ahead-behind | head -2
+	) >actual &&
+	test_i18ncmp expect actual
+'
+
+test_expect_success 'status.aheadbehind=false status --long --branch' '
+	(
+		cd test &&
+		git checkout b1 >/dev/null &&
+		git -c status.aheadbehind=false status --long -b | head -2
+	) >actual &&
+	test_i18ncmp expect actual
+'
+
+cat >expect <<\EOF
 ## b5...brokenbase [gone]
 EOF
 
