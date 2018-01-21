@@ -411,13 +411,21 @@ static int add(int ac, const char **av, const char *prefix)
 	if (ac < 2 && !opts.new_branch && !opts.detach) {
 		int n;
 		const char *s = worktree_basename(path, &n);
-		opts.new_branch = xstrndup(s, n);
-		if (guess_remote) {
-			struct object_id oid;
-			const char *remote =
-				unique_tracking_name(opts.new_branch, &oid);
-			if (remote)
-				branch = remote;
+		const char *branchname = xstrndup(s, n);
+		struct strbuf ref = STRBUF_INIT;
+		if (!strbuf_check_branch_ref(&ref, branchname) &&
+		    ref_exists(ref.buf)) {
+			branch = branchname;
+			opts.checkout = 1;
+		} else {
+			opts.new_branch = branchname;
+			if (guess_remote) {
+				struct object_id oid;
+				const char *remote =
+					unique_tracking_name(opts.new_branch, &oid);
+				if (remote)
+					branch = remote;
+			}
 		}
 	}
 
