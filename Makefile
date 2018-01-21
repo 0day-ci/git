@@ -429,6 +429,10 @@ all::
 # running the test scripts (e.g., bash has better support for "set -x"
 # tracing).
 #
+# Define TAR_EXTRACT_OPTIONS if you want to change the default behaviour
+# from xvf to something else during installation. The option only includes
+# "o" as xf are required.
+#
 # When cross-compiling, define HOST_CPU as the canonical name of the CPU on
 # which the built Git will run (for instance "x86_64").
 
@@ -452,6 +456,7 @@ LDFLAGS =
 ALL_CFLAGS = $(CPPFLAGS) $(CFLAGS)
 ALL_LDFLAGS = $(LDFLAGS)
 STRIP ?= strip
+TAR_EXTRACT_OPTIONS = o
 
 # Create as necessary, replace existing, make ranlib unneeded.
 ARFLAGS = rcs
@@ -2569,7 +2574,7 @@ install: all
 ifndef NO_GETTEXT
 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(localedir_SQ)'
 	(cd po/build/locale && $(TAR) cf - .) | \
-	(cd '$(DESTDIR_SQ)$(localedir_SQ)' && umask 022 && $(TAR) xof -)
+	(cd '$(DESTDIR_SQ)$(localedir_SQ)' && umask 022 && $(TAR) x$(TAR_EXTRACT_OPTIONS)f -)
 endif
 ifndef NO_PERL
 	$(MAKE) -C perl prefix='$(prefix_SQ)' DESTDIR='$(DESTDIR_SQ)' install
