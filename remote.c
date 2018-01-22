@@ -2123,9 +2123,9 @@ int format_tracking_info(struct branch *branch, struct strbuf *sb)
 				_("  (use \"git push\" to publish your local commits)\n"));
 	} else if (!ours) {
 		strbuf_addf(sb,
-			Q_("Your branch is behind '%s' by %d commit, "
+			Q_("Your branch is behind '%s' by %d commit "
 			       "and can be fast-forwarded.\n",
-			   "Your branch is behind '%s' by %d commits, "
+			   "Your branch is behind '%s' by %d commits "
 			       "and can be fast-forwarded.\n",
 			   theirs),
 			base, theirs);
@@ -2134,11 +2134,11 @@ int format_tracking_info(struct branch *branch, struct strbuf *sb)
 				_("  (use \"git pull\" to update your local branch)\n"));
 	} else {
 		strbuf_addf(sb,
-			Q_("Your branch and '%s' have diverged,\n"
-			       "and have %d and %d different commit each, "
+			Q_("Your branch and '%s' have diverged.\n"
+			       "They have %d and %d different commit each, "
 			       "respectively.\n",
-			   "Your branch and '%s' have diverged,\n"
-			       "and have %d and %d different commits each, "
+			   "Your branch and '%s' have diverged.\n"
+			       "They have %d and %d different commits each, "
 			       "respectively.\n",
 			   ours + theirs),
 			base, ours, theirs);
